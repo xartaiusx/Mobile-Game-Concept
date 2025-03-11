@@ -10,10 +10,12 @@ public class CharacterSelection : MonoBehaviour
 {
     private const string GAME_SCENE = "World";
     public List<Button> classButtons;
-    private Dictionary<string, Button> classButtonMap = new Dictionary<string, Button>();
+    private Dictionary<string, Button> classButtonMap;
 
     void Start()
     {
+        classButtonMap = new Dictionary<string, Button>();
+
         if (classButtons == null || classButtons.Count == 0)
         {
             Debug.LogError("No class buttons assigned in the Inspector.");
@@ -30,13 +32,23 @@ public class CharacterSelection : MonoBehaviour
 
             string className = button.name;
             classButtonMap[className] = button;
-            button.onClick.AddListener(() => SelectClass(className));
+            
+            string capturedClassName = className; // Capture className in a local variable to prevent issues with closures
+            button.onClick.AddListener(() => SelectClass(capturedClassName));
         }
     }
 
     void SelectClass(string className)
     {
         PlayerPrefs.SetString("SelectedClass", className);
-        SceneManager.LoadScene(GAME_SCENE);
+        
+        if (Application.CanStreamedLevelBeLoaded(GAME_SCENE))
+        {
+            SceneManager.LoadScene(GAME_SCENE);
+        }
+        else
+        {
+            Debug.LogError($"Scene '{GAME_SCENE}' could not be loaded. Ensure it is added to the build settings.");
+        }
     }
 }
