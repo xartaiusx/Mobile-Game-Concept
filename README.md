@@ -1,6 +1,6 @@
 Mobile Game Concept
 
-A Unity-based action RPG prototype for mobile, featuring class-based characters, AI-driven enemies, loot systems, and modular gameplay systems. Built as both a vertical slice prototype and a foundation for full-scale development.
+A Unity-based rhythm-action RPG prototype for mobile, featuring class-based characters, AI-driven enemies, loot systems, and modular gameplay systems. Built as both a vertical slice prototype and a foundation for full-scale development.
 
 
 ---
