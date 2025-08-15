@@ -1,32 +1,32 @@
 Mobile Game Concept
 
-A Unity-based rhythm-action RPG prototype for mobile, featuring class-based characters, AI-driven enemies, loot systems, and modular gameplay systems. Built as both a vertical slice prototype and a foundation for full-scale development.
+A Unity-based rhythm-action RPG prototype for mobile, combining class-based combat, enemy AI, loot systems, and modular gameplay architecture. Players choose from unique classes, face waves of enemies and bosses, and collect loot, all while syncing their attacks, dodges, and abilities to the beat of the soundtrack for enhanced effects and combos. The result is fast-paced, music-driven combat that rewards timing, positioning, and precision.
 
 
 ---
 
 📜 Overview
 
-This project is a mobile-friendly 3D action RPG where players choose from multiple unique classes, battle melee and ranged enemies, face boss encounters, and collect loot to enhance their abilities. The architecture is modular, making it easy to expand, optimize, or repurpose for other genres.
+This project is a mobile-friendly 3D action RPG where rhythm drives the battle flow. Each successful on-beat input increases damage, reduces cooldowns, or triggers bonus effects. The architecture is designed for modularity, enabling easy expansion into a full game or adaptation for other timing-based combat systems.
 
 
 ---
 
 🎮 Gameplay Features
 
-Class Selection — Fighter, Mage, Archer, and Healer with unique stats and playstyles.
+Rhythm-Based Combat — Attack, dodge, and unleash abilities in sync with the music to amplify their effects.
 
-Player Movement & Combat — Third-person camera-aligned movement with melee attacks and optional ranged combat.
+Class Selection — Fighter, Mage, Archer, and Healer with unique stats and combat styles.
 
-Enemy AI — Melee chasers, ranged attackers, and bosses with configurable attack patterns.
+Boss Encounters — Melee and ranged bosses with configurable attack phases and patterns.
 
-Boss Encounters — Supports melee and burst-ranged modes, with cooldowns and special attacks.
+Enemy AI — Melee chasers, ranged attackers, and rhythm-aware bosses.
 
-Loot & Inventory — Randomized loot drops, stacking items, rarity tiers, and inventory capacity limits.
+Loot & Inventory — Randomized loot drops, item stacking, rarity tiers, and inventory limits.
 
-Spawner System — Configurable enemy spawner with maximum active enemy limits.
+Spawner System — Configurable spawner with max active enemy caps.
 
-Extensible Architecture — Base classes and interfaces encourage modularity and clean expansion.
+Extensible Architecture — Base classes, clean interfaces, and modular systems for easy iteration.
 
 
 
@@ -42,18 +42,18 @@ Target Platform: Mobile (iOS & Android)
 
 Architecture:
 
-Game.Core namespace for all core scripts
+Game.Core namespace for core scripts
 
-Base class hierarchies for characters and enemies
+Base hierarchies for characters and enemies
 
-Modular subsystems (Inventory, Loot, Spawning)
+Modular subsystems for inventory, loot, and spawning
 
 
 Input:
 
 Defaults to Unity's legacy Input Manager (Horizontal, Vertical, Jump, Fire1)
 
-Compatible with Unity’s new Input System with minor changes
+Adaptable to Unity’s new Input System
 
 
 
@@ -128,19 +128,19 @@ Assign enemy prefabs and adjust spawn settings.
 
 🔮 Planned Features
 
-Skill Trees for each class.
+Expanded Rhythm Mechanics — Chain combos, parries, and ultimates triggered on-beat.
 
-Equipment System with weapon and armor stats.
+Skill Trees for each class with rhythm-based buffs.
 
-Quest System with narrative progression.
+Equipment System with beat-synergized weapon effects.
 
-Procedural Level Generation for replayability.
+Quest System for progression and narrative.
 
-Co-op Multiplayer boss battles.
+Procedural Levels for replayability.
 
-Polished Cinemachine Cameras.
+Cinemachine Camera for dynamic action framing.
 
-Object Pooling for performance.
+Multiplayer Co-op for synchronized boss fights.
 
 
 
@@ -150,7 +150,7 @@ Object Pooling for performance.
 
 Phase 1 — Vertical Slice (Current)
 
-✅ Playable classes with movement and combat.
+✅ Playable classes with movement, combat, and rhythm hooks.
 
 ✅ Enemy AI for melee, ranged, and bosses.
 
@@ -161,18 +161,18 @@ Phase 1 — Vertical Slice (Current)
 
 Phase 2 — Core Expansion
 
-⏳ Add skill trees and class progression.
+⏳ Add skill trees and rhythm combo systems.
 
-⏳ Implement equipment and gear upgrades.
+⏳ Implement equipment with rhythm effects.
 
-⏳ Improve boss mechanics with phase changes.
+⏳ Enhance boss mechanics with rhythm-triggered phases.
 
 
 Phase 3 — Content & Optimization
 
-⏳ Expand environments and enemy variety.
+⏳ Expand environments and enemy types.
 
-⏳ Optimize for mobile with object pooling and addressable assets.
+⏳ Optimize for mobile with object pooling and addressables.
 
 ⏳ Add co-op multiplayer support.
 
@@ -182,7 +182,7 @@ Phase 3 — Content & Optimization
 
 🤝 Contributing Guidelines
 
-We welcome contributions! Here’s how to help:
+We welcome contributions!
 
 1. Fork the repository and clone it locally.
 
@@ -192,20 +192,20 @@ We welcome contributions! Here’s how to help:
 git checkout -b feature/your-feature-name
 
 
-3. Make changes that follow Unity C# best practices:
+3. Follow Unity C# best practices:
 
 Use [SerializeField] for private fields needing inspector access.
 
-Keep scripts modular and avoid hardcoding values where ScriptableObjects are better.
+Keep systems modular and data-driven.
 
 
 
-4. Test your changes in a new scene or with prefabs before committing.
+4. Test changes in a separate scene before committing.
 
 
 5. Commit with a descriptive message:
 
-git commit -m "Add new boss ranged attack pattern"
+git commit -m "Add rhythm-based combo attack for Fighter"
 
 
 6. Push and submit a Pull Request.
@@ -217,4 +217,4 @@ git commit -m "Add new boss ranged attack pattern"
 
 📄 License
 
-This project is released under the MIT License — you are free to use, modify, and distribute it with attribution.
+This project is released under the MIT License — free to use, modify, and distribute with attribution.
