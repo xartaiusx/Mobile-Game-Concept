@@ -1,0 +1,33 @@
+using UnityEngine;
+
+namespace Game.Rhythm
+{
+    [CreateAssetMenu(menuName = "Game/Rhythm/RhythmConfig")]
+    public class RhythmConfig : ScriptableObject
+    {
+        [Header("Global Music Timing")]
+        [Tooltip("Beats per minute of the current track.")]
+        public float bpm = 120f;
+
+        [Tooltip("Offset in seconds from track start to first beat. Use this to align visuals with audio.")]
+        public double dspOffsetSeconds = 0.0;
+
+        [Header("Judgement Windows (seconds)")]
+        [Tooltip("Perfect window half width. Input within ± this time is Perfect.")]
+        public float perfectWindow = 0.050f;
+
+        [Tooltip("Good window half width. Input within ± this time is Good when not Perfect.")]
+        public float goodWindow = 0.100f;
+
+        [Header("Multipliers and Bonuses")]
+        public float perfectDamageMultiplier = 1.5f;
+        public float goodDamageMultiplier = 1.15f;
+        public float missDamageMultiplier = 0.75f;
+
+        [Tooltip("Cooldown refund percent on Perfect. 0.2 means 20 percent.")]
+        [Range(0f, 1f)] public float perfectCooldownRefund = 0.2f;
+
+        [Tooltip("Cooldown refund percent on Good.")]
+        [Range(0f, 1f)] public float goodCooldownRefund = 0.1f;
+    }
+}
