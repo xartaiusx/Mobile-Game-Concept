@@ -1,0 +1,262 @@
+using Game.Combat;
+using Game.Core;
+using Game.Rhythm;
+using UnityEngine;
+using UnityEngine.UI;
+
+namespace Game.UI
+{
+    public class VerticalSliceHud : MonoBehaviour
+    {
+        [Header("References")]
+        [SerializeField] private ComboSystem comboSystem;
+        [SerializeField] private AbilityController abilityController;
+        [SerializeField] private DodgeController dodgeController;
+        [SerializeField] private ParryController parryController;
+        [SerializeField] private BossTelegraphController bossTelegraphController;
+        [SerializeField] private BaseCharacter playerCharacter;
+
+        [Header("Text")]
+        [SerializeField] private Text feedbackText;
+        [SerializeField] private Text comboText;
+        [SerializeField] private Text abilityText;
+        [SerializeField] private Text dodgeText;
+        [SerializeField] private Text parryText;
+        [SerializeField] private Text bossText;
+        [SerializeField] private Text debugText;
+        [SerializeField] private bool showDebugOverlay = true;
+
+        private RhythmGrade lastGrade = RhythmGrade.Miss;
+        private string lastFeedback = "Ready";
+
+        private void OnEnable()
+        {
+            ResolveReferences();
+            Subscribe();
+            RefreshStaticText();
+        }
+
+        private void OnDisable()
+        {
+            Unsubscribe();
+        }
+
+        private void Update()
+        {
+            if (comboText != null)
+                comboText.text = "Combo: " + (comboSystem != null ? comboSystem.CurrentComboCount.ToString() : "0");
+
+            if (abilityText != null)
+                abilityText.text = FormatAbilityText();
+
+            if (dodgeText != null)
+                dodgeText.text = "Dodge: " + FormatCooldown(dodgeController != null ? dodgeController.CooldownRemaining : 0f) + (dodgeController != null && dodgeController.IsInvulnerable ? "  INV" : string.Empty);
+
+            if (parryText != null)
+                parryText.text = "Parry: " + FormatCooldown(parryController != null ? parryController.CooldownRemaining : 0f) + (parryController != null && parryController.IsParrying ? "  ACTIVE" : string.Empty);
+
+            if (bossText != null && bossTelegraphController != null && bossTelegraphController.IsTelegraphing)
+                bossText.text = "Boss: " + bossTelegraphController.ActiveTelegraph.displayName + " in " + bossTelegraphController.RemainingBeats + " beats";
+            else if (bossText != null)
+                bossText.text = "Boss: watching";
+
+            if (debugText != null)
+            {
+                debugText.gameObject.SetActive(showDebugOverlay);
+                if (showDebugOverlay)
+                    debugText.text = FormatDebugText();
+            }
+        }
+
+        public void BindPlayer(GameObject player)
+        {
+            if (player == null) return;
+            comboSystem = player.GetComponent<ComboSystem>();
+            abilityController = player.GetComponent<AbilityController>();
+            dodgeController = player.GetComponent<DodgeController>();
+            parryController = player.GetComponent<ParryController>();
+            playerCharacter = player.GetComponent<BaseCharacter>();
+        }
+
+        private void ResolveReferences()
+        {
+            if (comboSystem == null || abilityController == null || dodgeController == null || parryController == null || playerCharacter == null)
+            {
+                GameObject player = GameObject.FindGameObjectWithTag("Player");
+                if (player != null)
+                    BindPlayer(player);
+            }
+
+            if (bossTelegraphController == null)
+                bossTelegraphController = FindAnyObjectByType<BossTelegraphController>();
+        }
+
+        private void Subscribe()
+        {
+            if (comboSystem != null)
+            {
+                comboSystem.ComboStepResolved += HandleComboStep;
+                comboSystem.DamageDealt += HandleDamageDealt;
+                comboSystem.ComboReset += HandleComboReset;
+            }
+
+            if (abilityController != null)
+            {
+                abilityController.AbilityResolved += HandleAbilityResolved;
+                abilityController.AbilityEffectApplied += HandleAbilityEffectApplied;
+            }
+
+            if (dodgeController != null)
+                dodgeController.DodgeResolved += HandleDodgeResolved;
+
+            if (parryController != null)
+            {
+                parryController.ParryResolved += HandleParryResolved;
+                parryController.ParrySucceeded += HandleParrySucceeded;
+            }
+
+            if (bossTelegraphController != null)
+            {
+                bossTelegraphController.TelegraphStarted += HandleTelegraphStarted;
+                bossTelegraphController.TelegraphBeat += HandleTelegraphBeat;
+                bossTelegraphController.TelegraphImpacted += HandleTelegraphImpact;
+            }
+        }
+
+        private void Unsubscribe()
+        {
+            if (comboSystem != null)
+            {
+                comboSystem.ComboStepResolved -= HandleComboStep;
+                comboSystem.DamageDealt -= HandleDamageDealt;
+                comboSystem.ComboReset -= HandleComboReset;
+            }
+
+            if (abilityController != null)
+            {
+                abilityController.AbilityResolved -= HandleAbilityResolved;
+                abilityController.AbilityEffectApplied -= HandleAbilityEffectApplied;
+            }
+
+            if (dodgeController != null)
+                dodgeController.DodgeResolved -= HandleDodgeResolved;
+
+            if (parryController != null)
+            {
+                parryController.ParryResolved -= HandleParryResolved;
+                parryController.ParrySucceeded -= HandleParrySucceeded;
+            }
+
+            if (bossTelegraphController != null)
+            {
+                bossTelegraphController.TelegraphStarted -= HandleTelegraphStarted;
+                bossTelegraphController.TelegraphBeat -= HandleTelegraphBeat;
+                bossTelegraphController.TelegraphImpacted -= HandleTelegraphImpact;
+            }
+        }
+
+        private void RefreshStaticText()
+        {
+            if (feedbackText != null)
+                feedbackText.text = lastFeedback;
+        }
+
+        private void HandleComboStep(int step, RhythmGrade grade, int damage)
+        {
+            lastGrade = grade;
+            lastFeedback = grade + " attack  " + damage;
+            if (feedbackText != null)
+                feedbackText.text = lastFeedback;
+        }
+
+        private void HandleDamageDealt(int step, RhythmGrade grade, int damage, BaseEnemy enemy)
+        {
+            lastGrade = grade;
+            lastFeedback = grade + " hit  " + damage;
+            if (feedbackText != null)
+                feedbackText.text = lastFeedback;
+        }
+
+        private void HandleComboReset()
+        {
+            if (feedbackText != null)
+                feedbackText.text = "Combo reset";
+        }
+
+        private void HandleAbilityResolved(AbilityDefinition ability, RhythmGrade grade, float cooldown)
+        {
+            lastGrade = grade;
+            if (feedbackText != null)
+                feedbackText.text = grade + " " + ability.displayName;
+        }
+
+        private void HandleAbilityEffectApplied(AbilityDefinition ability, RhythmGrade grade, int amount)
+        {
+            lastGrade = grade;
+            if (feedbackText != null)
+                feedbackText.text = grade + " " + ability.displayName + "  " + amount;
+        }
+
+        private void HandleDodgeResolved(RhythmGrade grade, float cooldown, float invulnerability)
+        {
+            lastGrade = grade;
+            if (feedbackText != null)
+                feedbackText.text = grade + " dodge";
+        }
+
+        private void HandleParryResolved(RhythmGrade grade, float cooldown, float activeWindow)
+        {
+            lastGrade = grade;
+            if (feedbackText != null)
+                feedbackText.text = grade + " parry";
+        }
+
+        private void HandleParrySucceeded(DamageContext context)
+        {
+            if (feedbackText != null)
+                feedbackText.text = "Parried " + context.amount;
+        }
+
+        private void HandleTelegraphStarted(BossTelegraphData data, int beats, Vector3 point)
+        {
+            if (bossText != null)
+                bossText.text = "Boss: " + data.displayName + " in " + beats + " beats";
+        }
+
+        private void HandleTelegraphBeat(BossTelegraphData data, int beats)
+        {
+            if (bossText != null)
+                bossText.text = "Boss: " + data.displayName + " in " + Mathf.Max(0, beats) + " beats";
+        }
+
+        private void HandleTelegraphImpact(BossTelegraphData data, Vector3 point)
+        {
+            if (bossText != null)
+                bossText.text = "Boss: impact";
+        }
+
+        private string FormatAbilityText()
+        {
+            if (abilityController == null || abilityController.Abilities == null || abilityController.Abilities.Length == 0 || abilityController.Abilities[0] == null)
+                return "Ability: none";
+
+            float remaining = abilityController.GetCooldownRemaining(0);
+            string status = remaining <= 0f ? "Ready" : remaining.ToString("0.0") + "s";
+            return "Ability: " + abilityController.Abilities[0].displayName + "  " + status;
+        }
+
+        private static string FormatCooldown(float remaining)
+        {
+            return remaining <= 0f ? "Ready" : remaining.ToString("0.0") + "s";
+        }
+
+        private string FormatDebugText()
+        {
+            BeatClock clock = BeatClock.Instance;
+            int enemyCount = FindObjectsByType<BaseEnemy>(FindObjectsInactive.Exclude).Length;
+            string beat = clock != null ? clock.CurrentBeatIndex + " / " + clock.CurrentPhase.ToString("0.00") : "none";
+            string hp = playerCharacter != null ? playerCharacter.CurrentHealth + "/" + playerCharacter.MaxHealth : "n/a";
+            return "BPM 120\nBeat " + beat + "\nLast " + lastGrade + "\nHP " + hp + "\nEnemies " + enemyCount;
+        }
+    }
+}

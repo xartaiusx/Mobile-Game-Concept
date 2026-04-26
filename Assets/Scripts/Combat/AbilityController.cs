@@ -1,5 +1,6 @@
 using Game.Core;
 using Game.Rhythm;
+using System;
 using UnityEngine;
 
 namespace Game.Combat
@@ -22,6 +23,9 @@ namespace Game.Combat
         private Collider[] hitCache;
         private BaseCharacter owner;
         private int pendingAbilityIndex = -1;
+
+        public event Action<AbilityDefinition, RhythmGrade, float> AbilityResolved;
+        public event Action<AbilityDefinition, RhythmGrade, int> AbilityEffectApplied;
 
         public AbilityDefinition[] Abilities => abilities;
         public int PendingAbilityIndex => pendingAbilityIndex;
@@ -85,6 +89,20 @@ namespace Game.Combat
                 && cooldowns[index] <= 0f;
         }
 
+        public float GetCooldownRemaining(int index)
+        {
+            if (cooldowns == null || index < 0 || index >= cooldowns.Length)
+                return 0f;
+            return Mathf.Max(0f, cooldowns[index]);
+        }
+
+        public float GetCooldownDuration(int index)
+        {
+            if (abilities == null || index < 0 || index >= abilities.Length || abilities[index] == null)
+                return 0f;
+            return Mathf.Max(0f, abilities[index].cooldown);
+        }
+
         public void ResolveAbilityForTests(int index, RhythmGrade grade)
         {
             if (!CanRequest(index)) return;
@@ -103,6 +121,7 @@ namespace Game.Combat
             AbilityDefinition ability = abilities[pendingAbilityIndex];
             ApplyAbility(ability, grade);
             cooldowns[pendingAbilityIndex] = ability.EffectiveCooldown(grade);
+            AbilityResolved?.Invoke(ability, grade, cooldowns[pendingAbilityIndex]);
             pendingAbilityIndex = -1;
         }
 
@@ -126,7 +145,10 @@ namespace Game.Combat
         {
             int amount = ability.ScaledHealing(grade);
             if (owner != null)
+            {
                 owner.Heal(amount);
+                AbilityEffectApplied?.Invoke(ability, grade, amount);
+            }
         }
 
         private void ApplyDamageOrUtility(AbilityDefinition ability, RhythmGrade grade)
@@ -171,7 +193,10 @@ namespace Game.Combat
 
                 var enemy = hit.GetComponent<BaseEnemy>();
                 if (enemy != null)
+                {
                     enemy.TakeDamage(new DamageContext(gameObject, damage, DamageType.Rhythm, grade, true));
+                    AbilityEffectApplied?.Invoke(ability, grade, damage);
+                }
             }
         }
 

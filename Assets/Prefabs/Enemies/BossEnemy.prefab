@@ -180,18 +180,18 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Game.Core.BossEnemy
   enemyName: Enemy
-  maxHealth: 25
-  health: 25
-  attackDamage: 5
-  attackInterval: 1.5
-  moveSpeed: 3
+  maxHealth: 90
+  health: 90
+  attackDamage: 6
+  attackInterval: 2.5
+  moveSpeed: 1.4
   invulnerabilityDuration: 0.15
-  attackRange: 12
-  chaseRange: 20
+  attackRange: 15
+  chaseRange: 18
   projectilePrefab: {fileID: 3439621045551425630, guid: 83c07bfda74bded02a740b7dd330191b, type: 3}
   projectilePool: {fileID: 8937953102448140470}
   projectileSpeed: 15
-  specialAttackCooldown: 10
+  specialAttackCooldown: 5
   attackMode: 0
   burstCount: 1
   burstInterval: 0.2

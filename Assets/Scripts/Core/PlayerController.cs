@@ -18,6 +18,7 @@ namespace Game.Core
         [SerializeField] private float gravity = -20f;
         [SerializeField] private Transform cameraTransform;
         [SerializeField] private float cameraFollowSpeed = 5f;
+        [SerializeField] private bool driveCameraDirectly;
         [SerializeField] private InputBuffer attackBuffer;
 
         private CharacterController controller;
@@ -53,7 +54,8 @@ namespace Game.Core
             ReadInput();
             HandleMovement();
             HandleCombatInput();
-            HandleCameraFollow();
+            if (driveCameraDirectly)
+                HandleCameraFollow();
         }
 
         private void ReadInput()

@@ -11,12 +11,24 @@ Use `Game > Vertical Slice > Create Or Refresh Vertical Slice` in the Unity Edit
 The generated setup includes:
 
 - `PlayerManager`, `GameManager`, and a rhythm system object.
-- A ground plane, camera, and directional light.
+- A small primitive arena with boundary walls, follow camera, and directional light.
 - Default `RhythmConfig`, `ComboProfile`, class ability assets, boss telegraph data, and item assets under `Assets/ScriptableObjects`.
 - Player prefabs for Fighter, Mage, Archer, and Healer under `Assets/Prefabs/Player`.
 - Melee, ranged, and boss prefabs under `Assets/Prefabs/Enemies`.
 - A pooled projectile prefab under `Assets/Prefabs/Projectiles`.
-- A scene Fighter player, melee enemy, ranged enemy, boss, and basic enemy spawner.
+- A scene Fighter player, melee enemy, ranged enemy, boss, basic enemy spawner, and readable rhythm-combat HUD.
+
+## Vertical Slice UI
+
+The scene includes `Assets/Prefabs/UI/VerticalSliceHUD.prefab`, backed by `BeatBarUI` and `VerticalSliceHud`.
+
+- Beat bar: shows beat phase with a center timing window.
+- Feedback text: reports `Perfect`, `Good`, or `Miss` results from attacks, abilities, dodges, and parries.
+- Combo text: shows the current combo step count.
+- Ability text: shows the first equipped ability and cooldown.
+- Dodge/parry text: shows cooldown and active/invulnerable state.
+- Boss text: shows boss telegraph countdown and impact status.
+- Debug text: optional runtime readout for beat, last grade, player health, and enemy count.
 
 ## Controls
 
@@ -78,12 +90,13 @@ PlayMode tests:
 - Boss telegraph visuals and audio cues are optional and still need authored assets.
 - No equipment UI, skill trees, addressables, Cinemachine, or multiplayer are included yet.
 - The batchmode Test Runner exits successfully in this environment but does not currently emit XML result files; use the Unity Test Runner window for detailed per-test reporting if needed.
+- The HUD uses legacy `UnityEngine.UI` placeholders; replace with final UI art/layout after combat feel is stable.
 
 ## Recommended Next Sequence
 
-1. Replace placeholder primitives with real prefabs and animator-driven attacks.
-2. Add mobile UI buttons for attack, ability, dodge, and parry.
-3. Tune one ability per class against the default rhythm windows.
-4. Add boss telegraph VFX/audio assets and phase-specific telegraph patterns.
-5. Add a small HUD for beat phase, health, cooldown, and judgement feedback.
+1. Manually play `Assets/Scenes/VerticalSlice.unity` and tune hit ranges, enemy spacing, and boss telegraph cadence.
+2. Add simple VFX/audio cues for beat hits, dodge invulnerability, parry success, and boss impact.
+3. Replace placeholder primitives with real prefabs and animator-driven attacks.
+4. Tune one ability per class against the default rhythm windows.
+5. Add mobile UI buttons for attack, ability, dodge, and parry after keyboard/controller feel is stable.
 6. Profile on Android/iOS and tune pooling, physics masks, and input latency.

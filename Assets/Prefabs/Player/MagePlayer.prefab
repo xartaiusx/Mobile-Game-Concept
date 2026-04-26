@@ -160,12 +160,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9ffb27b46513bad61816b0177f367037, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Game.Core.PlayerController
-  moveSpeed: 5
+  moveSpeed: 5.5
   rotationSpeed: 720
-  jumpHeight: 1.2
+  jumpHeight: 1.4
   gravity: -20
   cameraTransform: {fileID: 0}
   cameraFollowSpeed: 5
+  driveCameraDirectly: 0
   attackBuffer: {fileID: 3646191109730619831}
 --- !u!114 &5643275870943956929
 MonoBehaviour:
@@ -250,7 +251,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Game.Combat.ComboSystem
   profile: {fileID: 11400000, guid: 8df21e7a783a42fdc87a2871440305fa, type: 2}
   judgement: {fileID: 5643275870943956929}
-  attackRange: 1.7
+  attackRange: 2.2
   enemyMask:
     serializedVersion: 2
     m_Bits: 4294967295
@@ -294,9 +295,9 @@ MonoBehaviour:
   dodgeBuffer: {fileID: 3749727898738518391}
   characterController: {fileID: 0}
   cameraTransform: {fileID: 0}
-  distance: 3
+  distance: 3.4
   duration: 0.22
-  cooldown: 0.8
+  cooldown: 0.65
   perfectInvulnerability: 0.35
   goodInvulnerability: 0.22
   missInvulnerability: 0
@@ -316,7 +317,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Game.Combat.ParryController
   parryBuffer: {fileID: 6098224373973292308}
   activeWindow: 0.28
-  cooldown: 0.9
+  cooldown: 0.75
   goodDamageReduction: 0.5
   perfectStaggerDuration: 0.5
   readKeyboardInput: 1

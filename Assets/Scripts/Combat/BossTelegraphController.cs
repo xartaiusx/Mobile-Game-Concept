@@ -1,5 +1,6 @@
 using Game.Core;
 using Game.Rhythm;
+using System;
 using UnityEngine;
 
 namespace Game.Combat
@@ -19,8 +20,14 @@ namespace Game.Combat
         private Vector3 impactPoint;
         private GameObject warningVfxInstance;
 
+        public event Action<BossTelegraphData, int, Vector3> TelegraphStarted;
+        public event Action<BossTelegraphData, int> TelegraphBeat;
+        public event Action<BossTelegraphData, Vector3> TelegraphImpacted;
+
         public bool IsTelegraphing => activeTelegraph != null;
         public int RemainingBeats => remainingBeats;
+        public BossTelegraphData ActiveTelegraph => activeTelegraph;
+        public Vector3 ImpactPoint => impactPoint;
 
         private void Awake()
         {
@@ -67,6 +74,7 @@ namespace Game.Combat
             if (audioSource != null && telegraph.audioCue != null)
                 audioSource.PlayOneShot(telegraph.audioCue);
 
+            TelegraphStarted?.Invoke(activeTelegraph, remainingBeats, impactPoint);
             return true;
         }
 
@@ -87,6 +95,7 @@ namespace Game.Combat
             if (!IsTelegraphing) return;
 
             remainingBeats--;
+            TelegraphBeat?.Invoke(activeTelegraph, remainingBeats);
             if (remainingBeats <= 0)
                 ExecuteImpact();
         }
@@ -102,6 +111,7 @@ namespace Game.Combat
             if (telegraph.impactVfxPrefab != null)
                 Instantiate(telegraph.impactVfxPrefab, impactPoint, Quaternion.identity);
 
+            TelegraphImpacted?.Invoke(telegraph, impactPoint);
             int hitCount = QueryTargets(telegraph);
             for (int i = 0; i < hitCount; i++)
             {

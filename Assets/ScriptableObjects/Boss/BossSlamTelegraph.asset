@@ -14,10 +14,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Game.Combat.BossTelegraphData
   telegraphId: boss_slam
   displayName: Boss Slam
-  beatsBeforeImpact: 3
-  damage: 18
-  radius: 3
-  range: 6
+  beatsBeforeImpact: 4
+  damage: 12
+  radius: 3.5
+  range: 8
   attackType: 2
   warningVfxPrefab: {fileID: 0}
   impactVfxPrefab: {fileID: 0}

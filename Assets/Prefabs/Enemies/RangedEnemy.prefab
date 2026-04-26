@@ -178,15 +178,15 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Game.Core.RangedEnemy
   enemyName: Enemy
-  maxHealth: 25
-  health: 25
-  attackDamage: 5
-  attackInterval: 1.5
-  moveSpeed: 3
+  maxHealth: 20
+  health: 20
+  attackDamage: 3
+  attackInterval: 2.2
+  moveSpeed: 1.8
   invulnerabilityDuration: 0.15
-  attackRange: 10
-  chaseRange: 15
+  attackRange: 9
+  chaseRange: 14
   projectilePrefab: {fileID: 3439621045551425630, guid: 83c07bfda74bded02a740b7dd330191b, type: 3}
   projectilePool: {fileID: 3770788252275746959}
-  projectileSpeed: 10
+  projectileSpeed: 8
   currentAttackPattern: 0

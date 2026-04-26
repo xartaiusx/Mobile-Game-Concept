@@ -22,6 +22,8 @@ namespace Game.Rhythm
 
         public double CurrentDspTime => AudioSettings.dspTime;
         public double SecondsPerBeat => secondsPerBeat;
+        public int CurrentBeatIndex => beatIndex;
+        public double CurrentPhase => BeatPhase(AudioSettings.dspTime);
 
         private void Awake()
         {

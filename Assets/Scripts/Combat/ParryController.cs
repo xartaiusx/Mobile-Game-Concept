@@ -1,5 +1,6 @@
 using Game.Core;
 using Game.Rhythm;
+using System;
 using UnityEngine;
 
 namespace Game.Combat
@@ -17,6 +18,9 @@ namespace Game.Combat
         private float activeUntil;
         private float cooldownRemaining;
         private RhythmGrade currentGrade = RhythmGrade.Miss;
+
+        public event Action<RhythmGrade, float, float> ParryResolved;
+        public event Action<DamageContext> ParrySucceeded;
 
         public bool IsParrying => Time.time < activeUntil;
         public RhythmGrade CurrentGrade => currentGrade;
@@ -75,12 +79,14 @@ namespace Game.Combat
                 var enemy = context.source != null ? context.source.GetComponent<BaseEnemy>() : null;
                 if (enemy != null)
                     enemy.Stagger(perfectStaggerDuration);
+                ParrySucceeded?.Invoke(context);
                 return true;
             }
 
             if (currentGrade == RhythmGrade.Good)
             {
                 context.amount = Mathf.Max(0, Mathf.RoundToInt(context.amount * (1f - goodDamageReduction)));
+                ParrySucceeded?.Invoke(context);
                 return context.amount <= 0;
             }
 
@@ -95,6 +101,7 @@ namespace Game.Combat
             float gradeWindow = grade == RhythmGrade.Perfect ? activeWindow * 1.25f : grade == RhythmGrade.Good ? activeWindow : activeWindow * 0.5f;
             activeUntil = Time.time + Mathf.Max(0.01f, gradeWindow);
             cooldownRemaining = grade == RhythmGrade.Perfect ? cooldown * 0.75f : cooldown;
+            ParryResolved?.Invoke(grade, cooldownRemaining, gradeWindow);
         }
     }
 }

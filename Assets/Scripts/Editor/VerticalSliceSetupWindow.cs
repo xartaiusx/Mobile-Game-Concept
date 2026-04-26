@@ -7,7 +7,9 @@ using Game.Rhythm;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 namespace Game.EditorTools
 {
@@ -45,10 +47,11 @@ namespace Game.EditorTools
             GameObject meleePrefab = CreateMeleeEnemyPrefab(materials.enemy);
             GameObject rangedPrefab = CreateRangedEnemyPrefab(projectilePrefab, materials.rangedEnemy);
             GameObject bossPrefab = CreateBossPrefab(projectilePrefab, bossSlam, materials.boss);
+            GameObject hudPrefab = CreateHudPrefab();
 
             Scene scene = EditorSceneManager.NewScene(NewSceneSetup.DefaultGameObjects, NewSceneMode.Single);
             scene.name = "VerticalSlice";
-            BuildScene(fighterPrefab, magePrefab, archerPrefab, healerPrefab, meleePrefab, rangedPrefab, bossPrefab, rhythmConfig, bossSlam, materials);
+            BuildScene(fighterPrefab, magePrefab, archerPrefab, healerPrefab, meleePrefab, rangedPrefab, bossPrefab, hudPrefab, rhythmConfig, bossSlam, materials);
             EditorSceneManager.SaveScene(scene, ScenePath);
             AddSceneToBuildSettings(ScenePath);
 
@@ -75,6 +78,7 @@ namespace Game.EditorTools
                 "Assets/Prefabs/Player",
                 "Assets/Prefabs/Enemies",
                 "Assets/Prefabs/Projectiles",
+                "Assets/Prefabs/UI",
                 "Assets/ScriptableObjects",
                 "Assets/ScriptableObjects/Rhythm",
                 "Assets/ScriptableObjects/Abilities",
@@ -159,10 +163,10 @@ namespace Game.EditorTools
             BossTelegraphData telegraph = CreateOrLoadAsset<BossTelegraphData>("Assets/ScriptableObjects/Boss/BossSlamTelegraph.asset");
             telegraph.telegraphId = "boss_slam";
             telegraph.displayName = "Boss Slam";
-            telegraph.beatsBeforeImpact = 3;
-            telegraph.damage = 18;
-            telegraph.radius = 3f;
-            telegraph.range = 6f;
+            telegraph.beatsBeforeImpact = 4;
+            telegraph.damage = 12;
+            telegraph.radius = 3.5f;
+            telegraph.range = 8f;
             telegraph.attackType = BossTelegraphAttackType.TargetedCircle;
             EditorUtility.SetDirty(telegraph);
             return telegraph;
@@ -190,6 +194,8 @@ namespace Game.EditorTools
             player.AddComponent<CharacterController>();
             player.AddComponent(classType);
             var playerController = player.AddComponent<PlayerController>();
+            SetFloat(playerController, "moveSpeed", 5.5f);
+            SetFloat(playerController, "jumpHeight", 1.4f);
             var judgement = player.AddComponent<RhythmJudgement>();
             SetObject(judgement, "config", rhythmConfig);
 
@@ -206,6 +212,7 @@ namespace Game.EditorTools
             var combo = player.AddComponent<ComboSystem>();
             SetObject(combo, "profile", comboProfile);
             SetObject(combo, "judgement", judgement);
+            SetFloat(combo, "attackRange", 2.2f);
 
             var abilityController = player.AddComponent<AbilityController>();
             SetObject(abilityController, "abilityBuffer", abilityBuffer);
@@ -213,9 +220,12 @@ namespace Game.EditorTools
 
             var dodge = player.AddComponent<DodgeController>();
             SetObject(dodge, "dodgeBuffer", dodgeBuffer);
+            SetFloat(dodge, "distance", 3.4f);
+            SetFloat(dodge, "cooldown", 0.65f);
 
             var parry = player.AddComponent<ParryController>();
             SetObject(parry, "parryBuffer", parryBuffer);
+            SetFloat(parry, "cooldown", 0.75f);
 
             return SavePrefab(path, player);
         }
@@ -227,7 +237,14 @@ namespace Game.EditorTools
             Object.DestroyImmediate(enemy.GetComponent<Collider>());
             AssignMaterial(enemy, material);
             enemy.AddComponent<CharacterController>();
-            enemy.AddComponent<MeleeEnemy>();
+            var melee = enemy.AddComponent<MeleeEnemy>();
+            SetInt(melee, "maxHealth", 24);
+            SetInt(melee, "health", 24);
+            SetInt(melee, "attackDamage", 4);
+            SetFloat(melee, "moveSpeed", 2.2f);
+            SetFloat(melee, "attackInterval", 1.8f);
+            SetFloat(melee, "attackRange", 1.8f);
+            SetFloat(melee, "chaseRange", 10f);
             return SavePrefab("Assets/Prefabs/Enemies/MeleeEnemy.prefab", enemy);
         }
 
@@ -239,6 +256,14 @@ namespace Game.EditorTools
             AssignMaterial(enemy, material);
             enemy.AddComponent<CharacterController>();
             var ranged = enemy.AddComponent<RangedEnemy>();
+            SetInt(ranged, "maxHealth", 20);
+            SetInt(ranged, "health", 20);
+            SetInt(ranged, "attackDamage", 3);
+            SetFloat(ranged, "moveSpeed", 1.8f);
+            SetFloat(ranged, "attackInterval", 2.2f);
+            SetFloat(ranged, "attackRange", 9f);
+            SetFloat(ranged, "chaseRange", 14f);
+            SetFloat(ranged, "projectileSpeed", 8f);
 
             GameObject poolObject = new GameObject("ProjectilePool");
             poolObject.transform.SetParent(enemy.transform);
@@ -259,6 +284,14 @@ namespace Game.EditorTools
             AssignMaterial(boss, material);
             boss.AddComponent<CharacterController>();
             var bossEnemy = boss.AddComponent<BossEnemy>();
+            SetInt(bossEnemy, "maxHealth", 90);
+            SetInt(bossEnemy, "health", 90);
+            SetInt(bossEnemy, "attackDamage", 6);
+            SetFloat(bossEnemy, "moveSpeed", 1.4f);
+            SetFloat(bossEnemy, "attackInterval", 2.5f);
+            SetFloat(bossEnemy, "attackRange", 15f);
+            SetFloat(bossEnemy, "chaseRange", 18f);
+            SetFloat(bossEnemy, "specialAttackCooldown", 5f);
             boss.AddComponent<BossPhaseController>();
             var telegraph = boss.AddComponent<BossTelegraphController>();
 
@@ -290,12 +323,115 @@ namespace Game.EditorTools
             return SavePrefab("Assets/Prefabs/Projectiles/BasicProjectile.prefab", projectile);
         }
 
-        private static void BuildScene(GameObject fighterPrefab, GameObject magePrefab, GameObject archerPrefab, GameObject healerPrefab, GameObject meleePrefab, GameObject rangedPrefab, GameObject bossPrefab, RhythmConfig rhythmConfig, BossTelegraphData bossTelegraph, MaterialSet materials)
+        private static GameObject CreateHudPrefab()
+        {
+            GameObject root = new GameObject("VerticalSliceHUD");
+            var canvas = root.AddComponent<Canvas>();
+            canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+            root.AddComponent<CanvasScaler>().uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
+            root.AddComponent<GraphicRaycaster>();
+
+            GameObject panel = new GameObject("HUDPanel");
+            panel.transform.SetParent(root.transform, false);
+            var panelRect = panel.AddComponent<RectTransform>();
+            panelRect.anchorMin = new Vector2(0f, 1f);
+            panelRect.anchorMax = new Vector2(1f, 1f);
+            panelRect.pivot = new Vector2(0.5f, 1f);
+            panelRect.anchoredPosition = new Vector2(0f, -12f);
+            panelRect.sizeDelta = new Vector2(-24f, 156f);
+
+            GameObject beatBar = new GameObject("BeatBar");
+            beatBar.transform.SetParent(panel.transform, false);
+            var beatBarRect = beatBar.AddComponent<RectTransform>();
+            beatBarRect.anchorMin = new Vector2(0.5f, 1f);
+            beatBarRect.anchorMax = new Vector2(0.5f, 1f);
+            beatBarRect.pivot = new Vector2(0.5f, 1f);
+            beatBarRect.anchoredPosition = new Vector2(0f, -6f);
+            beatBarRect.sizeDelta = new Vector2(360f, 22f);
+            beatBar.AddComponent<Image>().color = new Color(0f, 0f, 0f, 0.55f);
+
+            GameObject perfectWindow = CreateUiBox("PerfectWindow", beatBar.transform, new Color(0.2f, 1f, 0.8f, 0.55f));
+            var perfectRect = perfectWindow.GetComponent<RectTransform>();
+            perfectRect.anchorMin = new Vector2(0.45f, 0f);
+            perfectRect.anchorMax = new Vector2(0.55f, 1f);
+            perfectRect.offsetMin = Vector2.zero;
+            perfectRect.offsetMax = Vector2.zero;
+
+            GameObject marker = CreateUiBox("BeatMarker", beatBar.transform, new Color(1f, 1f, 1f, 1f));
+            var markerRect = marker.GetComponent<RectTransform>();
+            markerRect.anchorMin = new Vector2(0.5f, 0.5f);
+            markerRect.anchorMax = new Vector2(0.5f, 0.5f);
+            markerRect.sizeDelta = new Vector2(8f, 30f);
+
+            Text feedback = CreateText("FeedbackText", panel.transform, new Vector2(0f, -38f), new Vector2(420f, 30f), 24, TextAnchor.MiddleCenter);
+            Text combo = CreateText("ComboText", panel.transform, new Vector2(-320f, -78f), new Vector2(220f, 26f), 18, TextAnchor.MiddleLeft);
+            Text ability = CreateText("AbilityText", panel.transform, new Vector2(-320f, -106f), new Vector2(320f, 26f), 18, TextAnchor.MiddleLeft);
+            Text dodge = CreateText("DodgeText", panel.transform, new Vector2(60f, -78f), new Vector2(220f, 26f), 18, TextAnchor.MiddleLeft);
+            Text parry = CreateText("ParryText", panel.transform, new Vector2(60f, -106f), new Vector2(220f, 26f), 18, TextAnchor.MiddleLeft);
+            Text boss = CreateText("BossText", panel.transform, new Vector2(0f, -136f), new Vector2(520f, 26f), 18, TextAnchor.MiddleCenter);
+            Text debug = CreateText("DebugText", root.transform, new Vector2(12f, 12f), new Vector2(260f, 120f), 14, TextAnchor.LowerLeft);
+            var debugRect = debug.GetComponent<RectTransform>();
+            debugRect.anchorMin = new Vector2(0f, 0f);
+            debugRect.anchorMax = new Vector2(0f, 0f);
+            debugRect.pivot = new Vector2(0f, 0f);
+
+            var beatBarUi = root.AddComponent<Game.UI.BeatBarUI>();
+            SetObject(beatBarUi, "marker", markerRect);
+            SetObject(beatBarUi, "bar", beatBarRect);
+            SetObject(beatBarUi, "feedbackText", feedback);
+
+            var hud = root.AddComponent<Game.UI.VerticalSliceHud>();
+            SetObject(hud, "feedbackText", feedback);
+            SetObject(hud, "comboText", combo);
+            SetObject(hud, "abilityText", ability);
+            SetObject(hud, "dodgeText", dodge);
+            SetObject(hud, "parryText", parry);
+            SetObject(hud, "bossText", boss);
+            SetObject(hud, "debugText", debug);
+
+            return SavePrefab("Assets/Prefabs/UI/VerticalSliceHUD.prefab", root);
+        }
+
+        private static GameObject CreateUiBox(string name, Transform parent, Color color)
+        {
+            GameObject box = new GameObject(name);
+            box.transform.SetParent(parent, false);
+            box.AddComponent<RectTransform>();
+            box.AddComponent<Image>().color = color;
+            return box;
+        }
+
+        private static Text CreateText(string name, Transform parent, Vector2 position, Vector2 size, int fontSize, TextAnchor anchor)
+        {
+            GameObject textObject = new GameObject(name);
+            textObject.transform.SetParent(parent, false);
+            var rect = textObject.AddComponent<RectTransform>();
+            rect.anchorMin = new Vector2(0.5f, 1f);
+            rect.anchorMax = new Vector2(0.5f, 1f);
+            rect.pivot = new Vector2(0.5f, 1f);
+            rect.anchoredPosition = position;
+            rect.sizeDelta = size;
+
+            Text text = textObject.AddComponent<Text>();
+            text.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            text.fontSize = fontSize;
+            text.alignment = anchor;
+            text.color = Color.white;
+            text.raycastTarget = false;
+            text.text = name;
+            return text;
+        }
+
+        private static void BuildScene(GameObject fighterPrefab, GameObject magePrefab, GameObject archerPrefab, GameObject healerPrefab, GameObject meleePrefab, GameObject rangedPrefab, GameObject bossPrefab, GameObject hudPrefab, RhythmConfig rhythmConfig, BossTelegraphData bossTelegraph, MaterialSet materials)
         {
             GameObject ground = GameObject.CreatePrimitive(PrimitiveType.Plane);
-            ground.name = "Ground";
-            ground.transform.localScale = new Vector3(3f, 1f, 3f);
+            ground.name = "Arena_Ground";
+            ground.transform.localScale = new Vector3(4f, 1f, 4f);
             AssignMaterial(ground, materials.ground);
+            CreateBoundary("Arena_Wall_North", new Vector3(0f, 1f, 20f), new Vector3(40f, 2f, 0.5f), materials.ground);
+            CreateBoundary("Arena_Wall_South", new Vector3(0f, 1f, -20f), new Vector3(40f, 2f, 0.5f), materials.ground);
+            CreateBoundary("Arena_Wall_East", new Vector3(20f, 1f, 0f), new Vector3(0.5f, 2f, 40f), materials.ground);
+            CreateBoundary("Arena_Wall_West", new Vector3(-20f, 1f, 0f), new Vector3(0.5f, 2f, 40f), materials.ground);
 
             GameObject playerManagerObject = new GameObject("PlayerManager");
             playerManagerObject.AddComponent<PlayerManager>();
@@ -315,19 +451,19 @@ namespace Game.EditorTools
 
             GameObject player = (GameObject)PrefabUtility.InstantiatePrefab(fighterPrefab);
             player.name = "Player_Fighter";
-            player.transform.position = new Vector3(0f, 1f, -4f);
+            player.transform.position = new Vector3(0f, 1f, -8f);
 
             GameObject melee = (GameObject)PrefabUtility.InstantiatePrefab(meleePrefab);
             melee.name = "MeleeEnemy";
-            melee.transform.position = new Vector3(4f, 1f, 2f);
+            melee.transform.position = new Vector3(3f, 1f, -1f);
 
             GameObject ranged = (GameObject)PrefabUtility.InstantiatePrefab(rangedPrefab);
             ranged.name = "RangedEnemy";
-            ranged.transform.position = new Vector3(-5f, 1f, 4f);
+            ranged.transform.position = new Vector3(-6f, 1f, 3f);
 
             GameObject boss = (GameObject)PrefabUtility.InstantiatePrefab(bossPrefab);
             boss.name = "BossEnemy";
-            boss.transform.position = new Vector3(0f, 1.8f, 8f);
+            boss.transform.position = new Vector3(0f, 1.8f, 10f);
             var telegraph = boss.GetComponent<BossTelegraphController>();
             if (telegraph != null)
                 SetObject(telegraph, "defaultTelegraph", bossTelegraph);
@@ -343,6 +479,26 @@ namespace Game.EditorTools
                 CreateSpawnPoint("EnemySpawn_B", new Vector3(-7f, 0f, 4f))
             };
 
+            GameObject hud = (GameObject)PrefabUtility.InstantiatePrefab(hudPrefab);
+            hud.name = "VerticalSliceHUD";
+            var hudController = hud.GetComponentInChildren<Game.UI.VerticalSliceHud>();
+            if (hudController != null)
+            {
+                SetObject(hudController, "comboSystem", player.GetComponent<ComboSystem>());
+                SetObject(hudController, "abilityController", player.GetComponent<AbilityController>());
+                SetObject(hudController, "dodgeController", player.GetComponent<DodgeController>());
+                SetObject(hudController, "parryController", player.GetComponent<ParryController>());
+                SetObject(hudController, "bossTelegraphController", telegraph);
+                SetObject(hudController, "playerCharacter", player.GetComponent<BaseCharacter>());
+            }
+
+            if (Object.FindAnyObjectByType<EventSystem>() == null)
+            {
+                GameObject eventSystem = new GameObject("EventSystem");
+                eventSystem.AddComponent<EventSystem>();
+                eventSystem.AddComponent<StandaloneInputModule>();
+            }
+
             GameObject directionalLight = GameObject.Find("Directional Light");
             if (directionalLight != null)
             {
@@ -354,8 +510,21 @@ namespace Game.EditorTools
             if (Camera.main != null)
             {
                 Camera.main.name = "Main Camera";
-                Camera.main.transform.SetPositionAndRotation(new Vector3(0f, 9f, -11f), Quaternion.Euler(55f, 0f, 0f));
+                Camera.main.transform.SetPositionAndRotation(new Vector3(0f, 11f, -14f), Quaternion.Euler(55f, 0f, 0f));
+                var follow = Camera.main.GetComponent<SimpleFollowCamera>() ?? Camera.main.gameObject.AddComponent<SimpleFollowCamera>();
+                SetObject(follow, "target", player.transform);
+                SetVector3(follow, "offset", new Vector3(0f, 10f, -11f));
+                SetFloat(follow, "followDamping", 7f);
             }
+        }
+
+        private static void CreateBoundary(string name, Vector3 position, Vector3 scale, Material material)
+        {
+            GameObject wall = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            wall.name = name;
+            wall.transform.position = position;
+            wall.transform.localScale = scale;
+            AssignMaterial(wall, material);
         }
 
         private static Transform CreateSpawnPoint(string name, Vector3 position)
@@ -444,6 +613,39 @@ namespace Game.EditorTools
             for (int i = 0; i < values.Length; i++)
                 property.GetArrayElementAtIndex(i).objectReferenceValue = values[i];
             serialized.ApplyModifiedPropertiesWithoutUndo();
+        }
+
+        private static void SetFloat(Object target, string fieldName, float value)
+        {
+            SerializedObject serialized = new SerializedObject(target);
+            SerializedProperty property = serialized.FindProperty(fieldName);
+            if (property != null)
+            {
+                property.floatValue = value;
+                serialized.ApplyModifiedPropertiesWithoutUndo();
+            }
+        }
+
+        private static void SetInt(Object target, string fieldName, int value)
+        {
+            SerializedObject serialized = new SerializedObject(target);
+            SerializedProperty property = serialized.FindProperty(fieldName);
+            if (property != null)
+            {
+                property.intValue = value;
+                serialized.ApplyModifiedPropertiesWithoutUndo();
+            }
+        }
+
+        private static void SetVector3(Object target, string fieldName, Vector3 value)
+        {
+            SerializedObject serialized = new SerializedObject(target);
+            SerializedProperty property = serialized.FindProperty(fieldName);
+            if (property != null)
+            {
+                property.vector3Value = value;
+                serialized.ApplyModifiedPropertiesWithoutUndo();
+            }
         }
 
         private struct MaterialSet

@@ -2,9 +2,11 @@
 using Game.Combat;
 using Game.Core;
 using Game.Rhythm;
+using Game.UI;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 public class VerticalSlicePlayModeTests
 {
@@ -31,6 +33,9 @@ public class VerticalSlicePlayModeTests
         Assert.IsNotNull(Object.FindAnyObjectByType<RangedEnemy>());
         Assert.IsNotNull(Object.FindAnyObjectByType<BossEnemy>());
         Assert.IsNotNull(Object.FindAnyObjectByType<BossTelegraphController>());
+        Assert.IsNotNull(Object.FindAnyObjectByType<Canvas>());
+        Assert.IsNotNull(Object.FindAnyObjectByType<BeatBarUI>());
+        Assert.IsNotNull(Object.FindAnyObjectByType<VerticalSliceHud>());
     }
 }
 #endif

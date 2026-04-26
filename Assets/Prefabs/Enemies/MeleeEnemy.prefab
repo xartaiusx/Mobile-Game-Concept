@@ -130,11 +130,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Game.Core.MeleeEnemy
   enemyName: Enemy
-  maxHealth: 25
-  health: 25
-  attackDamage: 5
-  attackInterval: 1.5
-  moveSpeed: 3
+  maxHealth: 24
+  health: 24
+  attackDamage: 4
+  attackInterval: 1.8
+  moveSpeed: 2.2
   invulnerabilityDuration: 0.15
-  attackRange: 1.5
-  chaseRange: 5
+  attackRange: 1.8
+  chaseRange: 10

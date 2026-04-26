@@ -23,5 +23,30 @@ public class BossTelegraphTests
         controller.TickBeatForTests();
         Assert.IsFalse(controller.IsTelegraphing);
     }
+
+    [Test]
+    public void TelegraphEmitsCountdownAndImpactEvents()
+    {
+        var go = new GameObject("boss-events");
+        var controller = go.AddComponent<BossTelegraphController>();
+        var data = ScriptableObject.CreateInstance<BossTelegraphData>();
+        data.displayName = "Test Slam";
+        data.beatsBeforeImpact = 1;
+
+        int starts = 0;
+        int impacts = 0;
+        controller.TelegraphStarted += (_, beats, __) =>
+        {
+            starts++;
+            Assert.AreEqual(1, beats);
+        };
+        controller.TelegraphImpacted += (_, __) => impacts++;
+
+        Assert.IsTrue(controller.BeginTelegraph(data));
+        controller.TickBeatForTests();
+
+        Assert.AreEqual(1, starts);
+        Assert.AreEqual(1, impacts);
+    }
 }
 #endif

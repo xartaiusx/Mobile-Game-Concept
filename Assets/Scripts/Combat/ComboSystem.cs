@@ -1,6 +1,8 @@
 using UnityEngine;
 using Game.Rhythm;
 using Game.Systems;
+using Game.Core;
+using System;
 
 namespace Game.Combat
 {
@@ -24,8 +26,13 @@ namespace Game.Combat
         private float inputCooldownRemaining;
         private Collider[] hitCache;
 
+        public event Action<int, RhythmGrade, int> ComboStepResolved;
+        public event Action<int, RhythmGrade, int, BaseEnemy> DamageDealt;
+        public event Action ComboReset;
+
         public int CurrentStepIndex => stepIndex;
         public float InputCooldownRemaining => inputCooldownRemaining;
+        public int CurrentComboCount => stepIndex;
 
         private void Awake()
         {
@@ -62,8 +69,7 @@ namespace Game.Combat
                 comboTimer += Time.deltaTime;
                 if (comboTimer > profile.comboTimeout)
                 {
-                    stepIndex = 0;
-                    comboTimer = 0f;
+                    ResetCombo();
                 }
             }
         }
@@ -81,6 +87,7 @@ namespace Game.Combat
             int finalDamage = Mathf.Max(1, Mathf.RoundToInt(step.baseDamage * mult));
 
             DoMeleeHit(finalDamage, grade);
+            ComboStepResolved?.Invoke(stepIndex + 1, grade, finalDamage);
 
             float refund = judgement != null ? judgement.CooldownRefund(grade) : 0f;
             inputCooldownRemaining = Mathf.Max(0f, step.cooldown * (1f - refund));
@@ -96,12 +103,21 @@ namespace Game.Combat
             int count = Physics.OverlapSphereNonAlloc(center, attackRange, hitCache, enemyMask, QueryTriggerInteraction.Ignore);
             for (int i = 0; i < count; i++)
             {
-                var enemy = hitCache[i].GetComponent<Game.Core.BaseEnemy>();
+                var enemy = hitCache[i].GetComponent<BaseEnemy>();
                 if (enemy != null)
                 {
-                    enemy.TakeDamage(new Game.Core.DamageContext(gameObject, damage, Game.Core.DamageType.Rhythm, grade, true));
+                    enemy.TakeDamage(new DamageContext(gameObject, damage, DamageType.Rhythm, grade, true));
+                    DamageDealt?.Invoke(stepIndex + 1, grade, damage, enemy);
                 }
             }
+        }
+
+        private void ResetCombo()
+        {
+            if (stepIndex == 0 && comboTimer <= 0f) return;
+            stepIndex = 0;
+            comboTimer = 0f;
+            ComboReset?.Invoke();
         }
     }
 }

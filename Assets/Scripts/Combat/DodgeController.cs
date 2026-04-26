@@ -1,4 +1,5 @@
 using System.Collections;
+using System;
 using Game.Core;
 using Game.Rhythm;
 using UnityEngine;
@@ -23,6 +24,9 @@ namespace Game.Combat
         private float cooldownRemaining;
         private float invulnerableUntil;
         private Coroutine dodgeRoutine;
+
+        public event Action<RhythmGrade, float, float> DodgeResolved;
+        public event Action<bool> DodgeStateChanged;
 
         public bool IsDodging { get; private set; }
         public bool IsInvulnerable => Time.time < invulnerableUntil;
@@ -93,6 +97,7 @@ namespace Game.Combat
 
             invulnerableUntil = Time.time + Mathf.Max(0f, invulnerability);
             cooldownRemaining = Mathf.Max(0f, cooldown * recoveryMultiplier);
+            DodgeResolved?.Invoke(grade, cooldownRemaining, invulnerability);
 
             if (dodgeRoutine != null)
                 StopCoroutine(dodgeRoutine);
@@ -102,6 +107,7 @@ namespace Game.Combat
         private IEnumerator DodgeRoutine(Vector3 direction, float dodgeDistance, float dodgeDuration)
         {
             IsDodging = true;
+            DodgeStateChanged?.Invoke(true);
             float elapsed = 0f;
             while (elapsed < dodgeDuration)
             {
@@ -115,6 +121,7 @@ namespace Game.Combat
                 yield return null;
             }
             IsDodging = false;
+            DodgeStateChanged?.Invoke(false);
             dodgeRoutine = null;
         }
 
