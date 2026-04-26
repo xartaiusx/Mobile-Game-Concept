@@ -65,6 +65,12 @@ namespace Game.Editor
                 throw new InvalidOperationException("Visual asset setup validation failed.");
         }
 
+        public static void ValidateAssetArchiveCommandLine()
+        {
+            if (!AssetArchiveValidator.ValidateAssetArchive(true))
+                throw new InvalidOperationException("Asset archive validation failed.");
+        }
+
         private static void RunOrPrepare(TestMode mode)
         {
             if (IsUnityRunTestsInvocation())

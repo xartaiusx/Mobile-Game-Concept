@@ -2,7 +2,9 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using System.Reflection;
 using Game.Editor;
+using Game.AI.Enemies;
 using Game.Combat;
 using Game.Core;
 using Game.Feedback;
@@ -242,7 +244,132 @@ public class VerticalSlicePlayModeTests
         Assert.IsNotEmpty(path);
         Assert.IsTrue(File.Exists(path));
         Assert.Greater(new FileInfo(path).Length, 0);
+        TelemetryParseResult parsed = TelemetryAnalysis.ParseJson(File.ReadAllText(path), path);
+        Assert.IsTrue(parsed.IsValid, parsed.errorMessage);
+        Assert.AreEqual("Warrior", parsed.snapshot.playerClass);
         AssertRenderableVisual(player, "WarriorVisual", true);
+    }
+
+    [UnityTest]
+    public IEnumerator RhythmHitAndMissScenariosUpdateScoreComboTelemetryAndVisuals()
+    {
+        yield return LoadVerticalSlice();
+
+        TelemetryManager telemetry = Object.FindAnyObjectByType<TelemetryManager>();
+        GameObject player = GameObject.FindWithTag("Player");
+        MeleeEnemy enemy = Object.FindAnyObjectByType<MeleeEnemy>();
+        ScoreSystem score = Object.FindAnyObjectByType<ScoreSystem>();
+        ComboSystem combo = player.GetComponent<ComboSystem>();
+        Assert.IsNotNull(telemetry);
+        Assert.IsNotNull(player);
+        Assert.IsNotNull(enemy);
+        Assert.IsNotNull(score);
+        Assert.IsNotNull(combo);
+
+        telemetry.ResetRun();
+        score.ResetScore();
+        player.transform.position = Vector3.zero;
+        player.transform.rotation = Quaternion.identity;
+        enemy.transform.position = player.transform.position + player.transform.forward * 1.2f;
+        Physics.SyncTransforms();
+
+        int startingScore = score.Score;
+        combo.StartAttackWindup(0, 0.2f, 8, RhythmGrade.Perfect);
+        combo.OpenHitWindow();
+        combo.CloseHitWindow();
+        combo.FinishAttackRecovery();
+
+        Assert.Greater(score.Score, startingScore);
+        Assert.Greater(telemetry.CurrentComboLength, 0);
+        Assert.AreEqual(1, telemetry.Snapshot.perfectHitCount);
+        Assert.GreaterOrEqual(telemetry.Snapshot.maxCombo, 1);
+        AssertRenderableVisual(player, "WarriorVisual", true);
+        AssertRenderableVisual(enemy.gameObject, "BasicEnemyVisual", true);
+
+        telemetry.ResetRun();
+        combo.CancelAttackForTests();
+        combo.StartAttackWindup(0, 0.2f, 1, RhythmGrade.Miss);
+        combo.OpenHitWindow();
+        combo.CloseHitWindow();
+        combo.FinishAttackRecovery();
+
+        Assert.AreEqual(1, telemetry.Snapshot.missHitCount);
+        Assert.GreaterOrEqual(combo.CurrentComboCount, 0);
+        AssertRenderableVisual(player, "WarriorVisual", true);
+    }
+
+    [UnityTest]
+    public IEnumerator DodgePickupBossAndEnemyScenarioPathsRemainSafe()
+    {
+        yield return LoadVerticalSlice();
+
+        TelemetryManager telemetry = Object.FindAnyObjectByType<TelemetryManager>();
+        GameObject player = GameObject.FindWithTag("Player");
+        DodgeController dodge = player.GetComponent<DodgeController>();
+        InventorySystem inventory = player.GetComponent<InventorySystem>();
+        BossEnemy boss = Object.FindAnyObjectByType<BossEnemy>(FindObjectsInactive.Include);
+        BossPhaseController bossPhase = boss.GetComponent<BossPhaseController>();
+        ScoreSystem score = Object.FindAnyObjectByType<ScoreSystem>();
+        Assert.IsNotNull(telemetry);
+        Assert.IsNotNull(player);
+        Assert.IsNotNull(dodge);
+        Assert.IsNotNull(inventory);
+        Assert.IsNotNull(boss);
+        Assert.IsNotNull(bossPhase);
+        Assert.IsNotNull(score);
+
+        telemetry.ResetRun();
+        dodge.ResolveDodgeForTests(RhythmGrade.Perfect, Vector3.forward);
+        float perfectCooldown = dodge.LastResolvedCooldown;
+        float perfectSpeed = dodge.LastResolvedSpeedMultiplier;
+        float perfectInvulnerability = dodge.LastResolvedInvulnerability;
+        ResetDodgeCooldown(dodge);
+
+        dodge.ResolveDodgeForTests(RhythmGrade.Good, Vector3.forward);
+        float goodCooldown = dodge.LastResolvedCooldown;
+        float goodSpeed = dodge.LastResolvedSpeedMultiplier;
+        float goodInvulnerability = dodge.LastResolvedInvulnerability;
+        ResetDodgeCooldown(dodge);
+
+        dodge.ResolveDodgeForTests(RhythmGrade.Miss, Vector3.forward);
+        float missCooldown = dodge.LastResolvedCooldown;
+        float missSpeed = dodge.LastResolvedSpeedMultiplier;
+
+        Assert.Less(perfectCooldown, goodCooldown);
+        Assert.Less(goodCooldown, missCooldown);
+        Assert.Greater(perfectSpeed, goodSpeed);
+        Assert.Greater(goodSpeed, missSpeed);
+        Assert.Greater(perfectInvulnerability, goodInvulnerability);
+        Assert.AreEqual(1, telemetry.Snapshot.perfectDodgeCount);
+        Assert.AreEqual(1, telemetry.Snapshot.goodDodgeCount);
+        Assert.AreEqual(1, telemetry.Snapshot.missDodgeCount);
+
+        GameObject goldPrefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Pickups/GoldPickup.prefab");
+        Assert.IsNotNull(goldPrefab);
+        GameObject pickupObject = Object.Instantiate(goldPrefab, player.transform.position, Quaternion.identity);
+        Pickup pickup = pickupObject.GetComponent<Pickup>();
+        Assert.IsNotNull(pickup);
+        pickup.SendMessage("OnTriggerEnter", player.GetComponent<CharacterController>(), SendMessageOptions.RequireReceiver);
+        yield return null;
+        Assert.IsTrue(pickup == null, "Pickup should destroy itself after collection.");
+        Assert.Greater(inventory.Items.Count, 0);
+
+        boss.gameObject.SetActive(true);
+        yield return null;
+        AssertRenderableVisual(boss.gameObject, "BossVisual", true);
+        boss.TakeDamage(new DamageContext(player, Mathf.CeilToInt(boss.MaxHealth * 0.55f), DamageType.Rhythm, RhythmGrade.Good, true));
+        yield return null;
+        Assert.IsNotNull(bossPhase.CurrentPhase);
+        AssertRenderableVisual(boss.gameObject, "BossVisual", true);
+
+        MeleeEnemy enemy = Object.FindAnyObjectByType<MeleeEnemy>();
+        Assert.IsNotNull(enemy);
+        int scoreBeforeKill = score.Score;
+        int killsBefore = telemetry.Snapshot.enemyKillCount;
+        enemy.TakeDamage(new DamageContext(player, 9999, DamageType.Rhythm, RhythmGrade.Perfect, true));
+        yield return null;
+        Assert.Greater(score.Score, scoreBeforeKill);
+        Assert.Greater(telemetry.Snapshot.enemyKillCount, killsBefore);
     }
 
     [UnityTest]
@@ -441,6 +568,13 @@ public class VerticalSlicePlayModeTests
         Assert.Less(scale.x, 8f, label + " x scale/bounds too large.");
         Assert.Less(scale.y, 8f, label + " y scale/bounds too large.");
         Assert.Less(scale.z, 8f, label + " z scale/bounds too large.");
+    }
+
+    private static void ResetDodgeCooldown(DodgeController dodge)
+    {
+        FieldInfo cooldownField = typeof(DodgeController).GetField("cooldownRemaining", BindingFlags.NonPublic | BindingFlags.Instance);
+        Assert.IsNotNull(cooldownField, "DodgeController cooldown field was not found.");
+        cooldownField.SetValue(dodge, 0f);
     }
 
     private static Transform SerializedTransform(Object target, string propertyName)

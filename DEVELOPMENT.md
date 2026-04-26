@@ -272,6 +272,48 @@ License note:
 
 - `Assets/ThirdParty/Licenses/Kenney_TinyDungeon_LICENSE_NOTE.md` records that the local Tiny Dungeon import did not include a separate local license file and references the official Kenney source page license listing checked on 2026-04-26.
 
+### Phase 9.11 Functionality And Archive Hygiene
+
+Scenario PlayMode coverage now verifies implemented systems through deterministic paths:
+
+- Rhythm hit path: a direct attack window can score a Perfect hit, increase score/combo telemetry, and leave Warrior/basic enemy visuals renderable.
+- Rhythm miss path: a Miss attack records miss telemetry and remains crash-free.
+- Dodge path: Perfect, Good, and Miss dodge resolutions report telemetry and preserve the intended ordering for cooldown, movement speed, and invulnerability.
+- Pickup path: the active gold pickup prefab can be collected by the player and updates inventory.
+- Boss phase path: the boss placeholder can activate, take threshold damage, keep a valid phase, and keep its visual renderable.
+- Enemy damage/death path: an enemy can take lethal rhythm damage, increase score, and increment telemetry kills.
+- Telemetry write/analyze path: a smoke run writes JSON and is parsed by `TelemetryAnalysis`.
+- Generator preservation path: the existing idempotency validator remains the source of truth for VisualRoot preservation, active visual references, and duplicate generated object checks.
+
+Active asset list:
+
+- KayKit Adventurers active models: `Knight.fbx`, `Rogue.fbx`, `Barbarian.fbx`.
+- KayKit active textures: `knight_texture.png`, `rogue_texture.png`, `barbarian_texture.png`.
+- KayKit Character Animations active FBXs: `Rig_Medium_General.fbx`, `Rig_Medium_MovementBasic.fbx`.
+- Wired first-pass clips: `Idle_A`, `Running_A`, `Hit_A`, `Death_A`; `Walking_A` remains available but unwired.
+- Kenney Tiny Dungeon active tiles: `tile_0000.png`, `tile_0001.png`, `tile_0002.png`, `tile_0016.png`, `tile_0017.png`.
+
+Archive policy:
+
+- Active art belongs under the normal `Assets/ThirdParty/KayKit/...`, `Assets/ThirdParty/Kenney/...`, and `Assets/Art/...` paths and may be referenced by visual prefabs or generated scene decor.
+- `Assets/ThirdParty/_Archive` is inactive storage for small, useful future variants and alternate formats that should remain accessible but must not be referenced by active scenes, prefabs, AnimatorControllers, or ScriptableObjects.
+- External vault candidates include large full-pack drops, screenshots, duplicate format sets, Tiled/Tilemap exports, and assets that might be useful later but are not worth active repo weight.
+- Safe delete candidates are `.DS_Store`, `thumbs.db`, duplicate extracted zip residue, screenshots with no documentation value, and temporary files.
+- When promoting an archived asset, move only the selected file and its `.meta` back to an active source folder, wire it through a visual wrapper, update `ARCHIVE_MANIFEST.md`, then run visual/archive validation and tests.
+
+Archive validation:
+
+- Editor menu: `Game > Visuals > Validate Asset Archive`.
+- Command-line hook: `Game.Editor.ProjectTestRunner.ValidateAssetArchiveCommandLine`.
+- The validator checks archive structure, manifest/README presence, junk/package files, archived prefab missing scripts/materials, total file count/size, and active serialized references to archived asset GUIDs.
+
+Remaining art/archive risks:
+
+- Attack and dodge/evade visual controller states remain placeholder-only.
+- Boss visual is still a scaled Barbarian placeholder.
+- Human readability review is still needed for scale, facing, and combat clarity.
+- Archive size should be revisited after the next art decision; move larger unused pack fragments to an external vault if they do not serve an immediate future pass.
+
 ## Telemetry
 
 `TelemetryManager` is a runtime service-style singleton. Existing gameplay systems report lightweight events into it:
