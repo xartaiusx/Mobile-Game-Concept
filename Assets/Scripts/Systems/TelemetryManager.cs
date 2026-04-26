@@ -126,16 +126,25 @@ namespace Game.Systems
 
         public string WriteRunSummary()
         {
-            UpdateDerivedMetrics();
-            Snapshot.timingOffsets = timingOffsets.ToArray();
-            Snapshot.runEndedAtUtc = DateTime.UtcNow.ToString("o");
-            string directory = Path.Combine(Application.persistentDataPath, DirectoryName);
-            Directory.CreateDirectory(directory);
-            string timestamp = DateTime.UtcNow.ToString(TimestampFormat);
-            string path = Path.Combine(directory, "run_" + timestamp + ".json");
-            File.WriteAllText(path, JsonUtility.ToJson(Snapshot, true));
-            lastWrittenPath = path;
-            return path;
+            try
+            {
+                UpdateDerivedMetrics();
+                Snapshot.timingOffsets = timingOffsets.ToArray();
+                Snapshot.runEndedAtUtc = DateTime.UtcNow.ToString("o");
+                string directory = Path.Combine(Application.persistentDataPath, DirectoryName);
+                Directory.CreateDirectory(directory);
+                string timestamp = DateTime.UtcNow.ToString(TimestampFormat);
+                string path = Path.Combine(directory, "run_" + timestamp + ".json");
+                File.WriteAllText(path, JsonUtility.ToJson(Snapshot, true));
+                lastWrittenPath = path;
+                return path;
+            }
+            catch (Exception ex)
+            {
+                lastWrittenPath = string.Empty;
+                Debug.LogWarning("Telemetry summary write failed: " + ex.Message);
+                return string.Empty;
+            }
         }
 
         private void RecordInputJudgement(RhythmGrade grade, float signedTimingOffsetSeconds)

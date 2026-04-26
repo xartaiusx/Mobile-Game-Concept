@@ -1,6 +1,8 @@
 #if UNITY_EDITOR
 using System.Collections;
+using System.Collections.Generic;
 using System.IO;
+using Game.Editor;
 using Game.Combat;
 using Game.Core;
 using Game.Feedback;
@@ -19,6 +21,52 @@ using UnityEngine.UI;
 
 public class VerticalSlicePlayModeTests
 {
+    private const string StartupScenePath = VerticalSliceStartup.ScenePath;
+
+    [UnityTest]
+    public IEnumerator EditorPlayButtonStartupSceneLoadsPlayableVerticalSlice()
+    {
+        VerticalSliceStartup.EnsureStartupSceneConfigured();
+        Assert.IsEmpty(VerticalSliceStartup.GetStartupValidationFailures());
+        Assert.IsNotNull(AssetDatabase.LoadAssetAtPath<SceneAsset>(StartupScenePath));
+
+        var fatalLogs = new List<string>();
+        Application.LogCallback callback = (condition, stackTrace, type) =>
+        {
+            if (IsFatalStartupLog(condition, type))
+                fatalLogs.Add(type + ": " + condition);
+        };
+        Application.logMessageReceived += callback;
+
+        yield return LoadVerticalSlice();
+        for (int i = 0; i < 5; i++)
+            yield return null;
+
+        Application.logMessageReceived -= callback;
+
+        GameObject[] players = GameObject.FindGameObjectsWithTag("Player");
+        Assert.AreEqual(1, players.Length);
+        Assert.IsNotNull(players[0].GetComponent<PlayerController>());
+        Assert.IsNotNull(players[0].GetComponent<BaseCharacter>());
+
+        Camera mainCamera = Camera.main;
+        Assert.IsNotNull(mainCamera);
+        Assert.IsTrue(mainCamera.enabled);
+        Assert.IsNotNull(Object.FindAnyObjectByType<Canvas>());
+        Assert.IsNotNull(Object.FindAnyObjectByType<BeatClock>());
+        Assert.IsNotNull(Object.FindAnyObjectByType<RhythmJudgement>());
+        Assert.IsNotNull(Object.FindAnyObjectByType<ScoreSystem>());
+        Assert.IsNotNull(Object.FindAnyObjectByType<TelemetryManager>());
+        Assert.IsNotNull(Object.FindAnyObjectByType<ArenaController>());
+        Assert.Greater(Object.FindObjectsByType<BaseEnemy>(FindObjectsInactive.Exclude).Length, 0);
+        Assert.AreEqual(1f, Time.timeScale, 0.001f);
+
+        foreach (GameObject go in Object.FindObjectsByType<GameObject>(FindObjectsInactive.Include))
+            Assert.AreEqual(0, GameObjectUtility.GetMonoBehavioursWithMissingScriptCount(go), go.name + " has missing scripts.");
+
+        Assert.IsEmpty(fatalLogs);
+    }
+
     [UnityTest]
     public IEnumerator VerticalSliceSceneStartsWithCoreGameplayObjects()
     {
@@ -180,18 +228,36 @@ public class VerticalSlicePlayModeTests
         Assert.Greater(telemetry.Snapshot.perfectDodgeCount, 0);
         Assert.Greater(telemetry.Snapshot.perfectHitCount, 0);
         Assert.Greater(telemetry.Snapshot.totalScore, 0);
+        Assert.IsNotEmpty(path);
         Assert.IsTrue(File.Exists(path));
         Assert.Greater(new FileInfo(path).Length, 0);
     }
 
     private static IEnumerator LoadVerticalSlice()
     {
-        AsyncOperation load = SceneManager.LoadSceneAsync("VerticalSlice", LoadSceneMode.Single);
+        Time.timeScale = 1f;
+        AsyncOperation load = SceneManager.LoadSceneAsync(StartupScenePath, LoadSceneMode.Single);
         Assert.IsNotNull(load);
         while (!load.isDone)
             yield return null;
 
         yield return null;
+    }
+
+    private static bool IsFatalStartupLog(string condition, LogType type)
+    {
+        if (type == LogType.Exception || type == LogType.Error || type == LogType.Assert)
+            return true;
+
+        return condition.Contains("NullReferenceException")
+            || condition.Contains("MissingReferenceException")
+            || condition.Contains("Unable to load scene")
+            || condition.Contains("Scene couldn't be loaded")
+            || condition.Contains("missing scripts")
+            || condition.Contains("Missing Script")
+            || condition.Contains("Missing script")
+            || condition.Contains("Missing reference")
+            || condition.Contains("MissingReference");
     }
 
     private static Transform SerializedTransform(Object target, string propertyName)

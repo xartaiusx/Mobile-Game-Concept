@@ -77,6 +77,16 @@ Open the project in Unity `6000.4.4f1`, then use:
 
 This recreates the default folders, ScriptableObject assets, prefabs, scene objects, and Build Settings entry with the Warrior-only active path.
 
+The intended Play Mode startup scene is always:
+
+`Assets/Scenes/VerticalSlice.unity`
+
+Editor startup validation pins Unity's toolbar Play button to that scene through `EditorSceneManager.playModeStartScene` and keeps it enabled in Build Settings. You can re-check this with:
+
+`Game > Vertical Slice > Validate Startup Scene`
+
+If the editor opens with no active scene, pressing Play should still enter the generated vertical slice. Opening `VerticalSlice.unity` manually is fine, but it is no longer required for toolbar Play validation.
+
 ## Free Assets
 
 Imported free assets are documented in `Assets/ThirdParty/FreeAssets/ASSET_CREDITS.md`.
@@ -91,6 +101,8 @@ git diff --check
 "$HOME/Unity/Hub/Editor/6000.4.4f1/Editor/Unity" -quit -batchmode -projectPath "$PWD" -logFile /tmp/unity_warrior_endless_compile.log
 Scripts/run-unity-tests.sh
 ```
+
+The PlayMode suite includes a startup smoke regression test that validates the same scene path used by Unity Play Mode, waits several frames, checks the player, camera, HUD, rhythm, score, telemetry, arena/enemy roots, verifies `Time.timeScale == 1`, and fails on fatal startup logs such as null references, missing references, missing scripts, or scene load failures.
 
 `Scripts/run-unity-tests.sh` writes authoritative summaries to:
 

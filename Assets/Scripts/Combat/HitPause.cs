@@ -15,12 +15,28 @@ namespace Game.Combat
         private bool running;
         private float originalTimeScale = 1f;
 
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
+        private static void ResetTimeScaleBeforeSceneLoad()
+        {
+            Time.timeScale = 1f;
+        }
+
         public void TriggerPause()
         {
             if (!running) StartCoroutine(CoPause());
         }
 
         private void OnDisable()
+        {
+            RestoreTimeScale();
+        }
+
+        private void OnDestroy()
+        {
+            RestoreTimeScale();
+        }
+
+        private void RestoreTimeScale()
         {
             if (running)
                 Time.timeScale = originalTimeScale;

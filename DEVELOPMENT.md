@@ -6,6 +6,8 @@ Use Unity `6000.4.4f1`. The project uses the built-in render pipeline and the le
 
 Open `Assets/Scenes/VerticalSlice.unity` to run the current playable placeholder scene. The scene is enabled in Build Settings.
 
+Unity Play Mode startup is explicitly pinned to `Assets/Scenes/VerticalSlice.unity` by `Game.Editor.VerticalSliceStartup`. This protects the toolbar Play button from running an empty editor scene when Unity's last scene setup is missing or stale. The validator runs on editor load, is also called by vertical slice regeneration, and can be run manually from `Game > Vertical Slice > Validate Startup Scene`.
+
 Phase 9 is a feel calibration and telemetry phase. The goal is to measure the Warrior loop, tune timing/readability, and keep the slice reliable before adding new enemies, classes, narrative systems, or complex UI.
 
 Use `Game > Vertical Slice > Create Or Refresh Vertical Slice` in the Unity Editor to recreate the default folders, ScriptableObject assets, prefabs, scene, and Build Settings entry. The menu is idempotent and now rebuilds the active path around Warrior-only endless arena play.
@@ -182,6 +184,8 @@ Current expected discovery after Phase 9 telemetry:
 - PlayMode discovers the rhythm judgement test, vertical slice smoke tests, and telemetry smoke test.
 - Both modes should remain separated by `Game.Tests.EditMode.asmdef` and `Game.Tests.PlayMode.asmdef`.
 
+The startup smoke test is `VerticalSlicePlayModeTests.EditorPlayButtonStartupSceneLoadsPlayableVerticalSlice`. It calls the startup validator, checks the configured Play Mode start scene path, loads the actual vertical slice scene by path, waits several frames, asserts one player/camera/HUD/rhythm/score/telemetry/arena path exists, confirms `Time.timeScale` is restored to `1`, and fails on fatal startup log markers.
+
 `TestResults/summary.txt` is the quickest human-readable status. The two JSON files are better for CI parsing because they include totals and failure messages per mode.
 
 Warrior validation artifacts should go under `Artifacts/WarriorEndless/`. Do not commit `Artifacts/`.
@@ -193,6 +197,7 @@ Environment note: Unity licensing handshake/curl messages can appear in batchmod
 - Art, animation clips, and audio remain placeholder.
 - The Fighter script is still the serialized active component for prefab compatibility, even though gameplay names/treats it as Warrior.
 - The active slice uses one scene-level `RhythmJudgement`; player input buffers and combo systems fall back to it when they do not have a local judgement reference.
+- Toolbar Play is expected to start `Assets/Scenes/VerticalSlice.unity`; if it does not, run `Game > Vertical Slice > Validate Startup Scene` and then the startup PlayMode smoke test.
 - Telemetry writes local developer JSON only. It is not network analytics, privacy tooling, or production reporting.
 - Short automated telemetry smoke tests can produce exaggerated score-per-minute values because the run duration is intentionally tiny.
 - Mage, Archer, Healer, and class swap are preserved as deferred content and should not be treated as current gameplay.

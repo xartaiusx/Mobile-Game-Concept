@@ -69,6 +69,7 @@ namespace Game.EditorTools
             BuildScene(fighterPrefab, magePrefab, archerPrefab, healerPrefab, meleePrefab, rangedPrefab, bossPrefab, hudPrefab, rhythmConfig, bossSlam, goldPickupPrefab, potionPickupPrefab, materials, feedbackPrefabs, audioCues, audioPrefab);
             EditorSceneManager.SaveScene(scene, ScenePath);
             AddSceneToBuildSettings(ScenePath);
+            Game.Editor.VerticalSliceStartup.EnsureStartupSceneConfigured();
 
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
