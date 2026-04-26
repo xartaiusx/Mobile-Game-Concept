@@ -39,6 +39,7 @@ public class VerticalSlicePlayModeTests
         Assert.IsNotNull(Object.FindAnyObjectByType<RangedEnemy>());
         Assert.IsNotNull(Object.FindAnyObjectByType<BossEnemy>());
         Assert.IsNotNull(Object.FindAnyObjectByType<BossTelegraphController>());
+        Assert.IsNotNull(Object.FindAnyObjectByType<ArenaController>());
         Assert.IsNotNull(Object.FindAnyObjectByType<Canvas>());
         Assert.IsNotNull(Object.FindAnyObjectByType<BeatBarUI>());
         Assert.IsNotNull(Object.FindAnyObjectByType<VerticalSliceHud>());

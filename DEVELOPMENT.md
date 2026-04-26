@@ -17,6 +17,7 @@ The generated setup includes:
 - Melee, ranged, and boss prefabs under `Assets/Prefabs/Enemies`.
 - A pooled projectile prefab under `Assets/Prefabs/Projectiles`.
 - A scene Fighter player, melee enemy, ranged enemy, boss, basic enemy spawner, and readable rhythm-combat HUD.
+- `ArenaController` for a minimal wave-to-boss win/loss loop.
 - Placeholder feedback prefabs and materials under `Assets/Prefabs/Feedback` and `Assets/Materials/Feedback`.
 
 ## Vertical Slice UI
@@ -29,6 +30,7 @@ The scene includes `Assets/Prefabs/UI/VerticalSliceHUD.prefab`, backed by `BeatB
 - Ability text: shows the first equipped ability and cooldown.
 - Dodge/parry text: shows cooldown and active/invulnerable state.
 - Boss text: shows boss telegraph countdown and impact status.
+- Arena text: shows the current arena state, enemy count, and win/loss messages.
 - Attack text: shows `Ready`, `Windup`, `Active`, or `Recovery`.
 - Debug text: optional runtime readout for beat, last grade, attack state, player health, and enemy count.
 
@@ -58,11 +60,25 @@ Generated Phase 5 assets:
 - VFX: `PerfectHitPulse`, `GoodHitPulse`, `MissHitPulse`, `DodgePulse`, `ParryPulse`, `ParrySuccessBurst`, `BossTelegraphWarningRing`, `BossImpactBurst`, `EnemyWindupFlash`, `ProjectileTrailPlaceholder`.
 - Audio: `PerfectHit`, `GoodHit`, `Miss`, `Dodge`, `ParrySuccess`, `BossWarning`, `BossImpact`, `PlayerDamage`, `EnemyDefeated`, `Footstep`, `WeaponSwing`.
 
+## Phase 6 Gameplay Loop And Projectiles
+
+Phase 6 moves the slice from connected combat systems into a minimal playable loop:
+
+- `AbilityController` now uses `PoolableProjectile` and `ObjectPool` for `ProjectileLike` abilities.
+- Mage Bolt is a medium-speed projectile. Perfect timing increases damage and enables a small splash/stagger identity.
+- Archer Shot is a fast precision projectile. Perfect timing enables one pierce and the strongest damage reward; Miss timing is intentionally punishing.
+- Fighter keeps short-range forgiving pressure and survivability.
+- Healer remains sustain-focused with stronger Perfect protection.
+- `ArenaController` starts with the minion wave, activates the boss after the wave is cleared, reports victory when the boss is defeated, reports failure on player death, and reloads the scene on `R`.
+- `PlayerSimulationController` is available on player prefabs for cautious automated validation: approach, maintain distance, attack near beats, dodge nearby threats, parry boss telegraphs, and use abilities on cooldown.
+
+The default scene still starts with the Fighter for stable keyboard/controller testing. Mage and Archer projectile behavior is generated into their prefabs and validated by tests; swap the scene player or use `GameManager` class selection when doing class-specific manual passes.
+
 ## Class Ability Defaults
 
-- Fighter Slash: short-range forward cone damage. Perfect timing has the strongest damage scaling and briefly staggers enemies.
-- Mage Bolt: medium-range target-point spell. It hits harder than the basic combo but has a longer cooldown.
-- Archer Shot: long-range precision hit. Perfect timing has the highest damage multiplier, while misses are heavily reduced.
+- Fighter Slash: short-range forward cone damage. It is forgiving on Miss and Perfect briefly staggers enemies.
+- Mage Bolt: medium-range projectile with higher burst, longer cooldown, Perfect splash, and positional play.
+- Archer Shot: long-range precision projectile with high Perfect reward, one-target pierce, and a punishing Miss multiplier.
 - Healer Pulse: self heal. Perfect timing adds bonus healing and a brief protection window.
 
 ## Controls
@@ -99,7 +115,7 @@ Create assets from the Unity create menu:
 
 ## Projectile Path
 
-Use `PoolableProjectile` with `ObjectPool` for gameplay prefabs on mobile. `Projectile` remains as a non-pooled fallback for quick prototypes. Ranged enemies and bosses both prefer an assigned `ObjectPool` and fall back to `Instantiate` only when no pool is configured.
+Use `PoolableProjectile` with `ObjectPool` for gameplay prefabs on mobile. `Projectile` remains as a non-pooled fallback for quick prototypes. Ranged enemies, bosses, Mage Bolt, and Archer Shot all prefer assigned pools and fall back to `Instantiate` only when no pool is configured.
 
 ## Tests
 
@@ -125,6 +141,8 @@ PlayMode tests:
 
 - Placeholder keyboard input is included for local testing; mobile UI buttons should call `RequestAbility`, `RequestDodge`, and `RequestParry`.
 - Ability targeting is intentionally simple and should be expanded with animation events, lock-on, or touch targeting later.
+- The default committed scene uses Fighter; Mage/Archer class-specific feel still needs manual class-swap playtesting.
+- The arena loop is intentionally minimal and does not yet include loot pickups, rewards, or multi-wave pacing polish.
 - Boss telegraph and combat feedback use authored placeholder primitives and generated tones; final VFX/audio are still needed.
 - No equipment UI, skill trees, addressables, Cinemachine, or multiplayer are included yet.
 - The batchmode Test Runner exits successfully in this environment but does not currently emit XML result files; use the Unity Test Runner window for detailed per-test reporting if needed.
@@ -132,10 +150,9 @@ PlayMode tests:
 
 ## Recommended Next Sequence
 
-1. Do a human keyboard/controller pass in `Assets/Scenes/VerticalSlice.unity` to confirm feel beyond automated input.
-2. Implement true projectile-style Mage/Archer abilities using the existing projectile/pool path.
-3. Tune one ability per class against the default rhythm windows.
-4. Add a simple pickup/loot loop and arena win/loss condition.
-5. Connect real animation clips/events to `AttackTimingData` and combo timing states.
-6. Add mobile UI buttons for attack, ability, dodge, and parry after keyboard/controller feel is stable.
-7. Profile on Android/iOS and tune pooling, physics masks, and input latency.
+1. Do a human class-swap playtest for Fighter, Mage, Archer, and Healer in `Assets/Scenes/VerticalSlice.unity`.
+2. Add animation-driven combat states using the existing attack timing and animation relay hooks.
+3. Expand boss phases and hit reactions.
+4. Polish HUD layout and arena state presentation.
+5. Add a simple loot pickup and reward loop.
+6. Start early mobile adaptation after keyboard/controller feel remains coherent.

@@ -35,10 +35,10 @@ namespace Game.EditorTools
             RhythmConfig rhythmConfig = CreateRhythmConfig();
             ComboProfile comboProfile = CreateComboProfile();
             AttackTimingData attackTiming = CreateAttackTiming();
-            AbilityDefinition fighterSlash = CreateAbility("Assets/ScriptableObjects/Abilities/FighterSlash.asset", "fighter_slash", "Fighter Slash", "Short-range guard-breaking slash. Perfect timing adds a stronger stagger.", 24, 0, 1.15f, 2.8f, 38f, AbilityType.Damage, AbilityTargetMode.ForwardCone, AbilityExecutionStyle.Instant, new AbilityRhythmScaling { perfectMultiplier = 1.75f, goodMultiplier = 1.15f, missMultiplier = 0.6f }, 0.6f, 0f);
-            AbilityDefinition mageBolt = CreateAbility("Assets/ScriptableObjects/Abilities/MageBolt.asset", "mage_bolt", "Mage Bolt", "Medium-range focused spell with a longer recovery.", 28, 0, 2.0f, 7f, 1.2f, AbilityType.Damage, AbilityTargetMode.TargetPoint, AbilityExecutionStyle.ProjectileLike, new AbilityRhythmScaling { perfectMultiplier = 1.55f, goodMultiplier = 1.1f, missMultiplier = 0.65f }, 0.25f, 0f);
-            AbilityDefinition archerShot = CreateAbility("Assets/ScriptableObjects/Abilities/ArcherShot.asset", "archer_shot", "Archer Shot", "Long-range precision shot that heavily rewards Perfect timing.", 20, 0, 1.35f, 10f, 0.9f, AbilityType.Damage, AbilityTargetMode.TargetPoint, AbilityExecutionStyle.ProjectileLike, new AbilityRhythmScaling { perfectMultiplier = 2.0f, goodMultiplier = 1.2f, missMultiplier = 0.5f }, 0.2f, 0f);
-            AbilityDefinition healerPulse = CreateAbility("Assets/ScriptableObjects/Abilities/HealerPulse.asset", "healer_pulse", "Healer Pulse", "Self heal pulse. Perfect timing adds a brief protection window.", 0, 20, 2.6f, 0f, 3.5f, AbilityType.Heal, AbilityTargetMode.Self, AbilityExecutionStyle.Pulse, new AbilityRhythmScaling { perfectMultiplier = 1.6f, goodMultiplier = 1.15f, missMultiplier = 0.7f }, 0f, 0.35f);
+            AbilityDefinition fighterSlash = CreateAbility("Assets/ScriptableObjects/Abilities/FighterSlash.asset", "fighter_slash", "Fighter Slash", "Short-range guard-breaking slash. Perfect timing adds a stronger stagger.", 23, 0, 1.05f, 2.7f, 38f, AbilityType.Damage, AbilityTargetMode.ForwardCone, AbilityExecutionStyle.Instant, new AbilityRhythmScaling { perfectMultiplier = 1.65f, goodMultiplier = 1.2f, missMultiplier = 0.75f }, 0.75f, 0f);
+            AbilityDefinition mageBolt = CreateAbility("Assets/ScriptableObjects/Abilities/MageBolt.asset", "mage_bolt", "Mage Bolt", "Medium-speed projectile with Perfect splash and stagger.", 30, 0, 2.25f, 8f, 1.5f, AbilityType.Damage, AbilityTargetMode.TargetPoint, AbilityExecutionStyle.ProjectileLike, new AbilityRhythmScaling { perfectMultiplier = 1.65f, goodMultiplier = 1.1f, missMultiplier = 0.6f }, 0.35f, 0f);
+            AbilityDefinition archerShot = CreateAbility("Assets/ScriptableObjects/Abilities/ArcherShot.asset", "archer_shot", "Archer Shot", "Fast precision projectile. Perfect timing pierces one target.", 18, 0, 1.25f, 12f, 0.35f, AbilityType.Damage, AbilityTargetMode.TargetPoint, AbilityExecutionStyle.ProjectileLike, new AbilityRhythmScaling { perfectMultiplier = 2.25f, goodMultiplier = 1.15f, missMultiplier = 0.45f }, 0.15f, 0f);
+            AbilityDefinition healerPulse = CreateAbility("Assets/ScriptableObjects/Abilities/HealerPulse.asset", "healer_pulse", "Healer Pulse", "Self heal pulse. Perfect timing adds a brief protection window.", 0, 22, 2.4f, 0f, 3.5f, AbilityType.Heal, AbilityTargetMode.Self, AbilityExecutionStyle.Pulse, new AbilityRhythmScaling { perfectMultiplier = 1.65f, goodMultiplier = 1.15f, missMultiplier = 0.75f }, 0f, 0.45f);
             FeedbackPrefabs feedbackPrefabs = CreateFeedbackPrefabs(materials);
             BossTelegraphData bossSlam = CreateBossTelegraph(feedbackPrefabs.bossWarning, feedbackPrefabs.bossImpact);
             CreateItem("Assets/ScriptableObjects/Items/Gold.asset", "gold", "Gold", 999);
@@ -46,10 +46,10 @@ namespace Game.EditorTools
 
             GameObject audioPrefab = CreateAudioCuePlayerPrefab();
             GameObject projectilePrefab = CreateProjectilePrefab(materials.projectile, materials.projectileTrail);
-            GameObject fighterPrefab = CreatePlayerPrefab("Assets/Prefabs/Player/FighterPlayer.prefab", typeof(Fighter), fighterSlash, rhythmConfig, comboProfile, attackTiming, materials.player, audioCues);
-            GameObject magePrefab = CreatePlayerPrefab("Assets/Prefabs/Player/MagePlayer.prefab", typeof(Mage), mageBolt, rhythmConfig, comboProfile, attackTiming, materials.mage, audioCues);
-            GameObject archerPrefab = CreatePlayerPrefab("Assets/Prefabs/Player/ArcherPlayer.prefab", typeof(Archer), archerShot, rhythmConfig, comboProfile, attackTiming, materials.archer, audioCues);
-            GameObject healerPrefab = CreatePlayerPrefab("Assets/Prefabs/Player/HealerPlayer.prefab", typeof(Healer), healerPulse, rhythmConfig, comboProfile, attackTiming, materials.healer, audioCues);
+            GameObject fighterPrefab = CreatePlayerPrefab("Assets/Prefabs/Player/FighterPlayer.prefab", typeof(Fighter), fighterSlash, rhythmConfig, comboProfile, attackTiming, projectilePrefab, feedbackPrefabs.bossImpact, materials.player, audioCues);
+            GameObject magePrefab = CreatePlayerPrefab("Assets/Prefabs/Player/MagePlayer.prefab", typeof(Mage), mageBolt, rhythmConfig, comboProfile, attackTiming, projectilePrefab, feedbackPrefabs.bossImpact, materials.mage, audioCues);
+            GameObject archerPrefab = CreatePlayerPrefab("Assets/Prefabs/Player/ArcherPlayer.prefab", typeof(Archer), archerShot, rhythmConfig, comboProfile, attackTiming, projectilePrefab, feedbackPrefabs.perfect, materials.archer, audioCues);
+            GameObject healerPrefab = CreatePlayerPrefab("Assets/Prefabs/Player/HealerPlayer.prefab", typeof(Healer), healerPulse, rhythmConfig, comboProfile, attackTiming, projectilePrefab, feedbackPrefabs.parrySuccess, materials.healer, audioCues);
             GameObject meleePrefab = CreateMeleeEnemyPrefab(materials.enemy, feedbackPrefabs.enemyWindup);
             GameObject rangedPrefab = CreateRangedEnemyPrefab(projectilePrefab, materials.rangedEnemy, feedbackPrefabs.enemyWindup);
             GameObject bossPrefab = CreateBossPrefab(projectilePrefab, bossSlam, materials.boss, feedbackPrefabs.enemyWindup, audioCues);
@@ -251,7 +251,7 @@ namespace Game.EditorTools
             return item;
         }
 
-        private static GameObject CreatePlayerPrefab(string path, System.Type classType, AbilityDefinition ability, RhythmConfig rhythmConfig, ComboProfile comboProfile, AttackTimingData attackTiming, Material material, AudioCueSet audioCues)
+        private static GameObject CreatePlayerPrefab(string path, System.Type classType, AbilityDefinition ability, RhythmConfig rhythmConfig, ComboProfile comboProfile, AttackTimingData attackTiming, GameObject projectilePrefab, GameObject projectileImpactPrefab, Material material, AudioCueSet audioCues)
         {
             GameObject player = GameObject.CreatePrimitive(PrimitiveType.Capsule);
             player.name = System.IO.Path.GetFileNameWithoutExtension(path);
@@ -270,7 +270,8 @@ namespace Game.EditorTools
             SetObject(animationBridge, "footstepCue", audioCues.footstep);
             SetObject(animationBridge, "weaponSwingCue", audioCues.weaponSwing);
             var playerController = player.AddComponent<PlayerController>();
-            SetFloat(playerController, "moveSpeed", 5.8f);
+            float moveSpeed = classType == typeof(Archer) ? 6.1f : classType == typeof(Mage) ? 5.35f : classType == typeof(Healer) ? 5.45f : 5.8f;
+            SetFloat(playerController, "moveSpeed", moveSpeed);
             SetFloat(playerController, "jumpHeight", 1.4f);
             var judgement = player.AddComponent<RhythmJudgement>();
             SetObject(judgement, "config", rhythmConfig);
@@ -289,11 +290,21 @@ namespace Game.EditorTools
             SetObject(combo, "profile", comboProfile);
             SetObject(combo, "judgement", judgement);
             SetObject(combo, "attackTiming", attackTiming);
-            SetFloat(combo, "attackRange", 2.2f);
+            SetFloat(combo, "attackRange", classType == typeof(Fighter) ? 2.35f : 2.05f);
 
             var abilityController = player.AddComponent<AbilityController>();
             SetObject(abilityController, "abilityBuffer", abilityBuffer);
             SetObject(abilityController, "abilities", new[] { ability });
+            SetObject(abilityController, "projectilePrefab", projectilePrefab);
+            SetObject(abilityController, "projectileImpactPrefab", projectileImpactPrefab);
+
+            GameObject abilityPoolObject = new GameObject("AbilityProjectilePool");
+            abilityPoolObject.transform.SetParent(player.transform);
+            var abilityPool = abilityPoolObject.AddComponent<ObjectPool>();
+            SetObject(abilityPool, "prefab", projectilePrefab);
+            SetObject(abilityController, "projectilePool", abilityPool);
+            SetFloat(abilityController, "mageProjectileSpeed", 9f);
+            SetFloat(abilityController, "archerProjectileSpeed", 17.5f);
 
             var dodge = player.AddComponent<DodgeController>();
             SetObject(dodge, "dodgeBuffer", dodgeBuffer);
@@ -303,6 +314,10 @@ namespace Game.EditorTools
             var parry = player.AddComponent<ParryController>();
             SetObject(parry, "parryBuffer", parryBuffer);
             SetFloat(parry, "cooldown", 0.75f);
+
+            var simulation = player.AddComponent<PlayerSimulationController>();
+            SetFloat(simulation, "preferredRange", classType == typeof(Fighter) ? 2.25f : 2.4f);
+            SetFloat(simulation, "rangedPreferredRange", classType == typeof(Archer) ? 8f : 6.2f);
 
             return SavePrefab(path, player);
         }
@@ -481,7 +496,7 @@ namespace Game.EditorTools
             panelRect.anchorMax = new Vector2(1f, 1f);
             panelRect.pivot = new Vector2(0.5f, 1f);
             panelRect.anchoredPosition = new Vector2(0f, -12f);
-            panelRect.sizeDelta = new Vector2(-24f, 132f);
+            panelRect.sizeDelta = new Vector2(-24f, 154f);
 
             GameObject beatBar = new GameObject("BeatBar");
             beatBar.transform.SetParent(panel.transform, false);
@@ -513,6 +528,7 @@ namespace Game.EditorTools
             Text parry = CreateText("ParryText", panel.transform, new Vector2(-10f, -92f), new Vector2(190f, 22f), 14, TextAnchor.MiddleLeft);
             Text attack = CreateText("AttackStateText", panel.transform, new Vector2(220f, -66f), new Vector2(220f, 22f), 14, TextAnchor.MiddleLeft);
             Text boss = CreateText("BossText", panel.transform, new Vector2(0f, -116f), new Vector2(500f, 22f), 14, TextAnchor.MiddleCenter);
+            Text arena = CreateText("ArenaText", panel.transform, new Vector2(0f, -138f), new Vector2(520f, 22f), 14, TextAnchor.MiddleCenter);
             Text debug = CreateText("DebugText", root.transform, new Vector2(12f, 12f), new Vector2(230f, 100f), 12, TextAnchor.LowerLeft);
             var debugRect = debug.GetComponent<RectTransform>();
             debugRect.anchorMin = new Vector2(0f, 0f);
@@ -532,6 +548,7 @@ namespace Game.EditorTools
             SetObject(hud, "parryText", parry);
             SetObject(hud, "attackStateText", attack);
             SetObject(hud, "bossText", boss);
+            SetObject(hud, "arenaText", arena);
             SetObject(hud, "debugText", debug);
 
             return SavePrefab("Assets/Prefabs/UI/VerticalSliceHUD.prefab", root);
@@ -618,11 +635,24 @@ namespace Game.EditorTools
             spawner.enemyPrefabs = new[] { meleePrefab, rangedPrefab };
             spawner.spawnInterval = 18f;
             spawner.maxEnemies = 2;
-            spawner.spawnPoints = new[]
+            Transform[] spawnPoints = new[]
             {
                 CreateSpawnPoint("EnemySpawn_A", new Vector3(7f, 0f, 4f)),
                 CreateSpawnPoint("EnemySpawn_B", new Vector3(-7f, 0f, 4f))
             };
+            spawner.spawnPoints = spawnPoints;
+            spawner.enabled = false;
+
+            GameObject arenaObject = new GameObject("ArenaController");
+            var arena = arenaObject.AddComponent<ArenaController>();
+            SetObject(arena, "player", player.GetComponent<BaseCharacter>());
+            SetObject(arena, "bossObject", boss);
+            SetObject(arena, "initialWaveEnemies", new[] { melee.GetComponent<BaseEnemy>(), ranged.GetComponent<BaseEnemy>() });
+            SetObject(arena, "waveEnemyPrefabs", new[] { meleePrefab, rangedPrefab });
+            SetObject(arena, "waveSpawnPoints", spawnPoints);
+            SetInt(arena, "waveCount", 1);
+            SetInt(arena, "enemiesPerWave", 2);
+            SetFloat(arena, "spawnPacingSeconds", 0.75f);
 
             GameObject hud = (GameObject)PrefabUtility.InstantiatePrefab(hudPrefab);
             hud.name = "VerticalSliceHUD";
@@ -635,6 +665,7 @@ namespace Game.EditorTools
                 SetObject(hudController, "parryController", player.GetComponent<ParryController>());
                 SetObject(hudController, "bossTelegraphController", telegraph);
                 SetObject(hudController, "playerCharacter", player.GetComponent<BaseCharacter>());
+                SetObject(hudController, "arenaController", arena);
             }
 
             GameObject feedbackObject = new GameObject("RhythmFeedback");

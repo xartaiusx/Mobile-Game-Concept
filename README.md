@@ -24,12 +24,13 @@ For detailed setup, asset, and test notes, see [DEVELOPMENT.md](DEVELOPMENT.md).
 - Event-driven placeholder feedback pulses for Perfect/Good/Miss attacks, dodge, parry, and boss attacks.
 - Phase 4 tuning values for a readable keyboard/controller combat loop: more survivable Fighter, calmer enemy pressure, compact HUD, and higher follow camera.
 - Phase 5 placeholder polish: clearer hit/dodge/parry/boss VFX prefabs, procedural audio cue assets, projectile trails, enemy windup warnings, and animation-event relay hooks.
+- Phase 6 gameplay loop: pooled Mage/Archer projectile abilities, class balance defaults, arena wave-to-boss flow, victory/failure state, and a player-like simulation helper.
 
 ## Class Abilities
 
 - Fighter Slash: close cone strike with high Perfect reward and brief enemy stagger.
-- Mage Bolt: medium-range spell with higher damage and longer cooldown.
-- Archer Shot: long-range precision hit with the strongest Perfect multiplier.
+- Mage Bolt: medium-speed projectile with Perfect splash/stagger and longer cooldown.
+- Archer Shot: fast precision projectile; Perfect timing can pierce one target and Miss is sharply reduced.
 - Healer Pulse: self heal; Perfect timing adds brief protection.
 
 ## Controls
@@ -56,6 +57,13 @@ This recreates the default folders, ScriptableObject assets, prefabs, scene obje
 - Player prefabs include `CombatAnimationBridge` and `AnimationEventRelay` so future clips can call attack active/recovery, footstep, and weapon-swing hooks.
 - Boss telegraphs pulse warning rings on beats and show countdown/impact text in the HUD.
 
+## Phase 6 Gameplay
+
+- `AbilityController` launches projectile-style abilities through assigned `ObjectPool` instances.
+- `PoolableProjectile` can now damage enemies, apply rhythm grade, splash Mage impacts, and allow Archer Perfect pierce.
+- `ArenaController` manages the vertical slice loop: initial wave, boss activation, victory, failure, and `R` restart.
+- `PlayerSimulationController` supports cautious automated play behavior for validation without changing mobile input direction.
+
 ## Tests
 
 ```bash
@@ -66,4 +74,4 @@ This recreates the default folders, ScriptableObject assets, prefabs, scene obje
 
 ## Next
 
-Do a human keyboard/controller pass, then move into Phase 6: true Mage/Archer projectile abilities, per-class combat balance, a simple pickup loop, and arena win/loss structure. Mobile touch controls come after the keyboard/controller slice feels coherent.
+Next: Phase 7 should focus on animation-driven combat, advanced boss phases, better hit reactions, UI polish, and early mobile adaptation.

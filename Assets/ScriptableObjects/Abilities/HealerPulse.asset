@@ -16,8 +16,8 @@ MonoBehaviour:
   displayName: Healer Pulse
   description: Self heal pulse. Perfect timing adds a brief protection window.
   baseDamage: 0
-  healAmount: 20
-  cooldown: 2.6
+  healAmount: 22
+  cooldown: 2.4
   range: 0
   radius: 3.5
   resourceCost: 0
@@ -25,8 +25,8 @@ MonoBehaviour:
   targetMode: 0
   executionStyle: 2
   perfectStaggerSeconds: 0
-  perfectProtectionSeconds: 0.35
+  perfectProtectionSeconds: 0.45
   rhythmScaling:
-    perfectMultiplier: 1.6
+    perfectMultiplier: 1.65
     goodMultiplier: 1.15
-    missMultiplier: 0.7
+    missMultiplier: 0.75

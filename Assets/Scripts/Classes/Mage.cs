@@ -5,7 +5,7 @@ namespace Game.Classes
 {
     public class Mage : BaseCharacter
     {
-        [SerializeField] private int healthMultiplier = 8;
+        [SerializeField] private int healthMultiplier = 10;
 
         public override void InitializeStats()
         {

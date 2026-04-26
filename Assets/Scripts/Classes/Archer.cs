@@ -5,7 +5,7 @@ namespace Game.Classes
 {
     public class Archer : BaseCharacter
     {
-        [SerializeField] private int healthMultiplier = 9;
+        [SerializeField] private int healthMultiplier = 10;
         [SerializeField] private float healthRestorationFactor = 0.3f;
 
         public override void InitializeStats()

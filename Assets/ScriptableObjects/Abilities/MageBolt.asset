@@ -14,19 +14,19 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Game.Combat.AbilityDefinition
   abilityId: mage_bolt
   displayName: Mage Bolt
-  description: Medium-range focused spell with a longer recovery.
-  baseDamage: 28
+  description: Medium-speed projectile with Perfect splash and stagger.
+  baseDamage: 30
   healAmount: 0
-  cooldown: 2
-  range: 7
-  radius: 1.2
+  cooldown: 2.25
+  range: 8
+  radius: 1.5
   resourceCost: 0
   abilityType: 0
   targetMode: 3
   executionStyle: 1
-  perfectStaggerSeconds: 0.25
+  perfectStaggerSeconds: 0.35
   perfectProtectionSeconds: 0
   rhythmScaling:
-    perfectMultiplier: 1.55
+    perfectMultiplier: 1.65
     goodMultiplier: 1.1
-    missMultiplier: 0.65
+    missMultiplier: 0.6

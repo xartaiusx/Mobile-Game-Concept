@@ -15,6 +15,7 @@ namespace Game.UI
         [SerializeField] private ParryController parryController;
         [SerializeField] private BossTelegraphController bossTelegraphController;
         [SerializeField] private BaseCharacter playerCharacter;
+        [SerializeField] private ArenaController arenaController;
 
         [Header("Text")]
         [SerializeField] private Text feedbackText;
@@ -24,6 +25,7 @@ namespace Game.UI
         [SerializeField] private Text parryText;
         [SerializeField] private Text attackStateText;
         [SerializeField] private Text bossText;
+        [SerializeField] private Text arenaText;
         [SerializeField] private Text debugText;
         [SerializeField] private bool showDebugOverlay = true;
 
@@ -64,6 +66,9 @@ namespace Game.UI
             else if (bossText != null)
                 bossText.text = "Boss: watching";
 
+            if (arenaText != null && arenaController != null)
+                arenaText.text = "Arena: " + arenaController.State + "  " + arenaController.ActiveEnemyCount;
+
             if (debugText != null)
             {
                 debugText.gameObject.SetActive(showDebugOverlay);
@@ -93,6 +98,8 @@ namespace Game.UI
 
             if (bossTelegraphController == null)
                 bossTelegraphController = FindAnyObjectByType<BossTelegraphController>();
+            if (arenaController == null)
+                arenaController = FindAnyObjectByType<ArenaController>();
         }
 
         private void Subscribe()
@@ -128,6 +135,9 @@ namespace Game.UI
 
             if (playerCharacter != null)
                 playerCharacter.OnDamaged += HandlePlayerDamaged;
+
+            if (arenaController != null)
+                arenaController.StateChanged += HandleArenaStateChanged;
         }
 
         private void Unsubscribe()
@@ -163,6 +173,9 @@ namespace Game.UI
 
             if (playerCharacter != null)
                 playerCharacter.OnDamaged -= HandlePlayerDamaged;
+
+            if (arenaController != null)
+                arenaController.StateChanged -= HandleArenaStateChanged;
         }
 
         private void RefreshStaticText()
@@ -253,6 +266,14 @@ namespace Game.UI
         {
             if (feedbackText != null)
                 feedbackText.text = "Player Hit";
+        }
+
+        private void HandleArenaStateChanged(ArenaState state, string message)
+        {
+            if (arenaText != null)
+                arenaText.text = "Arena: " + message;
+            if ((state == ArenaState.Victory || state == ArenaState.Failure) && feedbackText != null)
+                feedbackText.text = message;
         }
 
         private string FormatAbilityText()

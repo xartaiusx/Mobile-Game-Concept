@@ -27,6 +27,7 @@ GameObject:
   - component: {fileID: 1564829191297587597}
   - component: {fileID: 8077613439219635989}
   - component: {fileID: 1377119374608369945}
+  - component: {fileID: 7560252632796742355}
   m_Layer: 0
   m_Name: ArcherPlayer
   m_TagString: Player
@@ -46,7 +47,8 @@ Transform:
   m_LocalPosition: {x: 0, y: 1, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 5726887061335619350}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!33 &2885049108618273727
@@ -151,7 +153,7 @@ MonoBehaviour:
   maxHealth: 0
   currentHealth: 0
   initializeOnAwake: 1
-  healthMultiplier: 9
+  healthMultiplier: 10
   healthRestorationFactor: 0.3
 --- !u!82 &2882090626881212779
 AudioSource:
@@ -309,7 +311,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9ffb27b46513bad61816b0177f367037, type: 3}
   m_Name:
   m_EditorClassIdentifier: Assembly-CSharp::Game.Core.PlayerController
-  moveSpeed: 5.8
+  moveSpeed: 6.1
   rotationSpeed: 720
   jumpHeight: 1.4
   gravity: -20
@@ -400,7 +402,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Game.Combat.ComboSystem
   profile: {fileID: 11400000, guid: 8df21e7a783a42fdc87a2871440305fa, type: 2}
   judgement: {fileID: 5864777663400889693}
-  attackRange: 2.2
+  attackRange: 2.05
   attackTiming: {fileID: 11400000, guid: 325b6babb94d1c803b1894959538178f, type: 2}
   enemyMask:
     serializedVersion: 2
@@ -428,6 +430,12 @@ MonoBehaviour:
     m_Bits: 4294967295
   maxTargets: 12
   forwardConeAngle: 70
+  projectilePrefab: {fileID: 3439621045551425630, guid: 83c07bfda74bded02a740b7dd330191b, type: 3}
+  projectilePool: {fileID: 2257335101086704677}
+  projectileImpactPrefab: {fileID: 7314468550855017833, guid: cb8289042531612feb26651eea7b5165, type: 3}
+  mageProjectileSpeed: 9
+  archerProjectileSpeed: 17.5
+  projectileSpawnHeight: 1.1
   readKeyboardInput: 1
   primaryAbilityKey: 113
 --- !u!114 &8077613439219635989
@@ -472,3 +480,70 @@ MonoBehaviour:
   perfectStaggerDuration: 0.5
   readKeyboardInput: 1
   parryKey: 101
+--- !u!114 &7560252632796742355
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3146442173181068952}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ce8313f71303a92c4b38acda38ae5aab, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::Game.Core.PlayerSimulationController
+  simulationEnabled: 0
+  preferredRange: 2.4
+  rangedPreferredRange: 8
+  moveSpeed: 4.5
+  beatPressLead: 0.035
+  mistimedPressChance: 0.22
+  decisionInterval: 0.12
+  dodgeThreatRange: 2.1
+--- !u!1 &7804040917772180882
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 5726887061335619350}
+  - component: {fileID: 2257335101086704677}
+  m_Layer: 0
+  m_Name: AbilityProjectilePool
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &5726887061335619350
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7804040917772180882}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: -1, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 7544842780344367879}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &2257335101086704677
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7804040917772180882}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c6bcdf269b0ba73f389f47bb5daa857c, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::Game.Core.ObjectPool
+  prefab: {fileID: 3439621045551425630, guid: 83c07bfda74bded02a740b7dd330191b, type: 3}
+  preloadCount: 8
+  expandable: 1

@@ -1,5 +1,52 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
+--- !u!1 &1700786397112053224
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 9204010703865942721}
+  - component: {fileID: 2615911047184465200}
+  m_Layer: 0
+  m_Name: AbilityProjectilePool
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &9204010703865942721
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1700786397112053224}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: -1, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 9101531227902170173}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &2615911047184465200
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1700786397112053224}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c6bcdf269b0ba73f389f47bb5daa857c, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::Game.Core.ObjectPool
+  prefab: {fileID: 3439621045551425630, guid: 83c07bfda74bded02a740b7dd330191b, type: 3}
+  preloadCount: 8
+  expandable: 1
 --- !u!1 &4172262572666840945
 GameObject:
   m_ObjectHideFlags: 0
@@ -27,6 +74,7 @@ GameObject:
   - component: {fileID: 2178866725987906907}
   - component: {fileID: 972094323551913726}
   - component: {fileID: 8260856519851442590}
+  - component: {fileID: 8705799664048952707}
   m_Layer: 0
   m_Name: FighterPlayer
   m_TagString: Player
@@ -46,7 +94,8 @@ Transform:
   m_LocalPosition: {x: 0, y: 1, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 9204010703865942721}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!33 &614632585367432730
@@ -398,7 +447,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Game.Combat.ComboSystem
   profile: {fileID: 11400000, guid: 8df21e7a783a42fdc87a2871440305fa, type: 2}
   judgement: {fileID: 304208724916677265}
-  attackRange: 2.2
+  attackRange: 2.35
   attackTiming: {fileID: 11400000, guid: 325b6babb94d1c803b1894959538178f, type: 2}
   enemyMask:
     serializedVersion: 2
@@ -426,6 +475,12 @@ MonoBehaviour:
     m_Bits: 4294967295
   maxTargets: 12
   forwardConeAngle: 70
+  projectilePrefab: {fileID: 3439621045551425630, guid: 83c07bfda74bded02a740b7dd330191b, type: 3}
+  projectilePool: {fileID: 2615911047184465200}
+  projectileImpactPrefab: {fileID: 4830275523656502022, guid: d68aa0da64fd98c1aaa41abc309e9059, type: 3}
+  mageProjectileSpeed: 9
+  archerProjectileSpeed: 17.5
+  projectileSpawnHeight: 1.1
   readKeyboardInput: 1
   primaryAbilityKey: 113
 --- !u!114 &972094323551913726
@@ -470,3 +525,23 @@ MonoBehaviour:
   perfectStaggerDuration: 0.5
   readKeyboardInput: 1
   parryKey: 101
+--- !u!114 &8705799664048952707
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4172262572666840945}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ce8313f71303a92c4b38acda38ae5aab, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::Game.Core.PlayerSimulationController
+  simulationEnabled: 0
+  preferredRange: 2.25
+  rangedPreferredRange: 6.2
+  moveSpeed: 4.5
+  beatPressLead: 0.035
+  mistimedPressChance: 0.22
+  decisionInterval: 0.12
+  dodgeThreatRange: 2.1

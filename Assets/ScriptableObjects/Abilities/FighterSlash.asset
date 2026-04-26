@@ -15,18 +15,18 @@ MonoBehaviour:
   abilityId: fighter_slash
   displayName: Fighter Slash
   description: Short-range guard-breaking slash. Perfect timing adds a stronger stagger.
-  baseDamage: 24
+  baseDamage: 23
   healAmount: 0
-  cooldown: 1.15
-  range: 2.8
+  cooldown: 1.05
+  range: 2.7
   radius: 38
   resourceCost: 0
   abilityType: 0
   targetMode: 1
   executionStyle: 0
-  perfectStaggerSeconds: 0.6
+  perfectStaggerSeconds: 0.75
   perfectProtectionSeconds: 0
   rhythmScaling:
-    perfectMultiplier: 1.75
-    goodMultiplier: 1.15
-    missMultiplier: 0.6
+    perfectMultiplier: 1.65
+    goodMultiplier: 1.2
+    missMultiplier: 0.75

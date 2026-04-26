@@ -6,7 +6,7 @@ namespace Game.Classes
 {
     public class Healer : BaseCharacter
     {
-        [SerializeField] private int healthMultiplier = 10;
+        [SerializeField] private int healthMultiplier = 11;
         [SerializeField] private float healthRestorationFactor = 0.4f;
 
         public static event Action<Healer> OnLevelUpEffectsApplied;

@@ -16,6 +16,12 @@ namespace Game.Combat
         [SerializeField] private LayerMask enemyMask = ~0;
         [SerializeField] private int maxTargets = 12;
         [SerializeField, Range(1f, 180f)] private float forwardConeAngle = 70f;
+        [SerializeField] private GameObject projectilePrefab;
+        [SerializeField] private ObjectPool projectilePool;
+        [SerializeField] private GameObject projectileImpactPrefab;
+        [SerializeField] private float mageProjectileSpeed = 9f;
+        [SerializeField] private float archerProjectileSpeed = 16f;
+        [SerializeField] private float projectileSpawnHeight = 1.1f;
         [SerializeField] private bool readKeyboardInput = true;
         [SerializeField] private KeyCode primaryAbilityKey = KeyCode.Q;
 
@@ -163,6 +169,12 @@ namespace Game.Combat
             int damage = ability.ScaledDamage(grade);
             if (damage <= 0) return;
 
+            if (ability.executionStyle == AbilityExecutionStyle.ProjectileLike && TryLaunchProjectileAbility(ability, grade, damage))
+            {
+                AbilityEffectApplied?.Invoke(ability, grade, damage);
+                return;
+            }
+
             Vector3 origin = aimOrigin.position;
             Vector3 forward = aimOrigin.forward;
             float radius = Mathf.Max(0.1f, ability.radius);
@@ -204,6 +216,71 @@ namespace Game.Combat
                     AbilityEffectApplied?.Invoke(ability, grade, damage);
                 }
             }
+        }
+
+        private bool TryLaunchProjectileAbility(AbilityDefinition ability, RhythmGrade grade, int damage)
+        {
+            if (projectilePrefab == null && projectilePool == null)
+                return false;
+
+            Vector3 origin = aimOrigin.position + Vector3.up * projectileSpawnHeight;
+            Vector3 forward = aimOrigin.forward.sqrMagnitude > 0.001f ? aimOrigin.forward : transform.forward;
+            Vector3 target = ResolveProjectileTarget(origin, forward, ability.range);
+            Quaternion rotation = Quaternion.LookRotation((target - origin).sqrMagnitude > 0.001f ? (target - origin).normalized : forward);
+
+            GameObject projectile = projectilePool != null
+                ? projectilePool.Spawn(origin, rotation)
+                : Instantiate(projectilePrefab, origin, rotation);
+
+            if (projectile == null) return false;
+
+            var poolable = projectile.GetComponent<PoolableProjectile>();
+            if (poolable == null) return false;
+
+            bool isArcher = ability.abilityId != null && ability.abilityId.Contains("archer");
+            bool perfect = grade == RhythmGrade.Perfect;
+            float speed = isArcher ? archerProjectileSpeed : mageProjectileSpeed;
+            float splash = isArcher ? 0f : (perfect ? Mathf.Max(ability.radius, 1.8f) : Mathf.Max(0f, ability.radius * 0.65f));
+            bool pierce = isArcher && perfect;
+            float stagger = perfect ? ability.perfectStaggerSeconds : 0f;
+
+            poolable.InitializeAbilityProjectile(target, speed, damage, projectilePool, gameObject, grade, pierce, splash, stagger, projectileImpactPrefab);
+            return true;
+        }
+
+        private Vector3 ResolveProjectileTarget(Vector3 origin, Vector3 forward, float range)
+        {
+            BaseEnemy nearest = FindNearestEnemyInArc(origin, forward, range);
+            if (nearest != null)
+                return nearest.transform.position + Vector3.up * 0.9f;
+
+            return origin + forward.normalized * Mathf.Max(1f, range);
+        }
+
+        private BaseEnemy FindNearestEnemyInArc(Vector3 origin, Vector3 forward, float range)
+        {
+            BaseEnemy[] enemies = FindObjectsByType<BaseEnemy>(FindObjectsInactive.Exclude, FindObjectsSortMode.None);
+            float bestDistance = float.MaxValue;
+            BaseEnemy best = null;
+            float coneDot = Mathf.Cos(forwardConeAngle * 0.5f * Mathf.Deg2Rad);
+            for (int i = 0; i < enemies.Length; i++)
+            {
+                BaseEnemy enemy = enemies[i];
+                if (enemy == null || !enemy.IsAlive) continue;
+
+                Vector3 toEnemy = enemy.transform.position - origin;
+                float distance = toEnemy.magnitude;
+                if (distance > range || distance < 0.01f) continue;
+                if (Vector3.Dot(forward.normalized, toEnemy.normalized) < coneDot) continue;
+
+                if (distance < bestDistance)
+                {
+                    bestDistance = distance;
+                    best = enemy;
+                }
+            }
+
+            return best;
         }
 
         private void TickCooldowns()

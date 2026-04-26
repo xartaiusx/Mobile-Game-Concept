@@ -14,19 +14,19 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Game.Combat.AbilityDefinition
   abilityId: archer_shot
   displayName: Archer Shot
-  description: Long-range precision shot that heavily rewards Perfect timing.
-  baseDamage: 20
+  description: Fast precision projectile. Perfect timing pierces one target.
+  baseDamage: 18
   healAmount: 0
-  cooldown: 1.35
-  range: 10
-  radius: 0.9
+  cooldown: 1.25
+  range: 12
+  radius: 0.35
   resourceCost: 0
   abilityType: 0
   targetMode: 3
   executionStyle: 1
-  perfectStaggerSeconds: 0.2
+  perfectStaggerSeconds: 0.15
   perfectProtectionSeconds: 0
   rhythmScaling:
-    perfectMultiplier: 2
-    goodMultiplier: 1.2
-    missMultiplier: 0.5
+    perfectMultiplier: 2.25
+    goodMultiplier: 1.15
+    missMultiplier: 0.45
