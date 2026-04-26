@@ -233,6 +233,45 @@ Remaining art risks:
 - Attack and dodge/evade clips are still missing from the selected compatible clip set.
 - Kenney Tiny Dungeon is 2D pixel art and may not be the final style match for low-poly 3D characters.
 
+### Phase 9.10 Visual Display Verification
+
+First-pass visual wrapper prefabs are mounted as child instances under gameplay prefab `VisualRoot`s:
+
+- `FighterPlayer.prefab` -> `VisualRoot/WarriorVisual`
+- `MeleeEnemy.prefab` and `RangedEnemy.prefab` -> `VisualRoot/BasicEnemyVisual`
+- `BossEnemy.prefab` -> `VisualRoot/BossVisual`
+
+Gameplay scripts, colliders, health, combat, rhythm, score, telemetry, and movement remain on the gameplay roots. The mounted visual prefabs are optional display children and must not drive gameplay timing or collision.
+
+Final first-pass visual transforms:
+
+- Warrior selected model `Knight.fbx`: local position `(0, 0, 0)`, local rotation `(0, 0, 0)`, local scale `(1, 1, 1)`.
+- Basic enemy selected model `Rogue.fbx`: local position `(0, 0, 0)`, local rotation `(0, 0, 0)`, local scale `(0.95, 0.95, 0.95)`.
+- Boss placeholder selected model `Barbarian.fbx`: local position `(0, 0, 0)`, local rotation `(0, 0, 0)`, local scale `(1.55, 1.55, 1.55)`.
+- No axis correction was required in this pass; rotation remains identity for all selected KayKit models.
+
+PlayMode visual validation now loads `Assets/Scenes/VerticalSlice.unity`, waits several frames, and checks:
+
+- Player, melee enemy, and boss placeholder visual children exist under gameplay `VisualRoot`s.
+- Visual renderers exist, are enabled, have nonzero bounds, and have non-missing/non-transparent materials.
+- Visual roots stay near their gameplay roots with sane local scale.
+- The main camera frustum can see the Warrior visual bounds at startup.
+- `DungeonDecor` contains the selected Tiny Dungeon tiles, has renderers/materials, and has no colliders.
+- `TelemetryDebugOverlay.Toggle()` remains safe after visual load.
+
+The test writes an optional screenshot to `Artifacts/VisualValidation/vertical_slice_visual_smoke.png`; do not commit `Artifacts/`.
+
+Animation compatibility audit:
+
+- Imported committed animation FBXs currently available: `Rig_Medium_General.fbx` and `Rig_Medium_MovementBasic.fbx`.
+- `Rig_Medium_General.fbx` exposes idle/hit/death-style clips only for the current selected set.
+- `Rig_Medium_MovementBasic.fbx` exposes walking/running/jump movement clips only for the current selected set.
+- No committed compatible attack/slash/melee/dodge/roll/evade/dash FBX clip was found in the selected first-pass imports. `Attack` and `Evade` remain documented placeholder states until a compatible KayKit combat/movement clip file is selectively imported.
+
+License note:
+
+- `Assets/ThirdParty/Licenses/Kenney_TinyDungeon_LICENSE_NOTE.md` records that the local Tiny Dungeon import did not include a separate local license file and references the official Kenney source page license listing checked on 2026-04-26.
+
 ## Telemetry
 
 `TelemetryManager` is a runtime service-style singleton. Existing gameplay systems report lightweight events into it:

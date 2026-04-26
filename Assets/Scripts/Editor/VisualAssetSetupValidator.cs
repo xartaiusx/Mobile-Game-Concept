@@ -89,6 +89,14 @@ namespace Game.Editor
             "Assets/ThirdParty/Kenney/TinyDungeon/Tiles/tile_0017.png"
         };
 
+        private static readonly VisualAttachmentPlan[] VisualAttachmentPlans =
+        {
+            new VisualAttachmentPlan("Assets/Prefabs/Player/FighterPlayer.prefab", WarriorVisualPath, "WarriorVisual"),
+            new VisualAttachmentPlan("Assets/Prefabs/Enemies/MeleeEnemy.prefab", BasicEnemyVisualPath, "BasicEnemyVisual"),
+            new VisualAttachmentPlan("Assets/Prefabs/Enemies/RangedEnemy.prefab", BasicEnemyVisualPath, "BasicEnemyVisual"),
+            new VisualAttachmentPlan("Assets/Prefabs/Enemies/BossEnemy.prefab", BossVisualPath, "BossVisual")
+        };
+
         [MenuItem("Game/Visuals/Create Visual Folders")]
         public static void CreateVisualFoldersMenu()
         {
@@ -135,6 +143,7 @@ namespace Game.Editor
             AssignControllerClips(WarriorControllerPath);
             AssignControllerClips(BasicEnemyControllerPath);
             AssignControllerClips(BossControllerPath);
+            EnsureFirstPassVisualAttachments();
             AssetDatabase.SaveAssets();
             NormalizeGeneratedVisualYaml();
             AssetDatabase.Refresh();
@@ -213,6 +222,8 @@ namespace Game.Editor
         {
             for (int i = 0; i < GameplayPrefabPaths.Length; i++)
                 EnsureGameplayPrefabVisualRoot(GameplayPrefabPaths[i]);
+
+            EnsureFirstPassVisualAttachments();
         }
 
         public static string GetImportedAssetReport()
@@ -474,6 +485,57 @@ namespace Game.Editor
             PrefabUtility.UnloadPrefabContents(root);
         }
 
+        private static void EnsureFirstPassVisualAttachments()
+        {
+            for (int i = 0; i < VisualAttachmentPlans.Length; i++)
+                EnsureVisualAttachment(VisualAttachmentPlans[i]);
+        }
+
+        private static void EnsureVisualAttachment(VisualAttachmentPlan plan)
+        {
+            GameObject gameplayPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(plan.gameplayPrefabPath);
+            GameObject visualPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(plan.visualPrefabPath);
+            if (gameplayPrefab == null || visualPrefab == null)
+                return;
+
+            GameObject root = PrefabUtility.LoadPrefabContents(plan.gameplayPrefabPath);
+            bool changed = false;
+            Transform visualRoot = root.transform.Find("VisualRoot");
+            if (visualRoot == null)
+            {
+                GameObject visualRootObject = new GameObject("VisualRoot");
+                visualRootObject.transform.SetParent(root.transform, false);
+                visualRoot = visualRootObject.transform;
+                changed = true;
+            }
+
+            if (visualRoot.Find(plan.instanceName) == null && visualRoot.childCount == 0)
+            {
+                GameObject instance = (GameObject)PrefabUtility.InstantiatePrefab(visualPrefab, visualRoot);
+                instance.name = plan.instanceName;
+                instance.transform.localPosition = Vector3.zero;
+                instance.transform.localRotation = Quaternion.identity;
+                instance.transform.localScale = Vector3.one;
+                changed = true;
+            }
+
+            var binder = root.GetComponent<VisualAttachmentRoot>();
+            if (binder == null)
+            {
+                binder = root.AddComponent<VisualAttachmentRoot>();
+                changed = true;
+            }
+
+            Animator animator = visualRoot.GetComponentInChildren<Animator>(true);
+            Renderer[] renderers = visualRoot.GetComponentsInChildren<Renderer>(true);
+            binder.Configure(visualRoot, animator, renderers);
+
+            if (changed)
+                PrefabUtility.SaveAsPrefabAsset(root, plan.gameplayPrefabPath);
+
+            PrefabUtility.UnloadPrefabContents(root);
+        }
+
         private static void ValidateVisualPrefab(string path, List<string> failures)
         {
             GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>(path);
@@ -502,6 +564,16 @@ namespace Game.Editor
                 failures.Add(path + " is missing VisualRoot child.");
             if (prefab.GetComponent<VisualAttachmentRoot>() == null)
                 failures.Add(path + " is missing VisualAttachmentRoot.");
+
+            for (int i = 0; i < VisualAttachmentPlans.Length; i++)
+            {
+                if (!string.Equals(VisualAttachmentPlans[i].gameplayPrefabPath, path, StringComparison.Ordinal))
+                    continue;
+
+                Transform visualRoot = prefab.transform.Find("VisualRoot");
+                if (visualRoot != null && visualRoot.Find(VisualAttachmentPlans[i].instanceName) == null)
+                    failures.Add(path + " is missing first-pass visual attachment " + VisualAttachmentPlans[i].instanceName + ".");
+            }
         }
 
         private static void ValidateNoMissingScriptsAndMaterials(GameObject prefab, string path, List<string> failures)
@@ -568,6 +640,20 @@ namespace Game.Editor
             }
 
             return builder.ToString();
+        }
+
+        private readonly struct VisualAttachmentPlan
+        {
+            public readonly string gameplayPrefabPath;
+            public readonly string visualPrefabPath;
+            public readonly string instanceName;
+
+            public VisualAttachmentPlan(string gameplayPrefabPath, string visualPrefabPath, string instanceName)
+            {
+                this.gameplayPrefabPath = gameplayPrefabPath;
+                this.visualPrefabPath = visualPrefabPath;
+                this.instanceName = instanceName;
+            }
         }
     }
 }

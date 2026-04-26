@@ -242,6 +242,66 @@ public class VerticalSlicePlayModeTests
         Assert.IsNotEmpty(path);
         Assert.IsTrue(File.Exists(path));
         Assert.Greater(new FileInfo(path).Length, 0);
+        AssertRenderableVisual(player, "WarriorVisual", true);
+    }
+
+    [UnityTest]
+    public IEnumerator VisualAssetsRenderInVerticalSlice()
+    {
+        var fatalLogs = new List<string>();
+        Application.LogCallback callback = (condition, stackTrace, type) =>
+        {
+            if (IsFatalStartupLog(condition, type)
+                || condition.Contains("disabled renderers")
+                || condition.Contains("zero-size renderer bounds")
+                || condition.Contains("missing materials"))
+            {
+                fatalLogs.Add(type + ": " + condition);
+            }
+        };
+        Application.logMessageReceived += callback;
+
+        try
+        {
+            yield return LoadVerticalSlice();
+            for (int i = 0; i < 8; i++)
+                yield return null;
+
+            GameObject player = GameObject.FindWithTag("Player");
+            Assert.IsNotNull(player);
+            Bounds playerBounds = AssertRenderableVisual(player, "WarriorVisual", true);
+
+            MeleeEnemy melee = Object.FindAnyObjectByType<MeleeEnemy>();
+            Assert.IsNotNull(melee);
+            AssertRenderableVisual(melee.gameObject, "BasicEnemyVisual", true);
+
+            BossEnemy boss = Object.FindAnyObjectByType<BossEnemy>(FindObjectsInactive.Include);
+            Assert.IsNotNull(boss);
+            boss.gameObject.SetActive(true);
+            yield return null;
+            AssertRenderableVisual(boss.gameObject, "BossVisual", true);
+
+            Camera mainCamera = Camera.main;
+            Assert.IsNotNull(mainCamera);
+            Plane[] planes = GeometryUtility.CalculateFrustumPlanes(mainCamera);
+            Assert.IsTrue(GeometryUtility.TestPlanesAABB(planes, playerBounds), "Main camera should be able to see the Warrior visual bounds at startup.");
+
+            AssertDungeonDecorRenderableAndNonBlocking();
+
+            TelemetryDebugOverlay overlay = Object.FindAnyObjectByType<TelemetryDebugOverlay>(FindObjectsInactive.Include);
+            Assert.IsNotNull(overlay);
+            Assert.DoesNotThrow(() => overlay.Toggle());
+            Assert.DoesNotThrow(() => overlay.Toggle());
+
+            Directory.CreateDirectory("Artifacts/VisualValidation");
+            ScreenCapture.CaptureScreenshot("Artifacts/VisualValidation/vertical_slice_visual_smoke.png");
+
+            Assert.IsEmpty(fatalLogs);
+        }
+        finally
+        {
+            Application.logMessageReceived -= callback;
+        }
     }
 
     [UnityTest]
@@ -296,6 +356,91 @@ public class VerticalSlicePlayModeTests
             || condition.Contains("Missing script")
             || condition.Contains("Missing reference")
             || condition.Contains("MissingReference");
+    }
+
+    private static Bounds AssertRenderableVisual(GameObject gameplayRoot, string expectedVisualInstanceName, bool requireActiveRenderer)
+    {
+        Assert.IsNotNull(gameplayRoot, expectedVisualInstanceName + " gameplay root missing.");
+        VisualAttachmentRoot binder = gameplayRoot.GetComponent<VisualAttachmentRoot>();
+        Assert.IsNotNull(binder, gameplayRoot.name + " missing VisualAttachmentRoot.");
+        binder.RefreshReferences();
+
+        Transform visualRoot = binder.VisualRoot;
+        Assert.IsNotNull(visualRoot, gameplayRoot.name + " missing VisualRoot reference.");
+        Assert.IsNotNull(visualRoot.Find(expectedVisualInstanceName), gameplayRoot.name + " missing " + expectedVisualInstanceName + " child.");
+        Assert.LessOrEqual(Vector3.Distance(visualRoot.position, gameplayRoot.transform.position), 1.5f, gameplayRoot.name + " visual root is too far from gameplay root.");
+        AssertSaneScale(visualRoot.localScale, gameplayRoot.name + " VisualRoot");
+
+        Renderer[] renderers = visualRoot.GetComponentsInChildren<Renderer>(true);
+        Assert.Greater(renderers.Length, 0, gameplayRoot.name + " visual has no renderers.");
+
+        bool hasEnabledRenderer = false;
+        bool hasVisibleMaterial = false;
+        Bounds combined = new Bounds();
+        bool hasBounds = false;
+        for (int i = 0; i < renderers.Length; i++)
+        {
+            Renderer renderer = renderers[i];
+            Assert.IsNotNull(renderer, gameplayRoot.name + " has a missing renderer.");
+            if (renderer.enabled)
+                hasEnabledRenderer = true;
+
+            Assert.Greater(renderer.bounds.size.sqrMagnitude, 0.0001f, renderer.name + " has zero-size renderer bounds.");
+            if (!hasBounds)
+            {
+                combined = renderer.bounds;
+                hasBounds = true;
+            }
+            else
+            {
+                combined.Encapsulate(renderer.bounds);
+            }
+
+            Material[] materials = renderer.sharedMaterials;
+            Assert.Greater(materials.Length, 0, renderer.name + " has no material slots.");
+            for (int j = 0; j < materials.Length; j++)
+            {
+                Material material = materials[j];
+                Assert.IsNotNull(material, renderer.name + " has a missing material slot.");
+                if (!material.HasProperty("_Color") || material.color.a > 0.05f)
+                    hasVisibleMaterial = true;
+            }
+        }
+
+        if (requireActiveRenderer)
+            Assert.IsTrue(hasEnabledRenderer, gameplayRoot.name + " visual has no enabled renderers.");
+        Assert.IsTrue(hasVisibleMaterial, gameplayRoot.name + " visual appears fully transparent.");
+        AssertSaneScale(combined.size, gameplayRoot.name + " renderer bounds");
+        return combined;
+    }
+
+    private static void AssertDungeonDecorRenderableAndNonBlocking()
+    {
+        GameObject decor = GameObject.Find("DungeonDecor");
+        Assert.IsNotNull(decor, "DungeonDecor missing.");
+        Renderer[] renderers = decor.GetComponentsInChildren<Renderer>(true);
+        Assert.GreaterOrEqual(renderers.Length, 5, "DungeonDecor should contain the selected Tiny Dungeon tiles.");
+        for (int i = 0; i < renderers.Length; i++)
+        {
+            Assert.IsTrue(renderers[i].enabled, renderers[i].name + " decor renderer is disabled.");
+            Assert.Greater(renderers[i].bounds.size.sqrMagnitude, 0.0001f, renderers[i].name + " decor bounds are zero.");
+            Material[] materials = renderers[i].sharedMaterials;
+            for (int j = 0; j < materials.Length; j++)
+                Assert.IsNotNull(materials[j], renderers[i].name + " decor material slot is missing.");
+        }
+
+        Collider[] colliders = decor.GetComponentsInChildren<Collider>(true);
+        Assert.AreEqual(0, colliders.Length, "DungeonDecor must remain non-blocking.");
+    }
+
+    private static void AssertSaneScale(Vector3 scale, string label)
+    {
+        Assert.Greater(scale.x, 0.05f, label + " x scale/bounds too small.");
+        Assert.Greater(scale.y, 0.05f, label + " y scale/bounds too small.");
+        Assert.Greater(scale.z, 0.05f, label + " z scale/bounds too small.");
+        Assert.Less(scale.x, 8f, label + " x scale/bounds too large.");
+        Assert.Less(scale.y, 8f, label + " y scale/bounds too large.");
+        Assert.Less(scale.z, 8f, label + " z scale/bounds too large.");
     }
 
     private static Transform SerializedTransform(Object target, string propertyName)

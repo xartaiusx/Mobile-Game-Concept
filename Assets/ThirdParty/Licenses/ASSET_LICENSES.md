@@ -30,7 +30,7 @@
 - Attribution: Not required for CC0, but source notes should be retained.
 - Redistribution caution: Import only the small prop/environment subset needed for the current arena; avoid committing unused full pack contents.
 - Intended use: 3-5 lightweight dungeon arena props and simple environment dressing.
-- Local status: the imported Tiny Dungeon folder did not include a separate license file; keep this manifest entry tied to the official Kenney source listing.
+- Local status: the imported Tiny Dungeon folder did not include a separate license file; keep this manifest entry tied to the official Kenney source listing. See `Kenney_TinyDungeon_LICENSE_NOTE.md`.
 - Phase 9.9 selected decorative tiles: `tile_0000.png`, `tile_0001.png`, `tile_0002.png`, `tile_0016.png`, and `tile_0017.png`.
 
 ## Mixamo Animation Fallback
