@@ -127,6 +127,29 @@ Imported free assets are documented in `Assets/ThirdParty/FreeAssets/ASSET_CREDI
 - Kenney Prototype Textures: CC0, commercial use allowed, attribution not required.
 - Kenney Particle Pack: CC0, commercial use allowed, attribution not required.
 
+## Visual Asset Imports
+
+Phase 9.8 adds an optional visual scaffold. Gameplay scripts, colliders, health, combat, rhythm, score, and telemetry stay on existing gameplay roots. Third-party models and animations must be mounted as children under `VisualRoot` through visual wrapper prefabs or `VisualAttachmentRoot`; missing visuals must not block startup or tests.
+
+Approved first-pass sources:
+
+- KayKit Adventurers: https://kaylousberg.itch.io/kaykit-adventurers
+- KayKit Character Animations: https://kaylousberg.itch.io/kaykit-character-animations
+- Kenney Tiny Dungeon: https://kenney.nl/assets/tiny-dungeon
+- Mixamo fallback only when needed: https://helpx.adobe.com/creative-cloud/faq/mixamo-faq.html
+
+Import workflow:
+
+1. Download the asset pack manually.
+2. Import only needed FBX/GLTF/models/animations/props.
+3. Place source assets under the matching `Assets/ThirdParty` folder.
+4. Preserve or update `Assets/ThirdParty/Licenses/ASSET_LICENSES.md`.
+5. Assign one selected model to the matching visual prefab under `Assets/Art/Prefabs`.
+6. Run `Game > Visuals > Validate Visual Asset Setup`.
+7. Run the normal validation suite.
+
+Current intended first art pass: one Warrior model, one basic enemy model, one boss placeholder model, idle/run/attack/hit/death animations, and 3-5 dungeon props. Do not commit unused full packs.
+
 ## Validation
 
 ```bash
@@ -136,6 +159,7 @@ Scripts/run-unity-tests.sh
 "$HOME/Unity/Hub/Editor/6000.4.4f1/Editor/Unity" -batchmode -projectPath "$PWD" -executeMethod Game.Editor.ProjectTestRunner.ValidateStartupSceneCommandLine -quit -logFile /tmp/mobile-game-startup-validation.log
 "$HOME/Unity/Hub/Editor/6000.4.4f1/Editor/Unity" -batchmode -projectPath "$PWD" -executeMethod Game.Editor.ProjectTestRunner.ValidateTelemetryAnalyzerCommandLine -quit -logFile /tmp/mobile-game-telemetry-validation.log
 "$HOME/Unity/Hub/Editor/6000.4.4f1/Editor/Unity" -batchmode -projectPath "$PWD" -executeMethod Game.Editor.ProjectTestRunner.ValidateGeneratorIdempotencyCommandLine -quit -logFile /tmp/mobile-game-generator-idempotency.log
+"$HOME/Unity/Hub/Editor/6000.4.4f1/Editor/Unity" -batchmode -projectPath "$PWD" -executeMethod Game.Editor.ProjectTestRunner.ValidateVisualAssetSetupCommandLine -quit -logFile /tmp/mobile-game-visual-validation.log
 ```
 
 The PlayMode suite includes a startup smoke regression test that validates the same scene path used by Unity Play Mode, waits several frames, checks the player, camera, HUD, rhythm, score, telemetry, arena/enemy roots, verifies `Time.timeScale == 1`, and fails on fatal startup logs such as null references, missing references, missing scripts, or scene load failures.
@@ -158,6 +182,7 @@ The custom summaries are the source of truth. Unity XML output may exist for com
 - Telemetry is local developer instrumentation, not a production analytics service.
 - Some deferred Mage, Archer, Healer, projectile, and class-swap assets still exist for compile compatibility only.
 - Phase 9.6 tuning needs real 5-10 run Warrior telemetry before further balance changes.
+- Third-party art has not been imported yet; visual wrapper prefabs are safe placeholders only.
 
 ## Next
 

@@ -1,5 +1,36 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
+--- !u!1 &1438242063309405136
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 6072262965170032665}
+  m_Layer: 0
+  m_Name: VisualRoot
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &6072262965170032665
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1438242063309405136}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 8565092618461828319}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &6503007430282273075
 GameObject:
   m_ObjectHideFlags: 0
@@ -68,6 +99,7 @@ GameObject:
   - component: {fileID: 5246100915690014652}
   - component: {fileID: 8724913583422473066}
   - component: {fileID: 8394431621512484199}
+  - component: {fileID: 3334302676972499971}
   m_Layer: 0
   m_Name: BossEnemy
   m_TagString: Untagged
@@ -89,6 +121,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 2402872968444146842}
+  - {fileID: 6072262965170032665}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!33 &1199263842027595429
@@ -430,3 +463,18 @@ MonoBehaviour:
   warningPulseScale: 1.25
   impactDuration: 0.5
   maxTargets: 16
+--- !u!114 &3334302676972499971
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7221361518462814879}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a0dc4f90e494f17ff8cfe9d08455226d, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Game.Runtime::Game.Visuals.VisualAttachmentRoot
+  visualRoot: {fileID: 6072262965170032665}
+  animator: {fileID: 0}
+  renderers: []

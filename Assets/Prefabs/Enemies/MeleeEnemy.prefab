@@ -17,6 +17,7 @@ GameObject:
   - component: {fileID: 8307950411875496379}
   - component: {fileID: 9170696802622018651}
   - component: {fileID: 982211008025344716}
+  - component: {fileID: 1408953185960145469}
   m_Layer: 0
   m_Name: MeleeEnemy
   m_TagString: Untagged
@@ -36,7 +37,8 @@ Transform:
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 5031124957197707555}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!33 &7317312559373385681
@@ -217,3 +219,49 @@ MonoBehaviour:
   flashSeconds: 0.18
   warningOffset: {x: 0, y: 1.2, z: 0}
   warningScale: 0.75
+--- !u!114 &1408953185960145469
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1285705036201510093}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a0dc4f90e494f17ff8cfe9d08455226d, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Game.Runtime::Game.Visuals.VisualAttachmentRoot
+  visualRoot: {fileID: 5031124957197707555}
+  animator: {fileID: 0}
+  renderers: []
+--- !u!1 &6098751794198566775
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 5031124957197707555}
+  m_Layer: 0
+  m_Name: VisualRoot
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &5031124957197707555
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6098751794198566775}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 6615107187416532268}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}

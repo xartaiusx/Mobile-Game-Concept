@@ -68,6 +68,7 @@ namespace Game.EditorTools
             GameObject rangedPrefab = CreateRangedEnemyPrefab(projectilePrefab, materials.rangedEnemy, feedbackPrefabs.enemyWindup, animations.enemyController);
             GameObject bossPrefab = CreateBossPrefab(projectilePrefab, bossSlam, new[] { phaseOne, phaseTwo }, materials.boss, feedbackPrefabs.enemyWindup, audioCues, animations.bossController);
             GameObject hudPrefab = CreateHudPrefab();
+            Game.Editor.VisualAssetSetupValidator.CreateVisualScaffold();
 
             if (ShouldRebuildScene())
             {
@@ -235,6 +236,8 @@ namespace Game.EditorTools
                 ScenePath,
                 "Assets/Prefabs",
                 "Assets/Materials",
+                "Assets/Art",
+                "Assets/Generated",
                 "Assets/Animations",
                 "Assets/ScriptableObjects"
             };

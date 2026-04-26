@@ -78,6 +78,7 @@ GameObject:
   - component: {fileID: 972094323551913726}
   - component: {fileID: 8260856519851442590}
   - component: {fileID: 8705799664048952707}
+  - component: {fileID: 8249313732452626556}
   m_Layer: 0
   m_Name: FighterPlayer
   m_TagString: Player
@@ -99,6 +100,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 9204010703865942721}
+  - {fileID: 4605224671795988513}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!33 &614632585367432730
@@ -613,3 +615,49 @@ MonoBehaviour:
   mistimedPressChance: 0.22
   decisionInterval: 0.12
   dodgeThreatRange: 2.1
+--- !u!114 &8249313732452626556
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4172262572666840945}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a0dc4f90e494f17ff8cfe9d08455226d, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Game.Runtime::Game.Visuals.VisualAttachmentRoot
+  visualRoot: {fileID: 4605224671795988513}
+  animator: {fileID: 0}
+  renderers: []
+--- !u!1 &7210472933203020021
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 4605224671795988513}
+  m_Layer: 0
+  m_Name: VisualRoot
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &4605224671795988513
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7210472933203020021}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 9101531227902170173}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}

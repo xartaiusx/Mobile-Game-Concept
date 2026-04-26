@@ -12,6 +12,7 @@ using Game.Rhythm;
 using Game.Systems;
 using Game.UI;
 using Game.Classes;
+using Game.Visuals;
 using NUnit.Framework;
 using UnityEditor;
 using UnityEngine;
@@ -54,6 +55,8 @@ public class VerticalSlicePlayModeTests
         Assert.AreEqual(1, players.Length);
         Assert.IsNotNull(players[0].GetComponent<PlayerController>());
         Assert.IsNotNull(players[0].GetComponent<BaseCharacter>());
+        Assert.IsNotNull(players[0].transform.Find("VisualRoot"));
+        Assert.IsNotNull(players[0].GetComponent<VisualAttachmentRoot>());
 
         Camera mainCamera = Camera.main;
         Assert.IsNotNull(mainCamera);
@@ -65,6 +68,8 @@ public class VerticalSlicePlayModeTests
         Assert.IsNotNull(Object.FindAnyObjectByType<TelemetryManager>());
         Assert.IsNotNull(Object.FindAnyObjectByType<ArenaController>());
         Assert.Greater(Object.FindObjectsByType<BaseEnemy>(FindObjectsInactive.Exclude).Length, 0);
+        foreach (BaseEnemy enemy in Object.FindObjectsByType<BaseEnemy>(FindObjectsInactive.Exclude))
+            Assert.IsNotNull(enemy.transform.Find("VisualRoot"), enemy.name + " missing VisualRoot.");
         Assert.AreEqual(1f, Time.timeScale, 0.001f);
 
         foreach (GameObject go in Object.FindObjectsByType<GameObject>(FindObjectsInactive.Include))

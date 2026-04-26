@@ -23,6 +23,7 @@ The generated setup includes:
 - Default `RhythmConfig`, `ComboProfile`, `AttackTimingData`, Warrior slash ability, boss telegraph data, boss phase data, and item assets under `Assets/ScriptableObjects`.
 - Mage, Archer, Healer prefabs/assets remain under `Assets/Prefabs/Player` and `Assets/ScriptableObjects/Abilities` as deferred prototype content.
 - `ClassSwapDebugController` remains available as legacy debug code, but it is inactive in `VerticalSlice.unity`.
+- Optional `VisualRoot` children and `VisualAttachmentRoot` binders on key gameplay prefabs. Visuals are child-mounted and must not own gameplay logic.
 
 ## Design Pivot
 
@@ -128,6 +129,61 @@ The existing boss slam behavior should remain the stable baseline. Line and radi
 - Toggle telemetry overlay: `F3`.
 
 Class swap hotkeys are not part of active validation.
+
+## Visual Asset Scaffold
+
+Phase 9.8 prepares the project for lightweight commercial-use art without importing large packs or making visuals required for gameplay.
+
+Folder structure:
+
+- `Assets/ThirdParty/KayKit/Adventurers`
+- `Assets/ThirdParty/KayKit/CharacterAnimations`
+- `Assets/ThirdParty/Kenney/TinyDungeon`
+- `Assets/ThirdParty/Licenses`
+- `Assets/Art/Characters`
+- `Assets/Art/Enemies`
+- `Assets/Art/Bosses`
+- `Assets/Art/Environment`
+- `Assets/Art/Materials`
+- `Assets/Art/Animation/Controllers`
+- `Assets/Art/Prefabs`
+- `Assets/Generated/Visuals`
+
+Approved sources for the first art pass:
+
+- KayKit Adventurers: CC0/free commercial use, intended for Warrior, basic enemy, and boss placeholder humanoid models.
+- KayKit Character Animations: CC0/free commercial use, intended for idle, move, attack, evade, hit, and death animation candidates.
+- Kenney Tiny Dungeon: CC0/free commercial use, intended for 3-5 lightweight dungeon arena props.
+- Mixamo: royalty-free commercial-use fallback with restrictions/caution, not CC0, only if KayKit lacks a needed animation. Do not redistribute standalone source assets.
+
+Import workflow:
+
+1. Download asset packs manually.
+2. Import only needed FBX/GLTF/models/animation clips/props.
+3. Place source assets under the matching `Assets/ThirdParty` source folder.
+4. Preserve or update `Assets/ThirdParty/Licenses/ASSET_LICENSES.md`.
+5. Assign one selected model to `Assets/Art/Prefabs/WarriorVisual.prefab`, `BasicEnemyVisual.prefab`, or `BossVisual.prefab`.
+6. Keep visuals as children under gameplay roots through `VisualRoot`.
+7. Run `Game > Visuals > Validate Visual Asset Setup`.
+8. Run compile/import, tests, startup validation, generator idempotency validation, and visual validation.
+
+Strict rules:
+
+- Visuals are optional.
+- Third-party model prefabs must not replace gameplay prefabs directly.
+- Gameplay components stay on existing roots: health, combat, rhythm, dodge, score, telemetry, and colliders.
+- Do not commit unused full packs, broad variants, unclear-license assets, or mixed visual styles.
+
+Runtime visual wrapper:
+
+- `VisualAttachmentRoot` exposes `visualRoot`, `animator`, and `renderers`.
+- `SetModel`, `ClearModel`, `PlayState`, and `SetTrigger` are null-safe.
+- Missing model, animator, renderer, or imported asset references must not break gameplay.
+
+Editor tooling:
+
+- `Game > Visuals > Create Visual Folders` creates/refreshes folders, placeholder visual prefabs, placeholder visual controllers, and gameplay `VisualRoot` slots.
+- `Game > Visuals > Validate Visual Asset Setup` checks folders, license manifest, wrapper prefabs, gameplay prefab visual roots, missing scripts/materials, and reports imported third-party model/clip/material counts. Empty recommended third-party folders are allowed.
 
 ## Telemetry
 
@@ -256,6 +312,7 @@ Scripts/run-unity-tests.sh
 "$HOME/Unity/Hub/Editor/6000.4.4f1/Editor/Unity" -batchmode -projectPath "$PWD" -executeMethod Game.Editor.ProjectTestRunner.ValidateStartupSceneCommandLine -quit -logFile /tmp/mobile-game-startup-validation.log
 "$HOME/Unity/Hub/Editor/6000.4.4f1/Editor/Unity" -batchmode -projectPath "$PWD" -executeMethod Game.Editor.ProjectTestRunner.ValidateTelemetryAnalyzerCommandLine -quit -logFile /tmp/mobile-game-telemetry-validation.log
 "$HOME/Unity/Hub/Editor/6000.4.4f1/Editor/Unity" -batchmode -projectPath "$PWD" -executeMethod Game.Editor.ProjectTestRunner.ValidateGeneratorIdempotencyCommandLine -quit -logFile /tmp/mobile-game-generator-idempotency.log
+"$HOME/Unity/Hub/Editor/6000.4.4f1/Editor/Unity" -batchmode -projectPath "$PWD" -executeMethod Game.Editor.ProjectTestRunner.ValidateVisualAssetSetupCommandLine -quit -logFile /tmp/mobile-game-visual-validation.log
 ```
 
 `Scripts/run-unity-tests.sh` invokes `Game.Editor.ProjectTestRunner.RunEditMode` and `Game.Editor.ProjectTestRunner.RunPlayMode`, writes JSON summaries to `TestResults/editmode-summary.json` and `TestResults/playmode-summary.json`, writes `TestResults/summary.txt`, prints totals, and exits nonzero when summaries are missing, Unity exits nonzero, log scans find compile/null/missing-reference markers, or tests fail.
@@ -304,6 +361,7 @@ Next variables to inspect after real playtest telemetry: Perfect hit rate, miss 
 - Short automated telemetry smoke tests can produce exaggerated score-per-minute values because the run duration is intentionally tiny.
 - Generator idempotency validation proves the second run is stable, but intentional first-run generator changes still need normal code review.
 - Phase 9.6 tuning is not human-validated yet; avoid a second balance pass until a real 5-10 run Warrior batch exists.
+- Visual prefabs are placeholders until selected third-party art is manually imported and assigned.
 - Mage, Archer, Healer, and class swap are preserved as deferred content and should not be treated as current gameplay.
 - Projectile ability code remains for inactive classes and ranged enemies; Warrior gameplay should not depend on it.
 - Boss line/radial patterns are scaffolding. Slam is the stable baseline.

@@ -59,6 +59,12 @@ namespace Game.Editor
                 throw new InvalidOperationException("Vertical slice generator idempotency validation failed.");
         }
 
+        public static void ValidateVisualAssetSetupCommandLine()
+        {
+            if (!VisualAssetSetupValidator.ValidateVisualAssetSetup(true))
+                throw new InvalidOperationException("Visual asset setup validation failed.");
+        }
+
         private static void RunOrPrepare(TestMode mode)
         {
             if (IsUnityRunTestsInvocation())
