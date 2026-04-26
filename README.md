@@ -23,6 +23,7 @@ For detailed setup, asset, and test notes, see [DEVELOPMENT.md](DEVELOPMENT.md).
 - Runtime HUD for beat phase, judgement feedback, combo, cooldowns, dodge/parry state, boss countdown, and debug readout.
 - Event-driven placeholder feedback pulses for Perfect/Good/Miss attacks, dodge, parry, and boss attacks.
 - Phase 4 tuning values for a readable keyboard/controller combat loop: more survivable Fighter, calmer enemy pressure, compact HUD, and higher follow camera.
+- Phase 5 placeholder polish: clearer hit/dodge/parry/boss VFX prefabs, procedural audio cue assets, projectile trails, enemy windup warnings, and animation-event relay hooks.
 
 ## Class Abilities
 
@@ -48,6 +49,13 @@ Open the project in Unity `6000.4.4f1`, then use:
 
 This recreates the default folders, ScriptableObject assets, prefabs, scene objects, and Build Settings entry.
 
+## Phase 5 Feedback
+
+- VFX prefabs live in `Assets/Prefabs/Feedback`.
+- Procedural audio cue assets live in `Assets/ScriptableObjects/Audio`.
+- Player prefabs include `CombatAnimationBridge` and `AnimationEventRelay` so future clips can call attack active/recovery, footstep, and weapon-swing hooks.
+- Boss telegraphs pulse warning rings on beats and show countdown/impact text in the HUD.
+
 ## Tests
 
 ```bash
@@ -58,4 +66,4 @@ This recreates the default folders, ScriptableObject assets, prefabs, scene obje
 
 ## Next
 
-Do a human keyboard/controller pass, then move into Phase 5: authored VFX/audio cues, animation-event integration, and deeper per-class ability polish. Mobile touch controls come after the keyboard/controller slice feels coherent.
+Do a human keyboard/controller pass, then move into Phase 6: true Mage/Archer projectile abilities, per-class combat balance, a simple pickup loop, and arena win/loss structure. Mobile touch controls come after the keyboard/controller slice feels coherent.

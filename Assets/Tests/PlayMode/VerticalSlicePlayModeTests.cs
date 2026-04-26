@@ -2,6 +2,8 @@
 using Game.Combat;
 using Game.Core;
 using Game.Feedback;
+using Game.Audio;
+using Game.Animation;
 using Game.Rhythm;
 using Game.UI;
 using NUnit.Framework;
@@ -30,6 +32,8 @@ public class VerticalSlicePlayModeTests
         Assert.IsNotNull(player.GetComponent<AbilityController>());
         Assert.IsNotNull(player.GetComponent<DodgeController>());
         Assert.IsNotNull(player.GetComponent<ParryController>());
+        Assert.IsNotNull(player.GetComponent<CombatAnimationBridge>());
+        Assert.IsNotNull(player.GetComponent<AnimationEventRelay>());
 
         Assert.IsNotNull(Object.FindAnyObjectByType<MeleeEnemy>());
         Assert.IsNotNull(Object.FindAnyObjectByType<RangedEnemy>());
@@ -39,6 +43,7 @@ public class VerticalSlicePlayModeTests
         Assert.IsNotNull(Object.FindAnyObjectByType<BeatBarUI>());
         Assert.IsNotNull(Object.FindAnyObjectByType<VerticalSliceHud>());
         Assert.IsNotNull(Object.FindAnyObjectByType<RhythmFeedbackController>());
+        Assert.IsNotNull(Object.FindAnyObjectByType<AudioCuePlayer>());
     }
 }
 #endif

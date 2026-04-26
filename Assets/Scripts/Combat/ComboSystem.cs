@@ -36,6 +36,10 @@ namespace Game.Combat
         private float inputCooldownRemaining;
         private Collider[] hitCache;
         private Coroutine attackRoutine;
+        private int activeStepIndex;
+        private int activeDamage;
+        private RhythmGrade activeGrade = RhythmGrade.Miss;
+        private bool activeHitApplied;
 
         public event Action<int, RhythmGrade> AttackWindupStarted;
         public event Action<int, RhythmGrade, int> AttackActiveStarted;
@@ -112,6 +116,11 @@ namespace Game.Combat
 
         private IEnumerator ResolveAttackRoutine(int resolvedStepIndex, float baseCooldown, int finalDamage, RhythmGrade grade)
         {
+            activeStepIndex = resolvedStepIndex;
+            activeDamage = finalDamage;
+            activeGrade = grade;
+            activeHitApplied = false;
+
             TimingState = AttackTimingState.Windup;
             AttackWindupStarted?.Invoke(resolvedStepIndex + 1, grade);
 
@@ -119,16 +128,13 @@ namespace Game.Combat
             if (windup > 0f)
                 yield return new WaitForSeconds(windup);
 
-            TimingState = AttackTimingState.Active;
-            AttackActiveStarted?.Invoke(resolvedStepIndex + 1, grade, finalDamage);
-            DoMeleeHit(finalDamage, grade);
-            ComboStepResolved?.Invoke(resolvedStepIndex + 1, grade, finalDamage);
+            BeginAttackActiveWindow();
 
             float active = attackTiming != null ? attackTiming.activeSeconds : 0f;
             if (active > 0f)
                 yield return new WaitForSeconds(active);
 
-            TimingState = AttackTimingState.Recovery;
+            EndAttackActiveWindow();
 
             float refund = judgement != null ? judgement.CooldownRefund(grade) : 0f;
             float recoveryMultiplier = grade == RhythmGrade.Perfect && attackTiming != null && attackTiming.canCancelOnPerfect ? 0.65f : 1f;
@@ -142,9 +148,36 @@ namespace Game.Combat
             if (recovery > 0f)
                 yield return new WaitForSeconds(recovery);
 
-            TimingState = AttackTimingState.Ready;
-            AttackRecovered?.Invoke(resolvedStepIndex + 1, grade);
+            FinishRecovery();
             attackRoutine = null;
+        }
+
+        public void BeginAttackActiveWindow()
+        {
+            if (TimingState != AttackTimingState.Windup)
+                return;
+
+            TimingState = AttackTimingState.Active;
+            AttackActiveStarted?.Invoke(activeStepIndex + 1, activeGrade, activeDamage);
+            if (!activeHitApplied)
+            {
+                DoMeleeHit(activeDamage, activeGrade);
+                ComboStepResolved?.Invoke(activeStepIndex + 1, activeGrade, activeDamage);
+                activeHitApplied = true;
+            }
+        }
+
+        public void EndAttackActiveWindow()
+        {
+            if (TimingState != AttackTimingState.Active) return;
+            TimingState = AttackTimingState.Recovery;
+        }
+
+        public void FinishRecovery()
+        {
+            if (TimingState == AttackTimingState.Ready) return;
+            TimingState = AttackTimingState.Ready;
+            AttackRecovered?.Invoke(activeStepIndex + 1, activeGrade);
         }
 
         private void DoMeleeHit(int damage, RhythmGrade grade)

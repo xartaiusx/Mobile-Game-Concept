@@ -125,6 +125,9 @@ namespace Game.UI
                 bossTelegraphController.TelegraphBeat += HandleTelegraphBeat;
                 bossTelegraphController.TelegraphImpacted += HandleTelegraphImpact;
             }
+
+            if (playerCharacter != null)
+                playerCharacter.OnDamaged += HandlePlayerDamaged;
         }
 
         private void Unsubscribe()
@@ -157,6 +160,9 @@ namespace Game.UI
                 bossTelegraphController.TelegraphBeat -= HandleTelegraphBeat;
                 bossTelegraphController.TelegraphImpacted -= HandleTelegraphImpact;
             }
+
+            if (playerCharacter != null)
+                playerCharacter.OnDamaged -= HandlePlayerDamaged;
         }
 
         private void RefreshStaticText()
@@ -205,26 +211,28 @@ namespace Game.UI
         {
             lastGrade = grade;
             if (feedbackText != null)
-                feedbackText.text = grade + " dodge";
+                feedbackText.text = grade + " Dodge" + (invulnerability > 0f ? " INV" : string.Empty);
         }
 
         private void HandleParryResolved(RhythmGrade grade, float cooldown, float activeWindow)
         {
             lastGrade = grade;
             if (feedbackText != null)
-                feedbackText.text = grade + " parry";
+                feedbackText.text = grade + " Parry";
         }
 
         private void HandleParrySucceeded(DamageContext context)
         {
             if (feedbackText != null)
-                feedbackText.text = "Parried " + context.amount;
+                feedbackText.text = context.amount <= 0 ? "Parry Success" : "Parry Reduced";
         }
 
         private void HandleTelegraphStarted(BossTelegraphData data, int beats, Vector3 point)
         {
             if (bossText != null)
                 bossText.text = "Boss: " + data.displayName + " in " + beats + " beats";
+            if (feedbackText != null)
+                feedbackText.text = "Boss Warning";
         }
 
         private void HandleTelegraphBeat(BossTelegraphData data, int beats)
@@ -237,6 +245,14 @@ namespace Game.UI
         {
             if (bossText != null)
                 bossText.text = "Boss: impact";
+            if (feedbackText != null)
+                feedbackText.text = "Boss Impact";
+        }
+
+        private void HandlePlayerDamaged(BaseCharacter character)
+        {
+            if (feedbackText != null)
+                feedbackText.text = "Player Hit";
         }
 
         private string FormatAbilityText()

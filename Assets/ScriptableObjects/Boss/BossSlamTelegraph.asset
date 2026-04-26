@@ -19,6 +19,6 @@ MonoBehaviour:
   radius: 3
   range: 8
   attackType: 2
-  warningVfxPrefab: {fileID: 3153345073710438432, guid: 470b939ad8225b825b098463b46506e0, type: 3}
-  impactVfxPrefab: {fileID: 1993845572728779193, guid: 52865d854ffee92b99a74e49ef32b559, type: 3}
+  warningVfxPrefab: {fileID: 5249221809099804424, guid: 42bfbbca3ccb15c12b82ae8681f4449c, type: 3}
+  impactVfxPrefab: {fileID: 4830275523656502022, guid: d68aa0da64fd98c1aaa41abc309e9059, type: 3}
   audioCue: {fileID: 0}

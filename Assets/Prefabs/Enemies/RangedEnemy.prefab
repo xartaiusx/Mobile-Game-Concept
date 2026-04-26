@@ -204,5 +204,8 @@ MonoBehaviour:
   m_Name:
   m_EditorClassIdentifier: Assembly-CSharp::Game.Feedback.EnemyAttackFlash
   targetRenderer: {fileID: 0}
+  warningPrefab: {fileID: 1694020544728164433, guid: 52a2da44fd46d473e8c36d36de5cbfa5, type: 3}
   flashColor: {r: 1, g: 0.9, b: 0.2, a: 1}
   flashSeconds: 0.18
+  warningOffset: {x: 0, y: 1.2, z: 0}
+  warningScale: 0.75

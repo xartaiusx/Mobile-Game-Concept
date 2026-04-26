@@ -1,5 +1,6 @@
 using Game.Core;
 using Game.Rhythm;
+using Game.Audio;
 using System;
 using UnityEngine;
 
@@ -11,6 +12,12 @@ namespace Game.Combat
         [SerializeField] private Transform target;
         [SerializeField] private LayerMask targetMask = ~0;
         [SerializeField] private AudioSource audioSource;
+        [SerializeField] private AudioCuePlayer audioCuePlayer;
+        [SerializeField] private AudioCueDefinition warningAudioCue;
+        [SerializeField] private AudioCueDefinition impactAudioCue;
+        [SerializeField] private float telegraphRepeatCooldown = 4f;
+        [SerializeField] private float warningPulseScale = 1.15f;
+        [SerializeField] private float impactDuration = 0.45f;
         [SerializeField] private int maxTargets = 16;
 
         private Collider[] hitCache;
@@ -19,6 +26,7 @@ namespace Game.Combat
         private int remainingBeats;
         private Vector3 impactPoint;
         private GameObject warningVfxInstance;
+        private float lastTelegraphTime = float.NegativeInfinity;
 
         public event Action<BossTelegraphData, int, Vector3> TelegraphStarted;
         public event Action<BossTelegraphData, int> TelegraphBeat;
@@ -33,6 +41,7 @@ namespace Game.Combat
         {
             hitCache = new Collider[Mathf.Max(1, maxTargets)];
             audioSource = audioSource != null ? audioSource : GetComponent<AudioSource>();
+            audioCuePlayer = audioCuePlayer != null ? audioCuePlayer : GetComponent<AudioCuePlayer>();
         }
 
         private void OnEnable()
@@ -62,8 +71,10 @@ namespace Game.Combat
         public bool BeginTelegraph(BossTelegraphData telegraph)
         {
             if (telegraph == null || IsTelegraphing) return false;
+            if (Time.time < lastTelegraphTime + telegraphRepeatCooldown) return false;
 
             activeTelegraph = telegraph;
+            lastTelegraphTime = Time.time;
             remainingBeats = Mathf.Max(1, telegraph.beatsBeforeImpact);
             Transform resolvedTarget = target != null ? target : PlayerManager.Instance != null ? PlayerManager.Instance.GetPlayerTransform() : null;
             impactPoint = resolvedTarget != null ? resolvedTarget.position : transform.position + transform.forward * telegraph.range;
@@ -73,6 +84,7 @@ namespace Game.Combat
 
             if (audioSource != null && telegraph.audioCue != null)
                 audioSource.PlayOneShot(telegraph.audioCue);
+            audioCuePlayer?.Play(warningAudioCue);
 
             TelegraphStarted?.Invoke(activeTelegraph, remainingBeats, impactPoint);
             return true;
@@ -95,6 +107,8 @@ namespace Game.Combat
             if (!IsTelegraphing) return;
 
             remainingBeats--;
+            PulseWarning();
+            audioCuePlayer?.Play(warningAudioCue);
             TelegraphBeat?.Invoke(activeTelegraph, remainingBeats);
             if (remainingBeats <= 0)
                 ExecuteImpact();
@@ -109,7 +123,13 @@ namespace Game.Combat
                 Destroy(warningVfxInstance);
 
             if (telegraph.impactVfxPrefab != null)
-                Instantiate(telegraph.impactVfxPrefab, impactPoint, Quaternion.identity);
+            {
+                GameObject impact = Instantiate(telegraph.impactVfxPrefab, impactPoint, Quaternion.identity);
+                if (impactDuration > 0f)
+                    Destroy(impact, impactDuration);
+            }
+
+            audioCuePlayer?.Play(impactAudioCue);
 
             TelegraphImpacted?.Invoke(telegraph, impactPoint);
             int hitCount = QueryTargets(telegraph);
@@ -125,6 +145,14 @@ namespace Game.Combat
                     character.TakeDamage(context);
                 }
             }
+        }
+
+        private void PulseWarning()
+        {
+            if (warningVfxInstance == null) return;
+            float radius = activeTelegraph != null ? Mathf.Max(0.75f, activeTelegraph.radius) : 1f;
+            warningVfxInstance.transform.position = impactPoint;
+            warningVfxInstance.transform.localScale = new Vector3(radius * warningPulseScale, 0.04f, radius * warningPulseScale);
         }
 
         private int QueryTargets(BossTelegraphData telegraph)

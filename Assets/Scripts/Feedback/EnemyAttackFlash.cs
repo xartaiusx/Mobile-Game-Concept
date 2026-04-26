@@ -8,8 +8,11 @@ namespace Game.Feedback
     public class EnemyAttackFlash : MonoBehaviour
     {
         [SerializeField] private Renderer targetRenderer;
+        [SerializeField] private GameObject warningPrefab;
         [SerializeField] private Color flashColor = new Color(1f, 0.9f, 0.2f, 1f);
         [SerializeField] private float flashSeconds = 0.18f;
+        [SerializeField] private Vector3 warningOffset = new Vector3(0f, 1.2f, 0f);
+        [SerializeField] private float warningScale = 0.75f;
 
         private BaseEnemy enemy;
         private MaterialPropertyBlock propertyBlock;
@@ -43,6 +46,12 @@ namespace Game.Feedback
             if (flashRoutine != null)
                 StopCoroutine(flashRoutine);
             flashRoutine = StartCoroutine(FlashRoutine());
+
+            if (warningPrefab != null)
+            {
+                GameObject warning = Instantiate(warningPrefab, transform.position + warningOffset, Quaternion.identity);
+                warning.transform.localScale = Vector3.one * Mathf.Max(0.1f, warningScale);
+            }
         }
 
         private IEnumerator FlashRoutine()

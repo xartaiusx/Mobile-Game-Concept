@@ -13,6 +13,10 @@ GameObject:
   - component: {fileID: 6009056956882318699}
   - component: {fileID: 2103236055037263131}
   - component: {fileID: 249160093724879072}
+  - component: {fileID: 4687573544986518707}
+  - component: {fileID: 4497138903062981396}
+  - component: {fileID: 5427545084183045018}
+  - component: {fileID: 2259368556393732943}
   - component: {fileID: 7102252939301883591}
   - component: {fileID: 7692584106784309868}
   - component: {fileID: 1290978576103647456}
@@ -137,7 +141,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 52810dfd5eff8e961afec645ee197a0d, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: Assembly-CSharp::Game.Classes.Healer
   characterName: Character
   level: 1
@@ -149,6 +153,150 @@ MonoBehaviour:
   initializeOnAwake: 1
   healthMultiplier: 10
   healthRestorationFactor: 0.4
+--- !u!82 &4687573544986518707
+AudioSource:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6620568328276737159}
+  m_Enabled: 1
+  serializedVersion: 4
+  OutputAudioMixerGroup: {fileID: 0}
+  m_audioClip: {fileID: 0}
+  m_Resource: {fileID: 0}
+  m_PlayOnAwake: 1
+  m_Volume: 1
+  m_Pitch: 1
+  Loop: 0
+  Mute: 0
+  Spatialize: 0
+  SpatializePostEffects: 0
+  Priority: 128
+  DopplerLevel: 1
+  MinDistance: 1
+  MaxDistance: 500
+  Pan2D: 0
+  rolloffMode: 0
+  BypassEffects: 0
+  BypassListenerEffects: 0
+  BypassReverbZones: 0
+  rolloffCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 1
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  panLevelCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  spreadCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  reverbZoneMixCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+--- !u!114 &4497138903062981396
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6620568328276737159}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1a7979e9744e542808c9a55974354138, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::Game.Audio.AudioCuePlayer
+  audioSource: {fileID: 0}
+  masterVolume: 0.8
+  sampleRate: 22050
+--- !u!114 &5427545084183045018
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6620568328276737159}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 30c9e80e03c7b49a38d35771a4af4875, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::Game.Animation.CombatAnimationBridge
+  animator: {fileID: 0}
+  comboSystem: {fileID: 0}
+  dodgeController: {fileID: 0}
+  parryController: {fileID: 0}
+  audioCuePlayer: {fileID: 4497138903062981396}
+  footstepCue: {fileID: 11400000, guid: a8937ab79950203638697b1f709e528c, type: 2}
+  weaponSwingCue: {fileID: 11400000, guid: e5a358f6e1664a69baeeb454bf6cb0c9, type: 2}
+--- !u!114 &2259368556393732943
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6620568328276737159}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3a11fe74250ee8e3e84a2aba35ce3dfd, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::Game.Animation.AnimationEventRelay
+  bridge: {fileID: 0}
 --- !u!114 &7102252939301883591
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -159,7 +307,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 9ffb27b46513bad61816b0177f367037, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: Assembly-CSharp::Game.Core.PlayerController
   moveSpeed: 5.8
   rotationSpeed: 720
@@ -179,7 +327,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: df0054887d487d21eac10ed0593b8057, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: Assembly-CSharp::Game.Rhythm.RhythmJudgement
   config: {fileID: 11400000, guid: 4cba4fd95e59abbedbde3cef579614dd, type: 2}
 --- !u!114 &1290978576103647456
@@ -192,7 +340,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 537430a28ba487a3785f82816511af97, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: Assembly-CSharp::Game.Rhythm.InputBuffer
   judgement: {fileID: 7692584106784309868}
   bufferWindowSeconds: 0.15
@@ -206,7 +354,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 537430a28ba487a3785f82816511af97, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: Assembly-CSharp::Game.Rhythm.InputBuffer
   judgement: {fileID: 7692584106784309868}
   bufferWindowSeconds: 0.15
@@ -220,7 +368,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 537430a28ba487a3785f82816511af97, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: Assembly-CSharp::Game.Rhythm.InputBuffer
   judgement: {fileID: 7692584106784309868}
   bufferWindowSeconds: 0.15
@@ -234,7 +382,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 537430a28ba487a3785f82816511af97, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: Assembly-CSharp::Game.Rhythm.InputBuffer
   judgement: {fileID: 7692584106784309868}
   bufferWindowSeconds: 0.15
@@ -248,7 +396,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1ca0810ce509b0e2488f4168beb901f2, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: Assembly-CSharp::Game.Combat.ComboSystem
   profile: {fileID: 11400000, guid: 8df21e7a783a42fdc87a2871440305fa, type: 2}
   judgement: {fileID: 7692584106784309868}
@@ -269,7 +417,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 413f91993f0edcd2db6714c451487609, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: Assembly-CSharp::Game.Combat.AbilityController
   abilities:
   - {fileID: 11400000, guid: 4874d0d81d96f5b1d9247907fbafbc44, type: 2}
@@ -292,7 +440,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: ac2de5f2f1e35ad57b9305c75da3437d, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: Assembly-CSharp::Game.Combat.DodgeController
   dodgeBuffer: {fileID: 733192674082283607}
   characterController: {fileID: 0}
@@ -315,7 +463,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: c8755a4d6b24f398ca233a91639fb7c5, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: Assembly-CSharp::Game.Combat.ParryController
   parryBuffer: {fileID: 5335004040636693653}
   activeWindow: 0.28

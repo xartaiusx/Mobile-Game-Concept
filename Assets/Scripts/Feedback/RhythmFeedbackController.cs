@@ -1,4 +1,6 @@
 using Game.Combat;
+using Game.Audio;
+using Game.Core;
 using Game.Rhythm;
 using UnityEngine;
 
@@ -12,6 +14,7 @@ namespace Game.Feedback
         [SerializeField] private DodgeController dodgeController;
         [SerializeField] private ParryController parryController;
         [SerializeField] private BossTelegraphController bossTelegraphController;
+        [SerializeField] private BaseCharacter playerCharacter;
         [SerializeField] private Transform playerAnchor;
 
         [Header("Prefabs")]
@@ -20,11 +23,22 @@ namespace Game.Feedback
         [SerializeField] private GameObject missAttackPrefab;
         [SerializeField] private GameObject dodgePrefab;
         [SerializeField] private GameObject parryPrefab;
+        [SerializeField] private GameObject parrySuccessPrefab;
         [SerializeField] private GameObject bossWarningPrefab;
         [SerializeField] private GameObject bossImpactPrefab;
 
         [Header("Audio")]
         [SerializeField] private AudioSource audioSource;
+        [SerializeField] private AudioCuePlayer cuePlayer;
+        [SerializeField] private AudioCueDefinition perfectCue;
+        [SerializeField] private AudioCueDefinition goodCue;
+        [SerializeField] private AudioCueDefinition missCue;
+        [SerializeField] private AudioCueDefinition dodgeCue;
+        [SerializeField] private AudioCueDefinition parryCue;
+        [SerializeField] private AudioCueDefinition bossWarningCue;
+        [SerializeField] private AudioCueDefinition bossImpactCue;
+        [SerializeField] private AudioCueDefinition playerDamageCue;
+        [SerializeField] private AudioCueDefinition enemyDefeatedCue;
         [SerializeField] private AudioClip perfectClip;
         [SerializeField] private AudioClip goodClip;
         [SerializeField] private AudioClip missClip;
@@ -46,11 +60,14 @@ namespace Game.Feedback
         {
             if (audioSource == null)
                 audioSource = GetComponent<AudioSource>();
+            if (cuePlayer == null)
+                cuePlayer = GetComponent<AudioCuePlayer>();
 
             GameObject player = GameObject.FindGameObjectWithTag("Player");
             if (player != null)
             {
                 playerAnchor = playerAnchor != null ? playerAnchor : player.transform;
+                playerCharacter = playerCharacter != null ? playerCharacter : player.GetComponent<BaseCharacter>();
                 comboSystem = comboSystem != null ? comboSystem : player.GetComponent<ComboSystem>();
                 abilityController = abilityController != null ? abilityController : player.GetComponent<AbilityController>();
                 dodgeController = dodgeController != null ? dodgeController : player.GetComponent<DodgeController>();
@@ -87,6 +104,11 @@ namespace Game.Feedback
                 bossTelegraphController.TelegraphBeat += HandleTelegraphBeat;
                 bossTelegraphController.TelegraphImpacted += HandleTelegraphImpact;
             }
+
+            if (playerCharacter != null)
+                playerCharacter.OnDamaged += HandlePlayerDamaged;
+
+            BaseEnemy.EnemyDefeatedGlobal += HandleEnemyDefeated;
         }
 
         private void Unsubscribe()
@@ -115,6 +137,11 @@ namespace Game.Feedback
                 bossTelegraphController.TelegraphBeat -= HandleTelegraphBeat;
                 bossTelegraphController.TelegraphImpacted -= HandleTelegraphImpact;
             }
+
+            if (playerCharacter != null)
+                playerCharacter.OnDamaged -= HandlePlayerDamaged;
+
+            BaseEnemy.EnemyDefeatedGlobal -= HandleEnemyDefeated;
         }
 
         private void HandleAttackWindup(int step, RhythmGrade grade)
@@ -137,36 +164,52 @@ namespace Game.Feedback
         private void HandleDodgeResolved(RhythmGrade grade, float cooldown, float invulnerability)
         {
             SpawnAtPlayer(dodgePrefab != null ? dodgePrefab : PrefabForGrade(grade), 0.35f);
+            cuePlayer?.Play(dodgeCue);
             PlayOneShot(defensiveClip);
         }
 
         private void HandleParryResolved(RhythmGrade grade, float cooldown, float activeWindow)
         {
             SpawnAtPlayer(parryPrefab != null ? parryPrefab : PrefabForGrade(grade), 0.45f);
+            cuePlayer?.Play(parryCue);
             PlayOneShot(defensiveClip);
         }
 
         private void HandleParrySucceeded(Game.Core.DamageContext context)
         {
-            SpawnAtPlayer(parryPrefab != null ? parryPrefab : perfectAttackPrefab, 0.65f);
+            SpawnAtPlayer(parrySuccessPrefab != null ? parrySuccessPrefab : parryPrefab != null ? parryPrefab : perfectAttackPrefab, 0.75f);
+            cuePlayer?.Play(parryCue);
             PlayOneShot(defensiveClip);
         }
 
         private void HandleTelegraphStarted(BossTelegraphData data, int beats, Vector3 point)
         {
             SpawnAtPoint(bossWarningPrefab, point, Mathf.Max(0.75f, data.radius));
+            cuePlayer?.Play(bossWarningCue);
             PlayOneShot(bossClip);
         }
 
         private void HandleTelegraphBeat(BossTelegraphData data, int beats)
         {
             SpawnAtPoint(bossWarningPrefab, bossTelegraphController != null ? bossTelegraphController.ImpactPoint : transform.position, Mathf.Max(0.75f, data.radius));
+            cuePlayer?.Play(bossWarningCue);
         }
 
         private void HandleTelegraphImpact(BossTelegraphData data, Vector3 point)
         {
             SpawnAtPoint(bossImpactPrefab, point, Mathf.Max(0.75f, data.radius));
+            cuePlayer?.Play(bossImpactCue);
             PlayOneShot(bossClip);
+        }
+
+        private void HandlePlayerDamaged(BaseCharacter character)
+        {
+            cuePlayer?.Play(playerDamageCue);
+        }
+
+        private void HandleEnemyDefeated(BaseEnemy enemy)
+        {
+            cuePlayer?.Play(enemyDefeatedCue);
         }
 
         private GameObject PrefabForGrade(RhythmGrade grade)
@@ -197,12 +240,15 @@ namespace Game.Feedback
             switch (grade)
             {
                 case RhythmGrade.Perfect:
+                    cuePlayer?.Play(perfectCue);
                     PlayOneShot(perfectClip);
                     break;
                 case RhythmGrade.Good:
+                    cuePlayer?.Play(goodCue);
                     PlayOneShot(goodClip);
                     break;
                 default:
+                    cuePlayer?.Play(missCue);
                     PlayOneShot(missClip);
                     break;
             }

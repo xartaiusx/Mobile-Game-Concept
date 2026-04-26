@@ -42,6 +42,22 @@ The current values were tuned with an automated desktop play loop on Linux using
 - The HUD is compact enough for the default Game view and keeps rhythm, combo, cooldown, and debug feedback readable.
 - Boss slam damage/radius are reduced for the tuning slice; authored VFX/audio and stronger phase tuning belong in the next polish phase.
 
+## Phase 5 Feedback And Animation Hooks
+
+Phase 5 keeps the same combat architecture and adds readable placeholder polish:
+
+- `RhythmFeedbackController` now drives clearer grade, dodge, parry, boss warning, boss impact, player damage, and enemy defeat audio/VFX events.
+- `AudioCueDefinition` and `AudioCuePlayer` provide optional generated tone cues with safe null handling. Replace these assets with authored clips later without changing combat events.
+- `CombatAnimationBridge` and `AnimationEventRelay` let future animation clips call `BeginAttackActiveWindow`, `EndAttackActiveWindow`, `FinishRecovery`, `TriggerFootstep`, and `TriggerWeaponSwing`.
+- Player prefabs include the animation bridge/relay even without Animator controllers; if an Animator is added, the bridge sets `IsMoving`, `AttackState`, `RhythmGrade`, `IsDodging`, and `IsParrying`.
+- Enemy attack starts spawn `EnemyWindupFlash`, and ranged projectiles use a lightweight `TrailRenderer` for screenshot readability.
+- Boss slam warnings use `BossTelegraphWarningRing`, pulse by beat, play optional warning/impact cues, and keep HUD countdown text visible.
+
+Generated Phase 5 assets:
+
+- VFX: `PerfectHitPulse`, `GoodHitPulse`, `MissHitPulse`, `DodgePulse`, `ParryPulse`, `ParrySuccessBurst`, `BossTelegraphWarningRing`, `BossImpactBurst`, `EnemyWindupFlash`, `ProjectileTrailPlaceholder`.
+- Audio: `PerfectHit`, `GoodHit`, `Miss`, `Dodge`, `ParrySuccess`, `BossWarning`, `BossImpact`, `PlayerDamage`, `EnemyDefeated`, `Footstep`, `WeaponSwing`.
+
 ## Class Ability Defaults
 
 - Fighter Slash: short-range forward cone damage. Perfect timing has the strongest damage scaling and briefly staggers enemies.
@@ -109,7 +125,7 @@ PlayMode tests:
 
 - Placeholder keyboard input is included for local testing; mobile UI buttons should call `RequestAbility`, `RequestDodge`, and `RequestParry`.
 - Ability targeting is intentionally simple and should be expanded with animation events, lock-on, or touch targeting later.
-- Boss telegraph and combat feedback currently use primitive placeholder pulses; authored VFX/audio are still needed.
+- Boss telegraph and combat feedback use authored placeholder primitives and generated tones; final VFX/audio are still needed.
 - No equipment UI, skill trees, addressables, Cinemachine, or multiplayer are included yet.
 - The batchmode Test Runner exits successfully in this environment but does not currently emit XML result files; use the Unity Test Runner window for detailed per-test reporting if needed.
 - The HUD uses legacy `UnityEngine.UI` placeholders; replace with final UI art/layout after combat feel is stable.
@@ -117,8 +133,9 @@ PlayMode tests:
 ## Recommended Next Sequence
 
 1. Do a human keyboard/controller pass in `Assets/Scenes/VerticalSlice.unity` to confirm feel beyond automated input.
-2. Replace placeholder pulses with authored VFX/audio cues for beat hits, dodge invulnerability, parry success, and boss impact.
-3. Connect real animation clips/events to `AttackTimingData` and combo timing states.
-4. Tune one ability per class against the default rhythm windows.
-5. Add mobile UI buttons for attack, ability, dodge, and parry after keyboard/controller feel is stable.
-6. Profile on Android/iOS and tune pooling, physics masks, and input latency.
+2. Implement true projectile-style Mage/Archer abilities using the existing projectile/pool path.
+3. Tune one ability per class against the default rhythm windows.
+4. Add a simple pickup/loot loop and arena win/loss condition.
+5. Connect real animation clips/events to `AttackTimingData` and combo timing states.
+6. Add mobile UI buttons for attack, ability, dodge, and parry after keyboard/controller feel is stable.
+7. Profile on Android/iOS and tune pooling, physics masks, and input latency.
