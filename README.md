@@ -26,6 +26,7 @@ For detailed setup, asset, and test notes, see [DEVELOPMENT.md](DEVELOPMENT.md).
 - Phase 5 placeholder polish: clearer hit/dodge/parry/boss VFX prefabs, procedural audio cue assets, projectile trails, enemy windup warnings, and animation-event relay hooks.
 - Phase 6 gameplay loop: pooled Mage/Archer projectile abilities, class balance defaults, arena wave-to-boss flow, victory/failure state, and a player-like simulation helper.
 - Phase 7 rhythm rules and gameplay: truthful centered Beat Bar timing, score scaling, dodge timing tuning, boss phases, hit reactions, and pickup rewards.
+- Phase 8 stabilization: free CC0 prototype art/VFX textures, debug class swapping, placeholder Animator Controllers, and boss attack scaffolding.
 
 ## Class Abilities
 
@@ -42,6 +43,7 @@ For detailed setup, asset, and test notes, see [DEVELOPMENT.md](DEVELOPMENT.md).
 - Ability: `Q`
 - Dodge: `Left Shift`
 - Parry: `E`
+- Debug class swap: `F1` Fighter, `F2` Mage, `F3` Archer, `F4` Healer
 
 ## Bootstrap
 
@@ -80,6 +82,21 @@ This recreates the default folders, ScriptableObject assets, prefabs, scene obje
 - Boss phase assets support slower Phase 1 and faster Phase 2 telegraph behavior.
 - Gold and Health Potion pickup prefabs can drop from defeated enemies and update inventory HUD text.
 - Combat timing now supports both timed placeholder attacks and future animation-event-driven hit windows.
+
+## Phase 8 Stabilization
+
+- `ClassSwapDebugController` lets the vertical slice swap classes without duplicate players.
+- Placeholder Animator Controllers and clips live under `Assets/Animations`.
+- Player/enemy/boss prefabs now include Animator components wired to placeholder controllers.
+- Boss telegraph data now supports `Slam`, `Line`, and `RadialPulse` attack categories plus `Circle`, `Line`, and `Cone` shapes.
+- Kenney CC0 prototype textures and particle sprites are imported under `Assets/ThirdParty/FreeAssets` and used only where they improve arena and feedback readability.
+
+## Free Assets
+
+Imported free assets are documented in `Assets/ThirdParty/FreeAssets/ASSET_CREDITS.md`.
+
+- Kenney Prototype Textures: CC0, commercial use allowed, attribution not required.
+- Kenney Particle Pack: CC0, commercial use allowed, attribution not required.
 
 ## Tests
 

@@ -21,3 +21,6 @@ MonoBehaviour:
   attackCooldownMultiplier: 0.78
   telegraphCooldownMultiplier: 0.72
   telegraphWarningScale: 1.35
+  telegraphs:
+  - {fileID: 11400000, guid: cd4f21ec915a0de2a9f80f91b0e671c9, type: 2}
+  - {fileID: 11400000, guid: 212a5ca9c7236e31695cd805ae62a1fd, type: 2}

@@ -56,6 +56,51 @@ namespace Game.Feedback
             Unsubscribe();
         }
 
+        public void BindPlayer(GameObject player)
+        {
+            if (playerCharacter != null)
+                playerCharacter.OnDamaged -= HandlePlayerDamaged;
+            if (comboSystem != null)
+            {
+                comboSystem.ComboStepResolved -= HandleComboStep;
+                comboSystem.AttackWindupStarted -= HandleAttackWindup;
+            }
+            if (abilityController != null)
+                abilityController.AbilityResolved -= HandleAbilityResolved;
+            if (dodgeController != null)
+                dodgeController.DodgeResolved -= HandleDodgeResolved;
+            if (parryController != null)
+            {
+                parryController.ParryResolved -= HandleParryResolved;
+                parryController.ParrySucceeded -= HandleParrySucceeded;
+            }
+
+            playerAnchor = player != null ? player.transform : null;
+            playerCharacter = player != null ? player.GetComponent<BaseCharacter>() : null;
+            comboSystem = player != null ? player.GetComponent<ComboSystem>() : null;
+            abilityController = player != null ? player.GetComponent<AbilityController>() : null;
+            dodgeController = player != null ? player.GetComponent<DodgeController>() : null;
+            parryController = player != null ? player.GetComponent<ParryController>() : null;
+
+            if (!isActiveAndEnabled) return;
+            if (comboSystem != null)
+            {
+                comboSystem.ComboStepResolved += HandleComboStep;
+                comboSystem.AttackWindupStarted += HandleAttackWindup;
+            }
+            if (abilityController != null)
+                abilityController.AbilityResolved += HandleAbilityResolved;
+            if (dodgeController != null)
+                dodgeController.DodgeResolved += HandleDodgeResolved;
+            if (parryController != null)
+            {
+                parryController.ParryResolved += HandleParryResolved;
+                parryController.ParrySucceeded += HandleParrySucceeded;
+            }
+            if (playerCharacter != null)
+                playerCharacter.OnDamaged += HandlePlayerDamaged;
+        }
+
         private void ResolveReferences()
         {
             if (audioSource == null)

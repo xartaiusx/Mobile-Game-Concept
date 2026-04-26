@@ -1,5 +1,6 @@
 using Game.Audio;
 using Game.Combat;
+using Game.Core;
 using Game.Rhythm;
 using UnityEngine;
 
@@ -20,13 +21,19 @@ namespace Game.Animation
         public const string RhythmGradeParameter = "RhythmGrade";
         public const string IsDodgingParameter = "IsDodging";
         public const string IsParryingParameter = "IsParrying";
+        public const string IsHitParameter = "IsHit";
+        public const string IsDeadParameter = "IsDead";
 
         private static readonly int IsMovingHash = Animator.StringToHash(IsMovingParameter);
         private static readonly int AttackStateHash = Animator.StringToHash(AttackStateParameter);
         private static readonly int RhythmGradeHash = Animator.StringToHash(RhythmGradeParameter);
         private static readonly int IsDodgingHash = Animator.StringToHash(IsDodgingParameter);
         private static readonly int IsParryingHash = Animator.StringToHash(IsParryingParameter);
+        private static readonly int IsHitHash = Animator.StringToHash(IsHitParameter);
+        private static readonly int IsDeadHash = Animator.StringToHash(IsDeadParameter);
         private RhythmGrade lastGrade = RhythmGrade.Miss;
+        private BaseCharacter character;
+        private float hitUntil;
 
         private void Awake()
         {
@@ -35,6 +42,7 @@ namespace Game.Animation
             dodgeController = dodgeController != null ? dodgeController : GetComponent<DodgeController>();
             parryController = parryController != null ? parryController : GetComponent<ParryController>();
             audioCuePlayer = audioCuePlayer != null ? audioCuePlayer : GetComponent<AudioCuePlayer>();
+            character = GetComponent<BaseCharacter>();
         }
 
         private void OnEnable()
@@ -44,6 +52,8 @@ namespace Game.Animation
                 comboSystem.AttackWindupStarted += HandleAttackGrade;
                 comboSystem.ComboStepResolved += HandleComboResolved;
             }
+            if (character != null)
+                character.OnDamaged += HandleDamaged;
         }
 
         private void OnDisable()
@@ -53,6 +63,8 @@ namespace Game.Animation
                 comboSystem.AttackWindupStarted -= HandleAttackGrade;
                 comboSystem.ComboStepResolved -= HandleComboResolved;
             }
+            if (character != null)
+                character.OnDamaged -= HandleDamaged;
         }
 
         private void Update()
@@ -65,6 +77,8 @@ namespace Game.Animation
             animator.SetInteger(RhythmGradeHash, (int)lastGrade);
             animator.SetBool(IsDodgingHash, dodgeController != null && dodgeController.IsDodging);
             animator.SetBool(IsParryingHash, parryController != null && parryController.IsParrying);
+            animator.SetBool(IsHitHash, Time.time < hitUntil);
+            animator.SetBool(IsDeadHash, character != null && !character.IsAlive);
         }
 
         public void BeginAttackActiveWindow()
@@ -115,6 +129,11 @@ namespace Game.Animation
         private void HandleComboResolved(int step, RhythmGrade grade, int damage)
         {
             lastGrade = grade;
+        }
+
+        private void HandleDamaged(BaseCharacter damaged)
+        {
+            hitUntil = Time.time + 0.16f;
         }
     }
 }

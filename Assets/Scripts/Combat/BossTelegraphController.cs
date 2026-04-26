@@ -27,6 +27,7 @@ namespace Game.Combat
         private Vector3 impactPoint;
         private GameObject warningVfxInstance;
         private float lastTelegraphTime = float.NegativeInfinity;
+        private int repeatsRemaining;
 
         public event Action<BossTelegraphData, int, Vector3> TelegraphStarted;
         public event Action<BossTelegraphData, int> TelegraphBeat;
@@ -36,6 +37,11 @@ namespace Game.Combat
         public int RemainingBeats => remainingBeats;
         public BossTelegraphData ActiveTelegraph => activeTelegraph;
         public Vector3 ImpactPoint => impactPoint;
+
+        public void SetDefaultTelegraph(BossTelegraphData telegraph)
+        {
+            defaultTelegraph = telegraph;
+        }
 
         public void ApplyPhaseTuning(float cooldownMultiplier, float pulseScale)
         {
@@ -82,6 +88,7 @@ namespace Game.Combat
             activeTelegraph = telegraph;
             lastTelegraphTime = Time.time;
             remainingBeats = Mathf.Max(1, telegraph.beatsBeforeImpact);
+            repeatsRemaining = Mathf.Max(0, telegraph.repeatCount - 1);
             Transform resolvedTarget = target != null ? target : PlayerManager.Instance != null ? PlayerManager.Instance.GetPlayerTransform() : null;
             impactPoint = resolvedTarget != null ? resolvedTarget.position : transform.position + transform.forward * telegraph.range;
 
@@ -151,6 +158,18 @@ namespace Game.Combat
                     character.TakeDamage(context);
                 }
             }
+
+            if (repeatsRemaining > 0)
+            {
+                repeatsRemaining--;
+                activeTelegraph = telegraph;
+                remainingBeats = Mathf.Max(1, telegraph.beatsBetweenRepeats);
+                Transform resolvedTarget = target != null ? target : PlayerManager.Instance != null ? PlayerManager.Instance.GetPlayerTransform() : null;
+                impactPoint = resolvedTarget != null ? resolvedTarget.position : transform.position + transform.forward * telegraph.range;
+                if (telegraph.warningVfxPrefab != null)
+                    warningVfxInstance = Instantiate(telegraph.warningVfxPrefab, impactPoint, Quaternion.identity);
+                TelegraphStarted?.Invoke(activeTelegraph, remainingBeats, impactPoint);
+            }
         }
 
         private void PulseWarning()
@@ -158,20 +177,44 @@ namespace Game.Combat
             if (warningVfxInstance == null) return;
             float radius = activeTelegraph != null ? Mathf.Max(0.75f, activeTelegraph.radius) : 1f;
             warningVfxInstance.transform.position = impactPoint;
-            warningVfxInstance.transform.localScale = new Vector3(radius * warningPulseScale, 0.04f, radius * warningPulseScale);
+            if (activeTelegraph != null && activeTelegraph.shape == TelegraphShape.Line)
+                warningVfxInstance.transform.localScale = new Vector3(Mathf.Max(0.25f, activeTelegraph.width), 0.04f, Mathf.Max(1f, activeTelegraph.length) * warningPulseScale);
+            else
+                warningVfxInstance.transform.localScale = new Vector3(radius * warningPulseScale, 0.04f, radius * warningPulseScale);
         }
 
         private int QueryTargets(BossTelegraphData telegraph)
         {
-            switch (telegraph.attackType)
+            switch (telegraph.shape)
             {
-                case BossTelegraphAttackType.ForwardCone:
-                    return Physics.OverlapSphereNonAlloc(transform.position + transform.forward * (telegraph.range * 0.5f), Mathf.Max(telegraph.radius, telegraph.range * 0.5f), hitCache, targetMask, QueryTriggerInteraction.Ignore);
-                case BossTelegraphAttackType.TargetedCircle:
+                case TelegraphShape.Line:
+                    Vector3 center = transform.position + transform.forward * (Mathf.Max(1f, telegraph.length) * 0.5f);
+                    Vector3 halfExtents = new Vector3(Mathf.Max(0.1f, telegraph.width) * 0.5f, Mathf.Max(0.5f, telegraph.radius), Mathf.Max(1f, telegraph.length) * 0.5f);
+                    return Physics.OverlapBoxNonAlloc(center, halfExtents, hitCache, transform.rotation, targetMask, QueryTriggerInteraction.Ignore);
+                case TelegraphShape.Cone:
+                    return QueryConeTargets(telegraph);
+                case TelegraphShape.Circle:
                     return Physics.OverlapSphereNonAlloc(impactPoint, telegraph.radius, hitCache, targetMask, QueryTriggerInteraction.Ignore);
                 default:
-                    return Physics.OverlapSphereNonAlloc(transform.position, telegraph.radius, hitCache, targetMask, QueryTriggerInteraction.Ignore);
+                    return Physics.OverlapSphereNonAlloc(impactPoint, telegraph.radius, hitCache, targetMask, QueryTriggerInteraction.Ignore);
             }
+        }
+
+        private int QueryConeTargets(BossTelegraphData telegraph)
+        {
+            int count = Physics.OverlapSphereNonAlloc(transform.position, Mathf.Max(telegraph.radius, telegraph.range), hitCache, targetMask, QueryTriggerInteraction.Ignore);
+            float dotThreshold = Mathf.Cos(35f * Mathf.Deg2Rad);
+            int write = 0;
+            for (int i = 0; i < count; i++)
+            {
+                Collider hit = hitCache[i];
+                if (hit == null) continue;
+                Vector3 toHit = hit.transform.position - transform.position;
+                toHit.y = 0f;
+                if (toHit.sqrMagnitude <= 0.01f || Vector3.Dot(transform.forward, toHit.normalized) >= dotThreshold)
+                    hitCache[write++] = hit;
+            }
+            return write;
         }
     }
 }

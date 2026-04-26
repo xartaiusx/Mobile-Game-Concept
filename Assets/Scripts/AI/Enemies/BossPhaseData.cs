@@ -1,4 +1,5 @@
 using UnityEngine;
+using Game.Combat;
 
 namespace Game.AI.Enemies
 {
@@ -18,5 +19,6 @@ namespace Game.AI.Enemies
         public float attackCooldownMultiplier = 1.0f;
         public float telegraphCooldownMultiplier = 1f;
         public float telegraphWarningScale = 1.15f;
+        public BossTelegraphData[] telegraphs;
     }
 }

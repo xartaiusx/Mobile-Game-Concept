@@ -18,8 +18,11 @@ The generated setup includes:
 - Melee, ranged, and boss prefabs under `Assets/Prefabs/Enemies`.
 - A pooled projectile prefab under `Assets/Prefabs/Projectiles`.
 - Gold and Health Potion pickup prefabs under `Assets/Prefabs/Pickups`.
+- Placeholder Animator Controllers and empty placeholder clips under `Assets/Animations`.
+- Free CC0 prototype textures and particle sprites under `Assets/ThirdParty/FreeAssets`.
 - A scene Fighter player, melee enemy, ranged enemy, boss, basic enemy spawner, and readable rhythm-combat HUD.
 - `ArenaController`, `ScoreSystem`, and `PickupSpawner` for a minimal wave-to-boss win/loss/reward loop.
+- `ClassSwapDebugController` for rapid keyboard class-swap testing.
 - Placeholder feedback prefabs and materials under `Assets/Prefabs/Feedback` and `Assets/Materials/Feedback`.
 
 ## Vertical Slice UI
@@ -92,6 +95,40 @@ Phase 7 clarifies the rhythm rules so visuals, judgement, damage, dodge tuning, 
 - Boss phases use `BossPhaseData` for readable Phase 1/Phase 2 behavior. Phase 2 can speed telegraphs and attack cadence without becoming a full boss-design rewrite.
 - `PickupSpawner` creates primitive Gold and Health Potion pickups from defeated enemies; pickups feed `InventorySystem` and the HUD.
 
+## Phase 8 Stabilization
+
+Phase 8 focuses on safer testing and production-readiness scaffolding without adding final art or mobile touch controls:
+
+- `ClassSwapDebugController` supports `F1` Fighter, `F2` Mage, `F3` Archer, and `F4` Healer. It preserves position, updates `PlayerManager`, retargets the follow camera, and rebinds HUD/feedback listeners.
+- Player, enemy, and boss prefabs include placeholder Animator components. Controllers live at:
+  - `Assets/Animations/Player/PlayerPlaceholder.controller`
+  - `Assets/Animations/Enemies/EnemyPlaceholder.controller`
+  - `Assets/Animations/Boss/BossPlaceholder.controller`
+- Placeholder clips are intentionally empty/simple. The current combat still defaults to timed attacks; animation-event-driven combat remains supported for later clips.
+- Boss telegraphs now distinguish attack category from shape: `Slam`, `Line`, `RadialPulse` and `Circle`, `Line`, `Cone`.
+- Boss phase data can reference multiple telegraph assets. Phase 1 uses the readable slam; Phase 2 can select a line pattern while staying conservative.
+
+## Free Asset Integration
+
+Imported assets are intentionally small and limited to files used by generated materials/prefabs:
+
+- Kenney Prototype Textures, source: `https://www.kenney.nl/assets/prototype-textures`, license: CC0, commercial use allowed, attribution not required.
+- Kenney Particle Pack, source: `https://www.kenney.nl/assets/particle-pack`, license: CC0, commercial use allowed, attribution not required.
+- Local license and usage notes live in `Assets/ThirdParty/FreeAssets/ASSET_CREDITS.md`.
+
+Used improvements:
+
+- Arena ground and walls use lightweight grid textures for readability.
+- Boss warning material uses a red prototype danger texture.
+- Feedback/projectile materials use transparent particle sprites for clearer pulses/trails.
+
+Skipped intentionally:
+
+- Large all-in-one asset bundles.
+- Character model packs with unclear or heavier import needs.
+- Audio packs with attribution or redistribution ambiguity.
+- URP/HDRP-specific assets.
+
 ## Class Ability Defaults
 
 - Fighter Slash: short-range forward cone damage. It is forgiving on Miss and Perfect briefly staggers enemies.
@@ -107,6 +144,7 @@ Phase 7 clarifies the rhythm rules so visuals, judgement, damage, dodge tuning, 
 - Ability: `Q`.
 - Dodge: `Left Shift`.
 - Parry: `E`.
+- Debug class swap: `F1` Fighter, `F2` Mage, `F3` Archer, `F4` Healer.
 
 ## ScriptableObject Assets
 
@@ -173,6 +211,7 @@ PlayMode tests:
 - The default committed scene uses Fighter; Mage/Archer class-specific feel still needs manual class-swap playtesting.
 - The arena loop is intentionally minimal; pickups and rewards exist, but multi-wave pacing and inventory UI are still early.
 - Pickup and feedback VFX still use simple `Instantiate` paths in low-frequency cases; pool them before heavy mobile stress testing.
+- Free assets improve readability but are still placeholder art, not final visual direction.
 - Boss telegraph and combat feedback use authored placeholder primitives and generated tones; final VFX/audio are still needed.
 - No equipment UI, skill trees, addressables, Cinemachine, or multiplayer are included yet.
 - The batchmode Test Runner exits successfully in this environment but does not currently emit XML result files; use the Unity Test Runner window for detailed per-test reporting if needed.
@@ -181,7 +220,7 @@ PlayMode tests:
 ## Recommended Next Sequence
 
 1. Do a human class-swap playtest for Fighter, Mage, Archer, and Healer in `Assets/Scenes/VerticalSlice.unity`, especially Mage/Archer projectile feel.
-2. Add placeholder Animator Controllers and simple attack clips that call the existing animation event relay methods.
-3. Add better boss attack variety and hit reaction tuning.
+2. Add real placeholder attack clips that call the existing animation event relay methods.
+3. Implement the boss line/radial attack patterns more fully and tune phase pacing.
 4. Build inventory/potion UI and explicit potion use.
 5. Start early mobile touch controls and device profiling after keyboard/controller feel remains coherent.

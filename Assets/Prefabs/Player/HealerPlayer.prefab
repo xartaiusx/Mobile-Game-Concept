@@ -62,6 +62,7 @@ GameObject:
   - component: {fileID: 249160093724879072}
   - component: {fileID: 3707379063307094403}
   - component: {fileID: 2863345480665842958}
+  - component: {fileID: 1284243376506226832}
   - component: {fileID: 4687573544986518707}
   - component: {fileID: 4497138903062981396}
   - component: {fileID: 5427545084183045018}
@@ -237,6 +238,28 @@ MonoBehaviour:
   hitColor: {r: 1, g: 1, b: 1, a: 1}
   perfectHitColor: {r: 0.2, g: 1, b: 0.75, a: 1}
   playerDamageColor: {r: 1, g: 0.25, b: 0.25, a: 1}
+--- !u!95 &1284243376506226832
+Animator:
+  serializedVersion: 7
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6620568328276737159}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: e2e239d5b76b89465b04b3b53725a8c7, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_AnimatePhysics: 0
+  m_WarningMessage:
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0
 --- !u!82 &4687573544986518707
 AudioSource:
   m_ObjectHideFlags: 0

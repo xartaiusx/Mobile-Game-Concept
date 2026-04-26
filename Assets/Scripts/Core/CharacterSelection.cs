@@ -34,7 +34,7 @@ namespace Game.Core
 
                 string className = button.name;
                 classButtonMap[className] = button;
-            
+
                 string capturedClassName = className;
                 button.onClick.AddListener(() => SelectClass(capturedClassName));
             }

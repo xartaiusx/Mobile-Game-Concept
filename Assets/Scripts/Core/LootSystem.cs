@@ -48,7 +48,7 @@ namespace Game.Core
             {
                 if (loot == null || loot.itemPrefab == null)
                     continue;
-            
+
                 if (Random.value * 100f <= loot.dropChance)
                     Instantiate(loot.itemPrefab, position, Quaternion.identity);
             }

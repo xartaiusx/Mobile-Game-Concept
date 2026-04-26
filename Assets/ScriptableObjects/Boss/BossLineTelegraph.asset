@@ -1,0 +1,29 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f6275721e2340f18ca65d2110b647774, type: 3}
+  m_Name: BossLineTelegraph
+  m_EditorClassIdentifier: Assembly-CSharp::Game.Combat.BossTelegraphData
+  telegraphId: boss_line
+  displayName: Boss Line
+  beatsBeforeImpact: 3
+  repeatCount: 2
+  beatsBetweenRepeats: 1
+  damage: 7
+  radius: 1.5
+  range: 10
+  width: 2.2
+  length: 10
+  attackType: 1
+  shape: 1
+  warningVfxPrefab: {fileID: 5249221809099804424, guid: 42bfbbca3ccb15c12b82ae8681f4449c, type: 3}
+  impactVfxPrefab: {fileID: 4830275523656502022, guid: d68aa0da64fd98c1aaa41abc309e9059, type: 3}
+  audioCue: {fileID: 0}

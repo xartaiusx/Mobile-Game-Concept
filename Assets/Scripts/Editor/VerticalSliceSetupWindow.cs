@@ -7,6 +7,7 @@ using Game.Core;
 using Game.Feedback;
 using Game.Rhythm;
 using UnityEditor;
+using UnityEditor.Animations;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -32,6 +33,7 @@ namespace Game.EditorTools
 
             var materials = CreateMaterials();
             var audioCues = CreateAudioCues();
+            AnimationSet animations = CreateAnimationAssets();
             RhythmConfig rhythmConfig = CreateRhythmConfig();
             ComboProfile comboProfile = CreateComboProfile();
             AttackTimingData attackTiming = CreateAttackTiming();
@@ -40,9 +42,10 @@ namespace Game.EditorTools
             AbilityDefinition archerShot = CreateAbility("Assets/ScriptableObjects/Abilities/ArcherShot.asset", "archer_shot", "Archer Shot", "Fast precision projectile. Perfect timing pierces one target.", 18, 0, 1.25f, 12f, 0.35f, AbilityType.Damage, AbilityTargetMode.TargetPoint, AbilityExecutionStyle.ProjectileLike, new AbilityRhythmScaling { perfectMultiplier = 2.25f, goodMultiplier = 1.15f, missMultiplier = 0.45f }, 0.15f, 0f);
             AbilityDefinition healerPulse = CreateAbility("Assets/ScriptableObjects/Abilities/HealerPulse.asset", "healer_pulse", "Healer Pulse", "Self heal pulse. Perfect timing adds a brief protection window.", 0, 22, 2.4f, 0f, 3.5f, AbilityType.Heal, AbilityTargetMode.Self, AbilityExecutionStyle.Pulse, new AbilityRhythmScaling { perfectMultiplier = 1.65f, goodMultiplier = 1.15f, missMultiplier = 0.75f }, 0f, 0.45f);
             FeedbackPrefabs feedbackPrefabs = CreateFeedbackPrefabs(materials);
-            BossTelegraphData bossSlam = CreateBossTelegraph(feedbackPrefabs.bossWarning, feedbackPrefabs.bossImpact);
-            BossPhaseData phaseOne = CreateBossPhase("Assets/ScriptableObjects/Boss/BossPhaseOne.asset", "Phase 1", 1f, false, 1, 0.2f, 1f, 1f, 1f, 1.15f);
-            BossPhaseData phaseTwo = CreateBossPhase("Assets/ScriptableObjects/Boss/BossPhaseTwo.asset", "Phase 2", 0.5f, true, 2, 0.25f, 1.08f, 0.78f, 0.72f, 1.35f);
+            BossTelegraphData bossSlam = CreateBossTelegraph("Assets/ScriptableObjects/Boss/BossSlamTelegraph.asset", "boss_slam", "Boss Slam", BossAttackType.Slam, TelegraphShape.Circle, 4, 1, 1, 10, 3f, 8f, 1.5f, 6f, feedbackPrefabs.bossWarning, feedbackPrefabs.bossImpact);
+            BossTelegraphData bossLine = CreateBossTelegraph("Assets/ScriptableObjects/Boss/BossLineTelegraph.asset", "boss_line", "Boss Line", BossAttackType.Line, TelegraphShape.Line, 3, 2, 1, 7, 1.5f, 10f, 2.2f, 10f, feedbackPrefabs.bossWarning, feedbackPrefabs.bossImpact);
+            BossPhaseData phaseOne = CreateBossPhase("Assets/ScriptableObjects/Boss/BossPhaseOne.asset", "Phase 1", 1f, false, 1, 0.2f, 1f, 1f, 1f, 1.15f, new[] { bossSlam });
+            BossPhaseData phaseTwo = CreateBossPhase("Assets/ScriptableObjects/Boss/BossPhaseTwo.asset", "Phase 2", 0.5f, true, 2, 0.25f, 1.08f, 0.78f, 0.72f, 1.35f, new[] { bossLine, bossSlam });
             ItemDefinition goldItem = CreateItem("Assets/ScriptableObjects/Items/Gold.asset", "gold", "Gold", 999, 1, 0);
             ItemDefinition potionItem = CreateItem("Assets/ScriptableObjects/Items/HealthPotion.asset", "health_potion", "Health Potion", 10, 0, 25);
 
@@ -50,13 +53,13 @@ namespace Game.EditorTools
             GameObject projectilePrefab = CreateProjectilePrefab(materials.projectile, materials.projectileTrail);
             GameObject goldPickupPrefab = CreatePickupPrefab("Assets/Prefabs/Pickups/GoldPickup.prefab", goldItem, materials.healer, PrimitiveType.Sphere, 0.32f);
             GameObject potionPickupPrefab = CreatePickupPrefab("Assets/Prefabs/Pickups/HealthPotionPickup.prefab", potionItem, materials.good, PrimitiveType.Cylinder, 0.38f);
-            GameObject fighterPrefab = CreatePlayerPrefab("Assets/Prefabs/Player/FighterPlayer.prefab", typeof(Fighter), fighterSlash, rhythmConfig, comboProfile, attackTiming, projectilePrefab, feedbackPrefabs.bossImpact, materials.player, audioCues);
-            GameObject magePrefab = CreatePlayerPrefab("Assets/Prefabs/Player/MagePlayer.prefab", typeof(Mage), mageBolt, rhythmConfig, comboProfile, attackTiming, projectilePrefab, feedbackPrefabs.bossImpact, materials.mage, audioCues);
-            GameObject archerPrefab = CreatePlayerPrefab("Assets/Prefabs/Player/ArcherPlayer.prefab", typeof(Archer), archerShot, rhythmConfig, comboProfile, attackTiming, projectilePrefab, feedbackPrefabs.perfect, materials.archer, audioCues);
-            GameObject healerPrefab = CreatePlayerPrefab("Assets/Prefabs/Player/HealerPlayer.prefab", typeof(Healer), healerPulse, rhythmConfig, comboProfile, attackTiming, projectilePrefab, feedbackPrefabs.parrySuccess, materials.healer, audioCues);
-            GameObject meleePrefab = CreateMeleeEnemyPrefab(materials.enemy, feedbackPrefabs.enemyWindup);
-            GameObject rangedPrefab = CreateRangedEnemyPrefab(projectilePrefab, materials.rangedEnemy, feedbackPrefabs.enemyWindup);
-            GameObject bossPrefab = CreateBossPrefab(projectilePrefab, bossSlam, new[] { phaseOne, phaseTwo }, materials.boss, feedbackPrefabs.enemyWindup, audioCues);
+            GameObject fighterPrefab = CreatePlayerPrefab("Assets/Prefabs/Player/FighterPlayer.prefab", typeof(Fighter), fighterSlash, rhythmConfig, comboProfile, attackTiming, projectilePrefab, feedbackPrefabs.bossImpact, materials.player, audioCues, animations.playerController);
+            GameObject magePrefab = CreatePlayerPrefab("Assets/Prefabs/Player/MagePlayer.prefab", typeof(Mage), mageBolt, rhythmConfig, comboProfile, attackTiming, projectilePrefab, feedbackPrefabs.bossImpact, materials.mage, audioCues, animations.playerController);
+            GameObject archerPrefab = CreatePlayerPrefab("Assets/Prefabs/Player/ArcherPlayer.prefab", typeof(Archer), archerShot, rhythmConfig, comboProfile, attackTiming, projectilePrefab, feedbackPrefabs.perfect, materials.archer, audioCues, animations.playerController);
+            GameObject healerPrefab = CreatePlayerPrefab("Assets/Prefabs/Player/HealerPlayer.prefab", typeof(Healer), healerPulse, rhythmConfig, comboProfile, attackTiming, projectilePrefab, feedbackPrefabs.parrySuccess, materials.healer, audioCues, animations.playerController);
+            GameObject meleePrefab = CreateMeleeEnemyPrefab(materials.enemy, feedbackPrefabs.enemyWindup, animations.enemyController);
+            GameObject rangedPrefab = CreateRangedEnemyPrefab(projectilePrefab, materials.rangedEnemy, feedbackPrefabs.enemyWindup, animations.enemyController);
+            GameObject bossPrefab = CreateBossPrefab(projectilePrefab, bossSlam, new[] { phaseOne, phaseTwo }, materials.boss, feedbackPrefabs.enemyWindup, audioCues, animations.bossController);
             GameObject hudPrefab = CreateHudPrefab();
 
             Scene scene = EditorSceneManager.NewScene(NewSceneSetup.DefaultGameObjects, NewSceneMode.Single);
@@ -101,7 +104,11 @@ namespace Game.EditorTools
                 "Assets/ScriptableObjects/Audio",
                 "Assets/Materials",
                 "Assets/Materials/Feedback",
-                "Assets/Editor"
+                "Assets/Editor",
+                "Assets/Animations",
+                "Assets/Animations/Player",
+                "Assets/Animations/Enemies",
+                "Assets/Animations/Boss"
             };
 
             for (int i = 0; i < folders.Length; i++)
@@ -120,17 +127,18 @@ namespace Game.EditorTools
                 rangedEnemy = CreateMaterial("Assets/Materials/Enemy_Ranged.mat", new Color(0.95f, 0.45f, 0.2f)),
                 boss = CreateMaterial("Assets/Materials/Enemy_Boss.mat", new Color(0.35f, 0.15f, 0.15f)),
                 projectile = CreateMaterial("Assets/Materials/Projectile_Basic.mat", new Color(0.1f, 0.9f, 1f)),
-                projectileTrail = CreateMaterial("Assets/Materials/Feedback/ProjectileTrail.mat", new Color(0.1f, 0.9f, 1f, 0.45f)),
-                ground = CreateMaterial("Assets/Materials/Ground_Prototype.mat", new Color(0.28f, 0.32f, 0.28f)),
-                perfect = CreateMaterial("Assets/Materials/Feedback/PerfectFeedback.mat", new Color(0.2f, 1f, 0.75f, 0.85f)),
-                good = CreateMaterial("Assets/Materials/Feedback/GoodFeedback.mat", new Color(0.35f, 0.65f, 1f, 0.75f)),
-                miss = CreateMaterial("Assets/Materials/Feedback/MissFeedback.mat", new Color(1f, 0.25f, 0.25f, 0.65f)),
-                dodge = CreateMaterial("Assets/Materials/Feedback/DodgeFeedback.mat", new Color(1f, 1f, 0.35f, 0.7f)),
-                parry = CreateMaterial("Assets/Materials/Feedback/ParryFeedback.mat", new Color(1f, 0.45f, 1f, 0.8f)),
-                parrySuccess = CreateMaterial("Assets/Materials/Feedback/ParrySuccess.mat", new Color(1f, 1f, 1f, 0.9f)),
-                enemyWindup = CreateMaterial("Assets/Materials/Feedback/EnemyWindup.mat", new Color(1f, 0.85f, 0.1f, 0.85f)),
-                bossWarning = CreateMaterial("Assets/Materials/Feedback/BossWarning.mat", new Color(1f, 0.65f, 0.1f, 0.55f)),
-                bossImpact = CreateMaterial("Assets/Materials/Feedback/BossImpact.mat", new Color(1f, 0.1f, 0.05f, 0.8f))
+                projectileTrail = CreateMaterial("Assets/Materials/Feedback/ProjectileTrail.mat", new Color(0.1f, 0.9f, 1f, 0.45f), "Assets/ThirdParty/FreeAssets/KenneyParticlePack/PNGTransparent/spark_07.png", true),
+                ground = CreateMaterial("Assets/Materials/Ground_Prototype.mat", new Color(0.28f, 0.36f, 0.30f), "Assets/ThirdParty/FreeAssets/KenneyPrototypeTextures/PNG/Green/arena_grid_green.png"),
+                wall = CreateMaterial("Assets/Materials/Wall_Prototype.mat", new Color(0.25f, 0.27f, 0.27f), "Assets/ThirdParty/FreeAssets/KenneyPrototypeTextures/PNG/Dark/arena_grid_dark.png"),
+                perfect = CreateMaterial("Assets/Materials/Feedback/PerfectFeedback.mat", new Color(0.2f, 1f, 0.75f, 0.85f), "Assets/ThirdParty/FreeAssets/KenneyParticlePack/PNGTransparent/magic_05.png", true),
+                good = CreateMaterial("Assets/Materials/Feedback/GoodFeedback.mat", new Color(0.35f, 0.65f, 1f, 0.75f), "Assets/ThirdParty/FreeAssets/KenneyParticlePack/PNGTransparent/circle_05.png", true),
+                miss = CreateMaterial("Assets/Materials/Feedback/MissFeedback.mat", new Color(1f, 0.25f, 0.25f, 0.65f), "Assets/ThirdParty/FreeAssets/KenneyParticlePack/PNGTransparent/slash_04.png", true),
+                dodge = CreateMaterial("Assets/Materials/Feedback/DodgeFeedback.mat", new Color(1f, 1f, 0.35f, 0.7f), "Assets/ThirdParty/FreeAssets/KenneyParticlePack/PNGTransparent/circle_05.png", true),
+                parry = CreateMaterial("Assets/Materials/Feedback/ParryFeedback.mat", new Color(1f, 0.45f, 1f, 0.8f), "Assets/ThirdParty/FreeAssets/KenneyParticlePack/PNGTransparent/magic_05.png", true),
+                parrySuccess = CreateMaterial("Assets/Materials/Feedback/ParrySuccess.mat", new Color(1f, 1f, 1f, 0.9f), "Assets/ThirdParty/FreeAssets/KenneyParticlePack/PNGTransparent/spark_07.png", true),
+                enemyWindup = CreateMaterial("Assets/Materials/Feedback/EnemyWindup.mat", new Color(1f, 0.85f, 0.1f, 0.85f), "Assets/ThirdParty/FreeAssets/KenneyParticlePack/PNGTransparent/spark_07.png", true),
+                bossWarning = CreateMaterial("Assets/Materials/Feedback/BossWarning.mat", new Color(1f, 0.65f, 0.1f, 0.55f), "Assets/ThirdParty/FreeAssets/KenneyPrototypeTextures/PNG/Red/danger_grid_red.png", true),
+                bossImpact = CreateMaterial("Assets/Materials/Feedback/BossImpact.mat", new Color(1f, 0.1f, 0.05f, 0.8f), "Assets/ThirdParty/FreeAssets/KenneyParticlePack/PNGTransparent/slash_04.png", true)
             };
         }
 
@@ -163,6 +171,97 @@ namespace Game.EditorTools
             cue.waveform = waveform;
             EditorUtility.SetDirty(cue);
             return cue;
+        }
+
+        private static AnimationSet CreateAnimationAssets()
+        {
+            AnimationClip idle = CreateClip("Assets/Animations/Player/Idle.anim", true);
+            AnimationClip move = CreateClip("Assets/Animations/Player/Move.anim", true);
+            AnimationClip attack = CreateClip("Assets/Animations/Player/Attack.anim", false);
+            AnimationClip dodge = CreateClip("Assets/Animations/Player/Dodge.anim", false);
+            AnimationClip parry = CreateClip("Assets/Animations/Player/Parry.anim", false);
+            AnimationClip hit = CreateClip("Assets/Animations/Player/Hit.anim", false);
+            AnimationClip death = CreateClip("Assets/Animations/Player/Death.anim", false);
+
+            AnimationClip enemyIdle = CreateClip("Assets/Animations/Enemies/Idle.anim", true);
+            AnimationClip enemyMove = CreateClip("Assets/Animations/Enemies/Move.anim", true);
+            AnimationClip enemyAttack = CreateClip("Assets/Animations/Enemies/Attack.anim", false);
+            AnimationClip enemyHit = CreateClip("Assets/Animations/Enemies/Hit.anim", false);
+            AnimationClip enemyDeath = CreateClip("Assets/Animations/Enemies/Death.anim", false);
+
+            AnimationClip bossIdle = CreateClip("Assets/Animations/Boss/Idle.anim", true);
+            AnimationClip bossAttack = CreateClip("Assets/Animations/Boss/Attack.anim", false);
+            AnimationClip bossHit = CreateClip("Assets/Animations/Boss/Hit.anim", false);
+            AnimationClip bossDeath = CreateClip("Assets/Animations/Boss/Death.anim", false);
+
+            return new AnimationSet
+            {
+                playerController = CreateController("Assets/Animations/Player/PlayerPlaceholder.controller", idle, move, attack, dodge, parry, hit, death),
+                enemyController = CreateController("Assets/Animations/Enemies/EnemyPlaceholder.controller", enemyIdle, enemyMove, enemyAttack, null, null, enemyHit, enemyDeath),
+                bossController = CreateController("Assets/Animations/Boss/BossPlaceholder.controller", bossIdle, null, bossAttack, null, null, bossHit, bossDeath)
+            };
+        }
+
+        private static AnimationClip CreateClip(string path, bool loop)
+        {
+            AnimationClip clip = AssetDatabase.LoadAssetAtPath<AnimationClip>(path);
+            if (clip == null)
+            {
+                clip = new AnimationClip();
+                AssetDatabase.CreateAsset(clip, path);
+            }
+
+            clip.frameRate = 30f;
+            var settings = AnimationUtility.GetAnimationClipSettings(clip);
+            settings.loopTime = loop;
+            AnimationUtility.SetAnimationClipSettings(clip, settings);
+            EditorUtility.SetDirty(clip);
+            return clip;
+        }
+
+        private static RuntimeAnimatorController CreateController(string path, AnimationClip idle, AnimationClip move, AnimationClip attack, AnimationClip dodge, AnimationClip parry, AnimationClip hit, AnimationClip death)
+        {
+            AnimatorController controller = AssetDatabase.LoadAssetAtPath<AnimatorController>(path);
+            if (controller == null)
+                controller = AnimatorController.CreateAnimatorControllerAtPath(path);
+
+            EnsureAnimatorParameter(controller, "IsMoving", AnimatorControllerParameterType.Bool);
+            EnsureAnimatorParameter(controller, "AttackState", AnimatorControllerParameterType.Int);
+            EnsureAnimatorParameter(controller, "IsDodging", AnimatorControllerParameterType.Bool);
+            EnsureAnimatorParameter(controller, "IsParrying", AnimatorControllerParameterType.Bool);
+            EnsureAnimatorParameter(controller, "IsHit", AnimatorControllerParameterType.Bool);
+            EnsureAnimatorParameter(controller, "IsDead", AnimatorControllerParameterType.Bool);
+            EnsureAnimatorParameter(controller, "RhythmGrade", AnimatorControllerParameterType.Int);
+
+            AnimatorStateMachine machine = controller.layers[0].stateMachine;
+            machine.states = new ChildAnimatorState[0];
+            AddState(machine, "Idle", idle, new Vector3(240f, 60f, 0f));
+            AddState(machine, "Move", move != null ? move : idle, new Vector3(240f, 140f, 0f));
+            AddState(machine, "Attack", attack != null ? attack : idle, new Vector3(240f, 220f, 0f));
+            AddState(machine, "Dodge", dodge != null ? dodge : idle, new Vector3(240f, 300f, 0f));
+            AddState(machine, "Parry", parry != null ? parry : idle, new Vector3(240f, 380f, 0f));
+            AddState(machine, "Hit", hit != null ? hit : idle, new Vector3(520f, 180f, 0f));
+            AddState(machine, "Death", death != null ? death : idle, new Vector3(520f, 300f, 0f));
+            EditorUtility.SetDirty(controller);
+            return controller;
+        }
+
+        private static void EnsureAnimatorParameter(AnimatorController controller, string name, AnimatorControllerParameterType type)
+        {
+            for (int i = 0; i < controller.parameters.Length; i++)
+            {
+                if (controller.parameters[i].name == name)
+                    return;
+            }
+            controller.AddParameter(name, type);
+        }
+
+        private static void AddState(AnimatorStateMachine machine, string name, Motion motion, Vector3 position)
+        {
+            AnimatorState state = machine.AddState(name, position);
+            state.motion = motion;
+            if (machine.defaultState == null)
+                machine.defaultState = state;
         }
 
         private static RhythmConfig CreateRhythmConfig()
@@ -236,23 +335,28 @@ namespace Game.EditorTools
             return ability;
         }
 
-        private static BossTelegraphData CreateBossTelegraph(GameObject warningPrefab, GameObject impactPrefab)
+        private static BossTelegraphData CreateBossTelegraph(string path, string id, string displayName, BossAttackType attackType, TelegraphShape shape, int beatsBeforeImpact, int repeatCount, int beatsBetweenRepeats, int damage, float radius, float range, float width, float length, GameObject warningPrefab, GameObject impactPrefab)
         {
-            BossTelegraphData telegraph = CreateOrLoadAsset<BossTelegraphData>("Assets/ScriptableObjects/Boss/BossSlamTelegraph.asset");
-            telegraph.telegraphId = "boss_slam";
-            telegraph.displayName = "Boss Slam";
-            telegraph.beatsBeforeImpact = 4;
-            telegraph.damage = 10;
-            telegraph.radius = 3f;
-            telegraph.range = 8f;
-            telegraph.attackType = BossTelegraphAttackType.TargetedCircle;
+            BossTelegraphData telegraph = CreateOrLoadAsset<BossTelegraphData>(path);
+            telegraph.telegraphId = id;
+            telegraph.displayName = displayName;
+            telegraph.attackType = attackType;
+            telegraph.shape = shape;
+            telegraph.beatsBeforeImpact = beatsBeforeImpact;
+            telegraph.repeatCount = repeatCount;
+            telegraph.beatsBetweenRepeats = beatsBetweenRepeats;
+            telegraph.damage = damage;
+            telegraph.radius = radius;
+            telegraph.range = range;
+            telegraph.width = width;
+            telegraph.length = length;
             telegraph.warningVfxPrefab = warningPrefab;
             telegraph.impactVfxPrefab = impactPrefab;
             EditorUtility.SetDirty(telegraph);
             return telegraph;
         }
 
-        private static BossPhaseData CreateBossPhase(string path, string displayName, float threshold, bool rangedMode, int burstCount, float burstInterval, float moveSpeedMultiplier, float attackCooldownMultiplier, float telegraphCooldownMultiplier, float telegraphWarningScale)
+        private static BossPhaseData CreateBossPhase(string path, string displayName, float threshold, bool rangedMode, int burstCount, float burstInterval, float moveSpeedMultiplier, float attackCooldownMultiplier, float telegraphCooldownMultiplier, float telegraphWarningScale, BossTelegraphData[] telegraphs)
         {
             BossPhaseData phase = CreateOrLoadAsset<BossPhaseData>(path);
             phase.displayName = displayName;
@@ -264,6 +368,7 @@ namespace Game.EditorTools
             phase.attackCooldownMultiplier = attackCooldownMultiplier;
             phase.telegraphCooldownMultiplier = telegraphCooldownMultiplier;
             phase.telegraphWarningScale = telegraphWarningScale;
+            phase.telegraphs = telegraphs;
             EditorUtility.SetDirty(phase);
             return phase;
         }
@@ -296,7 +401,7 @@ namespace Game.EditorTools
             return SavePrefab(path, pickup);
         }
 
-        private static GameObject CreatePlayerPrefab(string path, System.Type classType, AbilityDefinition ability, RhythmConfig rhythmConfig, ComboProfile comboProfile, AttackTimingData attackTiming, GameObject projectilePrefab, GameObject projectileImpactPrefab, Material material, AudioCueSet audioCues)
+        private static GameObject CreatePlayerPrefab(string path, System.Type classType, AbilityDefinition ability, RhythmConfig rhythmConfig, ComboProfile comboProfile, AttackTimingData attackTiming, GameObject projectilePrefab, GameObject projectileImpactPrefab, Material material, AudioCueSet audioCues, RuntimeAnimatorController animatorController)
         {
             GameObject player = GameObject.CreatePrimitive(PrimitiveType.Capsule);
             player.name = System.IO.Path.GetFileNameWithoutExtension(path);
@@ -309,6 +414,8 @@ namespace Game.EditorTools
             player.AddComponent(classType);
             player.AddComponent<InventorySystem>();
             player.AddComponent<Game.Feedback.HitReactionController>();
+            var animator = player.AddComponent<Animator>();
+            animator.runtimeAnimatorController = animatorController;
             player.AddComponent<AudioSource>();
             var cuePlayer = player.AddComponent<AudioCuePlayer>();
             var animationBridge = player.AddComponent<Game.Animation.CombatAnimationBridge>();
@@ -376,12 +483,14 @@ namespace Game.EditorTools
             return SavePrefab(path, player);
         }
 
-        private static GameObject CreateMeleeEnemyPrefab(Material material, GameObject windupPrefab)
+        private static GameObject CreateMeleeEnemyPrefab(Material material, GameObject windupPrefab, RuntimeAnimatorController animatorController)
         {
             GameObject enemy = GameObject.CreatePrimitive(PrimitiveType.Capsule);
             enemy.name = "MeleeEnemy";
             Object.DestroyImmediate(enemy.GetComponent<Collider>());
             AssignMaterial(enemy, material);
+            var animator = enemy.AddComponent<Animator>();
+            animator.runtimeAnimatorController = animatorController;
             enemy.AddComponent<CharacterController>();
             var melee = enemy.AddComponent<MeleeEnemy>();
             enemy.AddComponent<Game.Feedback.HitReactionController>();
@@ -397,12 +506,14 @@ namespace Game.EditorTools
             return SavePrefab("Assets/Prefabs/Enemies/MeleeEnemy.prefab", enemy);
         }
 
-        private static GameObject CreateRangedEnemyPrefab(GameObject projectilePrefab, Material material, GameObject windupPrefab)
+        private static GameObject CreateRangedEnemyPrefab(GameObject projectilePrefab, Material material, GameObject windupPrefab, RuntimeAnimatorController animatorController)
         {
             GameObject enemy = GameObject.CreatePrimitive(PrimitiveType.Capsule);
             enemy.name = "RangedEnemy";
             Object.DestroyImmediate(enemy.GetComponent<Collider>());
             AssignMaterial(enemy, material);
+            var animator = enemy.AddComponent<Animator>();
+            animator.runtimeAnimatorController = animatorController;
             enemy.AddComponent<CharacterController>();
             var ranged = enemy.AddComponent<RangedEnemy>();
             enemy.AddComponent<Game.Feedback.HitReactionController>();
@@ -427,13 +538,15 @@ namespace Game.EditorTools
             return SavePrefab("Assets/Prefabs/Enemies/RangedEnemy.prefab", enemy);
         }
 
-        private static GameObject CreateBossPrefab(GameObject projectilePrefab, BossTelegraphData telegraphData, BossPhaseData[] phases, Material material, GameObject windupPrefab, AudioCueSet audioCues)
+        private static GameObject CreateBossPrefab(GameObject projectilePrefab, BossTelegraphData telegraphData, BossPhaseData[] phases, Material material, GameObject windupPrefab, AudioCueSet audioCues, RuntimeAnimatorController animatorController)
         {
             GameObject boss = GameObject.CreatePrimitive(PrimitiveType.Capsule);
             boss.name = "BossEnemy";
             boss.transform.localScale = new Vector3(1.8f, 1.8f, 1.8f);
             Object.DestroyImmediate(boss.GetComponent<Collider>());
             AssignMaterial(boss, material);
+            var animator = boss.AddComponent<Animator>();
+            animator.runtimeAnimatorController = animatorController;
             boss.AddComponent<CharacterController>();
             boss.AddComponent<Game.Feedback.HitReactionController>();
             boss.AddComponent<AudioSource>();
@@ -655,10 +768,10 @@ namespace Game.EditorTools
             ground.name = "Arena_Ground";
             ground.transform.localScale = new Vector3(4f, 1f, 4f);
             AssignMaterial(ground, materials.ground);
-            CreateBoundary("Arena_Wall_North", new Vector3(0f, 1f, 20f), new Vector3(40f, 2f, 0.5f), materials.ground);
-            CreateBoundary("Arena_Wall_South", new Vector3(0f, 1f, -20f), new Vector3(40f, 2f, 0.5f), materials.ground);
-            CreateBoundary("Arena_Wall_East", new Vector3(20f, 1f, 0f), new Vector3(0.5f, 2f, 40f), materials.ground);
-            CreateBoundary("Arena_Wall_West", new Vector3(-20f, 1f, 0f), new Vector3(0.5f, 2f, 40f), materials.ground);
+            CreateBoundary("Arena_Wall_North", new Vector3(0f, 1f, 20f), new Vector3(40f, 2f, 0.5f), materials.wall);
+            CreateBoundary("Arena_Wall_South", new Vector3(0f, 1f, -20f), new Vector3(40f, 2f, 0.5f), materials.wall);
+            CreateBoundary("Arena_Wall_East", new Vector3(20f, 1f, 0f), new Vector3(0.5f, 2f, 40f), materials.wall);
+            CreateBoundary("Arena_Wall_West", new Vector3(-20f, 1f, 0f), new Vector3(0.5f, 2f, 40f), materials.wall);
 
             GameObject playerManagerObject = new GameObject("PlayerManager");
             playerManagerObject.AddComponent<PlayerManager>();
@@ -669,6 +782,13 @@ namespace Game.EditorTools
             gameManager.magePrefab = magePrefab;
             gameManager.archerPrefab = archerPrefab;
             gameManager.healerPrefab = healerPrefab;
+
+            GameObject classSwapObject = new GameObject("ClassSwapDebugController");
+            var classSwap = classSwapObject.AddComponent<ClassSwapDebugController>();
+            SetObject(classSwap, "fighterPrefab", fighterPrefab);
+            SetObject(classSwap, "magePrefab", magePrefab);
+            SetObject(classSwap, "archerPrefab", archerPrefab);
+            SetObject(classSwap, "healerPrefab", healerPrefab);
 
             GameObject rhythm = new GameObject("RhythmSystem");
             var beatClock = rhythm.AddComponent<BeatClock>();
@@ -837,7 +957,7 @@ namespace Game.EditorTools
             return prefab;
         }
 
-        private static Material CreateMaterial(string path, Color color)
+        private static Material CreateMaterial(string path, Color color, string texturePath = null, bool transparent = false)
         {
             Material material = AssetDatabase.LoadAssetAtPath<Material>(path);
             if (material == null)
@@ -847,8 +967,37 @@ namespace Game.EditorTools
             }
 
             material.color = color;
+            material.mainTexture = !string.IsNullOrEmpty(texturePath) ? AssetDatabase.LoadAssetAtPath<Texture2D>(texturePath) : null;
+            if (transparent)
+                ConfigureTransparentMaterial(material);
+            else
+                ConfigureOpaqueMaterial(material);
             EditorUtility.SetDirty(material);
             return material;
+        }
+
+        private static void ConfigureTransparentMaterial(Material material)
+        {
+            material.SetFloat("_Mode", 3f);
+            material.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.SrcAlpha);
+            material.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+            material.SetInt("_ZWrite", 0);
+            material.DisableKeyword("_ALPHATEST_ON");
+            material.EnableKeyword("_ALPHABLEND_ON");
+            material.DisableKeyword("_ALPHAPREMULTIPLY_ON");
+            material.renderQueue = 3000;
+        }
+
+        private static void ConfigureOpaqueMaterial(Material material)
+        {
+            material.SetFloat("_Mode", 0f);
+            material.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.One);
+            material.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.Zero);
+            material.SetInt("_ZWrite", 1);
+            material.DisableKeyword("_ALPHATEST_ON");
+            material.DisableKeyword("_ALPHABLEND_ON");
+            material.DisableKeyword("_ALPHAPREMULTIPLY_ON");
+            material.renderQueue = -1;
         }
 
         private static void AssignMaterial(GameObject go, Material material)
@@ -962,6 +1111,7 @@ namespace Game.EditorTools
             public Material projectile;
             public Material projectileTrail;
             public Material ground;
+            public Material wall;
             public Material perfect;
             public Material good;
             public Material miss;
@@ -1000,6 +1150,13 @@ namespace Game.EditorTools
             public AudioCueDefinition enemyDefeated;
             public AudioCueDefinition footstep;
             public AudioCueDefinition weaponSwing;
+        }
+
+        private struct AnimationSet
+        {
+            public RuntimeAnimatorController playerController;
+            public RuntimeAnimatorController enemyController;
+            public RuntimeAnimatorController bossController;
         }
     }
 }

@@ -90,6 +90,19 @@ namespace Game.Core
             enemy.Defeated += HandleEnemyDefeated;
         }
 
+        public void ReplacePlayer(BaseCharacter newPlayer)
+        {
+            if (player == newPlayer) return;
+
+            if (player != null)
+                player.OnDeath -= HandlePlayerDeath;
+
+            player = newPlayer;
+
+            if (player != null && State != ArenaState.Failure && State != ArenaState.Victory)
+                player.OnDeath += HandlePlayerDeath;
+        }
+
         public void ConfigureForTests(BaseCharacter testPlayer, BaseEnemy[] testWaveEnemies, GameObject testBoss)
         {
             player = testPlayer;

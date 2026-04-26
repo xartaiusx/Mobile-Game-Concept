@@ -39,6 +39,7 @@ namespace Game.Core
             telegraphController = telegraphController != null ? telegraphController : GetComponent<BossTelegraphController>();
             if (navMeshAgent != null)
                 navMeshAgent.speed = MoveSpeed;
+
         }
 
         protected override void HandleMovement()
@@ -85,6 +86,13 @@ namespace Game.Core
 
             if (navMeshAgent != null)
                 navMeshAgent.speed = MoveSpeed;
+
+            if (phase.telegraphs != null && phase.telegraphs.Length > 0 && phase.telegraphs[0] != null)
+            {
+                specialTelegraph = phase.telegraphs[0];
+                if (telegraphController != null)
+                    telegraphController.SetDefaultTelegraph(specialTelegraph);
+            }
         }
 
         private void PerformMeleeHit(Transform target)

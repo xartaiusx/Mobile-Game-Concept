@@ -15,10 +15,15 @@ MonoBehaviour:
   telegraphId: boss_slam
   displayName: Boss Slam
   beatsBeforeImpact: 4
+  repeatCount: 1
+  beatsBetweenRepeats: 1
   damage: 10
   radius: 3
   range: 8
-  attackType: 2
+  width: 1.5
+  length: 6
+  attackType: 0
+  shape: 0
   warningVfxPrefab: {fileID: 5249221809099804424, guid: 42bfbbca3ccb15c12b82ae8681f4449c, type: 3}
   impactVfxPrefab: {fileID: 4830275523656502022, guid: d68aa0da64fd98c1aaa41abc309e9059, type: 3}
   audioCue: {fileID: 0}

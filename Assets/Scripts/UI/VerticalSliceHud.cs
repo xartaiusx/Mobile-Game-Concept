@@ -37,6 +37,7 @@ namespace Game.UI
 
         private RhythmGrade lastGrade = RhythmGrade.Miss;
         private string lastFeedback = "Ready";
+        private bool subscriptionsActive;
 
         private void OnEnable()
         {
@@ -92,11 +93,57 @@ namespace Game.UI
         public void BindPlayer(GameObject player)
         {
             if (player == null) return;
+            if (subscriptionsActive)
+            {
+                if (comboSystem != null)
+                {
+                    comboSystem.ComboStepResolved -= HandleComboStep;
+                    comboSystem.DamageDealt -= HandleDamageDealt;
+                    comboSystem.ComboReset -= HandleComboReset;
+                }
+                if (abilityController != null)
+                {
+                    abilityController.AbilityResolved -= HandleAbilityResolved;
+                    abilityController.AbilityEffectApplied -= HandleAbilityEffectApplied;
+                }
+                if (dodgeController != null)
+                    dodgeController.DodgeResolved -= HandleDodgeResolved;
+                if (parryController != null)
+                {
+                    parryController.ParryResolved -= HandleParryResolved;
+                    parryController.ParrySucceeded -= HandleParrySucceeded;
+                }
+                if (playerCharacter != null)
+                    playerCharacter.OnDamaged -= HandlePlayerDamaged;
+            }
+
             comboSystem = player.GetComponent<ComboSystem>();
             abilityController = player.GetComponent<AbilityController>();
             dodgeController = player.GetComponent<DodgeController>();
             parryController = player.GetComponent<ParryController>();
             playerCharacter = player.GetComponent<BaseCharacter>();
+
+            if (!subscriptionsActive) return;
+            if (comboSystem != null)
+            {
+                comboSystem.ComboStepResolved += HandleComboStep;
+                comboSystem.DamageDealt += HandleDamageDealt;
+                comboSystem.ComboReset += HandleComboReset;
+            }
+            if (abilityController != null)
+            {
+                abilityController.AbilityResolved += HandleAbilityResolved;
+                abilityController.AbilityEffectApplied += HandleAbilityEffectApplied;
+            }
+            if (dodgeController != null)
+                dodgeController.DodgeResolved += HandleDodgeResolved;
+            if (parryController != null)
+            {
+                parryController.ParryResolved += HandleParryResolved;
+                parryController.ParrySucceeded += HandleParrySucceeded;
+            }
+            if (playerCharacter != null)
+                playerCharacter.OnDamaged += HandlePlayerDamaged;
         }
 
         private void ResolveReferences()
@@ -122,6 +169,8 @@ namespace Game.UI
 
         private void Subscribe()
         {
+            if (subscriptionsActive) return;
+            subscriptionsActive = true;
             if (comboSystem != null)
             {
                 comboSystem.ComboStepResolved += HandleComboStep;
@@ -169,6 +218,8 @@ namespace Game.UI
 
         private void Unsubscribe()
         {
+            if (!subscriptionsActive) return;
+            subscriptionsActive = false;
             if (comboSystem != null)
             {
                 comboSystem.ComboStepResolved -= HandleComboStep;

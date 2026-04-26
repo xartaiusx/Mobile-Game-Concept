@@ -1,4 +1,5 @@
 #if UNITY_EDITOR
+using System.IO;
 using Game.Combat;
 using Game.Core;
 using Game.Feedback;
@@ -36,6 +37,8 @@ public class VerticalSlicePlayModeTests
         Assert.IsNotNull(player.GetComponent<AnimationEventRelay>());
         Assert.IsNotNull(player.GetComponent<InventorySystem>());
         Assert.IsNotNull(player.GetComponent<HitReactionController>());
+        Assert.IsNotNull(player.GetComponent<Animator>());
+        Assert.IsNotNull(player.GetComponent<Animator>().runtimeAnimatorController);
 
         Assert.IsNotNull(Object.FindAnyObjectByType<MeleeEnemy>());
         Assert.IsNotNull(Object.FindAnyObjectByType<RangedEnemy>());
@@ -44,11 +47,36 @@ public class VerticalSlicePlayModeTests
         Assert.IsNotNull(Object.FindAnyObjectByType<ArenaController>());
         Assert.IsNotNull(Object.FindAnyObjectByType<ScoreSystem>());
         Assert.IsNotNull(Object.FindAnyObjectByType<PickupSpawner>());
+        Assert.IsNotNull(Object.FindAnyObjectByType<ClassSwapDebugController>());
         Assert.IsNotNull(Object.FindAnyObjectByType<Canvas>());
         Assert.IsNotNull(Object.FindAnyObjectByType<BeatBarUI>());
         Assert.IsNotNull(Object.FindAnyObjectByType<VerticalSliceHud>());
         Assert.IsNotNull(Object.FindAnyObjectByType<RhythmFeedbackController>());
         Assert.IsNotNull(Object.FindAnyObjectByType<AudioCuePlayer>());
+    }
+
+    [Test]
+    public void VerticalSliceClassSwapSimulationKeepsSingleManagedPlayer()
+    {
+        SceneManager.LoadScene("VerticalSlice");
+
+        ClassSwapDebugController classSwap = Object.FindAnyObjectByType<ClassSwapDebugController>();
+        Assert.IsNotNull(classSwap);
+
+        Directory.CreateDirectory("Artifacts/Phase8Frames");
+        string[] classNames = { "Fighter", "Mage", "Archer", "Healer" };
+        for (int i = 0; i < classNames.Length; i++)
+        {
+            GameObject player = classSwap.SwapToClass(classNames[i]);
+            Assert.IsNotNull(player);
+            Assert.AreEqual(player.transform, PlayerManager.Instance.GetPlayerTransform());
+            Assert.AreEqual(1, GameObject.FindGameObjectsWithTag("Player").Length);
+            Assert.IsNotNull(player.GetComponent<Animator>());
+            Assert.IsNotNull(player.GetComponent<PlayerSimulationController>());
+
+            player.GetComponent<PlayerSimulationController>().SetSimulationEnabled(true);
+            ScreenCapture.CaptureScreenshot($"Artifacts/Phase8Frames/{classNames[i]}_playmode_test.png");
+        }
     }
 }
 #endif
