@@ -59,6 +59,7 @@ GameObject:
   - component: {fileID: 1199263842027595429}
   - component: {fileID: 6689441338202949149}
   - component: {fileID: 4672283304850308376}
+  - component: {fileID: 1048274888327609125}
   - component: {fileID: 2015535334918895242}
   - component: {fileID: 8130315466188551377}
   - component: {fileID: 4785283601543433771}
@@ -170,6 +171,26 @@ CharacterController:
   m_SkinWidth: 0.08
   m_MinMoveDistance: 0.001
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &1048274888327609125
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7221361518462814879}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 71725d72ce85dde6f8dece7f4f18187b, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::Game.Feedback.HitReactionController
+  targetRenderer: {fileID: 0}
+  characterController: {fileID: 0}
+  flashSeconds: 0.08
+  knockbackDistance: 0.25
+  perfectKnockbackMultiplier: 2
+  hitColor: {r: 1, g: 1, b: 1, a: 1}
+  perfectHitColor: {r: 0.2, g: 1, b: 0.75, a: 1}
+  playerDamageColor: {r: 1, g: 0.25, b: 0.25, a: 1}
 --- !u!82 &2015535334918895242
 AudioSource:
   m_ObjectHideFlags: 0
@@ -342,7 +363,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b5622e7e9464181649c5a65cfa9ae1f2, type: 3}
   m_Name:
   m_EditorClassIdentifier: Assembly-CSharp::Game.AI.Enemies.BossPhaseController
-  phases: []
+  phases:
+  - {fileID: 11400000, guid: 35685f2fd5eff4c72a3820f4a8451caf, type: 2}
+  - {fileID: 11400000, guid: 32ec0ed4935b12346b371b0b1f8244d1, type: 2}
 --- !u!114 &8394431621512484199
 MonoBehaviour:
   m_ObjectHideFlags: 0

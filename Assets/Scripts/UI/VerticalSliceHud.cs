@@ -1,5 +1,6 @@
 using Game.Combat;
 using Game.Core;
+using Game.AI.Enemies;
 using Game.Rhythm;
 using UnityEngine;
 using UnityEngine.UI;
@@ -14,8 +15,11 @@ namespace Game.UI
         [SerializeField] private DodgeController dodgeController;
         [SerializeField] private ParryController parryController;
         [SerializeField] private BossTelegraphController bossTelegraphController;
+        [SerializeField] private BossPhaseController bossPhaseController;
         [SerializeField] private BaseCharacter playerCharacter;
         [SerializeField] private ArenaController arenaController;
+        [SerializeField] private ScoreSystem scoreSystem;
+        [SerializeField] private InventorySystem inventorySystem;
 
         [Header("Text")]
         [SerializeField] private Text feedbackText;
@@ -24,6 +28,8 @@ namespace Game.UI
         [SerializeField] private Text dodgeText;
         [SerializeField] private Text parryText;
         [SerializeField] private Text attackStateText;
+        [SerializeField] private Text scoreText;
+        [SerializeField] private Text inventoryText;
         [SerializeField] private Text bossText;
         [SerializeField] private Text arenaText;
         [SerializeField] private Text debugText;
@@ -60,6 +66,12 @@ namespace Game.UI
 
             if (attackStateText != null)
                 attackStateText.text = "Attack: " + (comboSystem != null ? comboSystem.TimingState.ToString() : "Ready");
+
+            if (scoreText != null)
+                scoreText.text = "Score: " + (scoreSystem != null ? scoreSystem.Score.ToString() : "0");
+
+            if (inventoryText != null)
+                inventoryText.text = FormatInventoryText();
 
             if (bossText != null && bossTelegraphController != null && bossTelegraphController.IsTelegraphing)
                 bossText.text = "Boss: " + bossTelegraphController.ActiveTelegraph.displayName + " in " + bossTelegraphController.RemainingBeats + " beats";
@@ -98,8 +110,14 @@ namespace Game.UI
 
             if (bossTelegraphController == null)
                 bossTelegraphController = FindAnyObjectByType<BossTelegraphController>();
+            if (bossPhaseController == null)
+                bossPhaseController = FindAnyObjectByType<BossPhaseController>();
             if (arenaController == null)
                 arenaController = FindAnyObjectByType<ArenaController>();
+            if (scoreSystem == null)
+                scoreSystem = FindAnyObjectByType<ScoreSystem>();
+            if (inventorySystem == null)
+                inventorySystem = FindAnyObjectByType<InventorySystem>();
         }
 
         private void Subscribe()
@@ -133,11 +151,20 @@ namespace Game.UI
                 bossTelegraphController.TelegraphImpacted += HandleTelegraphImpact;
             }
 
+            if (bossPhaseController != null)
+                bossPhaseController.PhaseChanged += HandleBossPhaseChanged;
+
             if (playerCharacter != null)
                 playerCharacter.OnDamaged += HandlePlayerDamaged;
 
             if (arenaController != null)
                 arenaController.StateChanged += HandleArenaStateChanged;
+
+            if (scoreSystem != null)
+                scoreSystem.ScoreChanged += HandleScoreChanged;
+
+            if (inventorySystem != null)
+                inventorySystem.OnInventoryChanged += HandleInventoryChanged;
         }
 
         private void Unsubscribe()
@@ -171,11 +198,20 @@ namespace Game.UI
                 bossTelegraphController.TelegraphImpacted -= HandleTelegraphImpact;
             }
 
+            if (bossPhaseController != null)
+                bossPhaseController.PhaseChanged -= HandleBossPhaseChanged;
+
             if (playerCharacter != null)
                 playerCharacter.OnDamaged -= HandlePlayerDamaged;
 
             if (arenaController != null)
                 arenaController.StateChanged -= HandleArenaStateChanged;
+
+            if (scoreSystem != null)
+                scoreSystem.ScoreChanged -= HandleScoreChanged;
+
+            if (inventorySystem != null)
+                inventorySystem.OnInventoryChanged -= HandleInventoryChanged;
         }
 
         private void RefreshStaticText()
@@ -262,10 +298,33 @@ namespace Game.UI
                 feedbackText.text = "Boss Impact";
         }
 
+        private void HandleBossPhaseChanged(BossPhaseData phase, int phaseIndex)
+        {
+            string label = phase != null && !string.IsNullOrEmpty(phase.displayName) ? phase.displayName : "Phase " + phaseIndex;
+            if (bossText != null)
+                bossText.text = "Boss: " + label;
+            if (feedbackText != null)
+                feedbackText.text = "Boss " + label;
+        }
+
         private void HandlePlayerDamaged(BaseCharacter character)
         {
             if (feedbackText != null)
                 feedbackText.text = "Player Hit";
+        }
+
+        private void HandleScoreChanged(int total, int added, RhythmGrade grade)
+        {
+            if (scoreText != null)
+                scoreText.text = "Score: " + total;
+            if (added > 0 && feedbackText != null)
+                feedbackText.text = grade + " +" + added;
+        }
+
+        private void HandleInventoryChanged()
+        {
+            if (inventoryText != null)
+                inventoryText.text = FormatInventoryText();
         }
 
         private void HandleArenaStateChanged(ArenaState state, string message)
@@ -286,6 +345,26 @@ namespace Game.UI
             return "Ability: " + abilityController.Abilities[0].displayName + "  " + status;
         }
 
+        private string FormatInventoryText()
+        {
+            if (inventorySystem == null) return "Gold: 0  Potions: 0";
+
+            int gold = 0;
+            int potions = 0;
+            var items = inventorySystem.Items;
+            for (int i = 0; i < items.Count; i++)
+            {
+                var item = items[i];
+                string id = item.definition != null ? item.definition.itemId : item.itemName;
+                if (id == "gold" || id == "Gold")
+                    gold += item.count;
+                else if (id == "health_potion" || id == "Health Potion")
+                    potions += item.count;
+            }
+
+            return "Gold: " + gold + "  Potions: " + potions;
+        }
+
         private static string FormatCooldown(float remaining)
         {
             return remaining <= 0f ? "Ready" : remaining.ToString("0.0") + "s";
@@ -298,7 +377,8 @@ namespace Game.UI
             string beat = clock != null ? clock.CurrentBeatIndex + " / " + clock.CurrentPhase.ToString("0.00") : "none";
             string hp = playerCharacter != null ? playerCharacter.CurrentHealth + "/" + playerCharacter.MaxHealth : "n/a";
             string attack = comboSystem != null ? comboSystem.TimingState.ToString() : "Ready";
-            return "BPM 120\nBeat " + beat + "\nLast " + lastGrade + "\nAttack " + attack + "\nHP " + hp + "\nEnemies " + enemyCount;
+            string bpm = clock != null ? clock.GetEffectiveBpm().ToString("0") : "n/a";
+            return "BPM " + bpm + "\nBeat " + beat + "\nLast " + lastGrade + "\nAttack " + attack + "\nHP " + hp + "\nEnemies " + enemyCount;
         }
     }
 }

@@ -37,6 +37,12 @@ namespace Game.Combat
         public BossTelegraphData ActiveTelegraph => activeTelegraph;
         public Vector3 ImpactPoint => impactPoint;
 
+        public void ApplyPhaseTuning(float cooldownMultiplier, float pulseScale)
+        {
+            telegraphRepeatCooldown *= Mathf.Max(0.1f, cooldownMultiplier);
+            warningPulseScale = Mathf.Max(0.5f, pulseScale);
+        }
+
         private void Awake()
         {
             hitCache = new Collider[Mathf.Max(1, maxTargets)];

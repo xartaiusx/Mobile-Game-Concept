@@ -13,17 +13,17 @@ namespace Game.Animation
 
         public void BeginAttackActiveWindow()
         {
-            bridge?.BeginAttackActiveWindow();
+            bridge?.OpenHitWindow();
         }
 
         public void EndAttackActiveWindow()
         {
-            bridge?.EndAttackActiveWindow();
+            bridge?.CloseHitWindow();
         }
 
         public void FinishRecovery()
         {
-            bridge?.FinishRecovery();
+            bridge?.FinishAttackRecovery();
         }
 
         public void TriggerFootstep()

@@ -13,6 +13,7 @@ GameObject:
   - component: {fileID: 3794565585775743767}
   - component: {fileID: 4509960772943373209}
   - component: {fileID: 7125691098570780780}
+  - component: {fileID: 8307950411875496379}
   - component: {fileID: 982211008025344716}
   m_Layer: 0
   m_Name: MeleeEnemy
@@ -139,6 +140,26 @@ MonoBehaviour:
   invulnerabilityDuration: 0.15
   attackRange: 1.65
   chaseRange: 9
+--- !u!114 &8307950411875496379
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1285705036201510093}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 71725d72ce85dde6f8dece7f4f18187b, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::Game.Feedback.HitReactionController
+  targetRenderer: {fileID: 0}
+  characterController: {fileID: 0}
+  flashSeconds: 0.08
+  knockbackDistance: 0.25
+  perfectKnockbackMultiplier: 2
+  hitColor: {r: 1, g: 1, b: 1, a: 1}
+  perfectHitColor: {r: 0.2, g: 1, b: 0.75, a: 1}
+  playerDamageColor: {r: 1, g: 0.25, b: 0.25, a: 1}
 --- !u!114 &982211008025344716
 MonoBehaviour:
   m_ObjectHideFlags: 0

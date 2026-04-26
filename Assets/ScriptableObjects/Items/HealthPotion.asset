@@ -16,3 +16,5 @@ MonoBehaviour:
   displayName: Health Potion
   icon: {fileID: 0}
   maxStack: 10
+  goldValue: 0
+  healAmount: 25

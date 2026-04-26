@@ -26,6 +26,8 @@ namespace Game.Core
         [SerializeField] private int waveCount = 1;
         [SerializeField] private float spawnPacingSeconds = 0.75f;
         [SerializeField] private KeyCode restartKey = KeyCode.R;
+        [SerializeField] private ScoreSystem scoreSystem;
+        [SerializeField] private PickupSpawner pickupSpawner;
 
         private readonly HashSet<BaseEnemy> activeEnemies = new HashSet<BaseEnemy>();
         private int currentWave;
@@ -66,6 +68,8 @@ namespace Game.Core
         {
             if (player != null)
                 player.OnDeath += HandlePlayerDeath;
+
+            scoreSystem?.ResetScore();
 
             if (bossObject != null)
                 bossObject.SetActive(false);
@@ -110,6 +114,11 @@ namespace Game.Core
 
             if (initialWaveEnemies == null || initialWaveEnemies.Length == 0)
                 initialWaveEnemies = FindObjectsByType<BaseEnemy>(FindObjectsInactive.Exclude, FindObjectsSortMode.None);
+
+            if (scoreSystem == null)
+                scoreSystem = FindAnyObjectByType<ScoreSystem>();
+            if (pickupSpawner == null)
+                pickupSpawner = FindAnyObjectByType<PickupSpawner>();
         }
 
         private void RegisterInitialEnemies()
@@ -161,6 +170,8 @@ namespace Game.Core
 
             if (State == ArenaState.Boss)
             {
+                scoreSystem?.AddVictoryBonus();
+                pickupSpawner?.SpawnVictoryBonus(player != null ? player.transform.position : transform.position);
                 SetState(ArenaState.Victory, "Victory - press R");
                 return;
             }
@@ -179,6 +190,8 @@ namespace Game.Core
         {
             if (bossObject == null)
             {
+                scoreSystem?.AddVictoryBonus();
+                pickupSpawner?.SpawnVictoryBonus(player != null ? player.transform.position : transform.position);
                 SetState(ArenaState.Victory, "Victory - press R");
                 return;
             }

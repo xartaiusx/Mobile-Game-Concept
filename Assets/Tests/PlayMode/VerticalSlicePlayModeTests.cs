@@ -34,12 +34,16 @@ public class VerticalSlicePlayModeTests
         Assert.IsNotNull(player.GetComponent<ParryController>());
         Assert.IsNotNull(player.GetComponent<CombatAnimationBridge>());
         Assert.IsNotNull(player.GetComponent<AnimationEventRelay>());
+        Assert.IsNotNull(player.GetComponent<InventorySystem>());
+        Assert.IsNotNull(player.GetComponent<HitReactionController>());
 
         Assert.IsNotNull(Object.FindAnyObjectByType<MeleeEnemy>());
         Assert.IsNotNull(Object.FindAnyObjectByType<RangedEnemy>());
         Assert.IsNotNull(Object.FindAnyObjectByType<BossEnemy>());
         Assert.IsNotNull(Object.FindAnyObjectByType<BossTelegraphController>());
         Assert.IsNotNull(Object.FindAnyObjectByType<ArenaController>());
+        Assert.IsNotNull(Object.FindAnyObjectByType<ScoreSystem>());
+        Assert.IsNotNull(Object.FindAnyObjectByType<PickupSpawner>());
         Assert.IsNotNull(Object.FindAnyObjectByType<Canvas>());
         Assert.IsNotNull(Object.FindAnyObjectByType<BeatBarUI>());
         Assert.IsNotNull(Object.FindAnyObjectByType<VerticalSliceHud>());

@@ -10,10 +10,13 @@ namespace Game.AI.Enemies
         public float healthThreshold = 0.7f;
 
         [Header("Phase Parameters")]
+        public string displayName = "Boss Phase";
         public bool rangedMode;
         public int burstCount = 3;
         public float burstInterval = 0.2f;
         public float moveSpeedMultiplier = 1.0f;
         public float attackCooldownMultiplier = 1.0f;
+        public float telegraphCooldownMultiplier = 1f;
+        public float telegraphWarningScale = 1.15f;
     }
 }

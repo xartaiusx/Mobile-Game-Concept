@@ -15,6 +15,12 @@ namespace Game.Combat
         Recovery
     }
 
+    public enum CombatTimingMode
+    {
+        Timed,
+        AnimationEventDriven
+    }
+
     /// <summary>
     /// Applies rhythm grades to combo steps and computes final damage.
     /// Drive this via InputBuffer.OnResolved.
@@ -26,6 +32,7 @@ namespace Game.Combat
         [SerializeField] private RhythmJudgement judgement;
         [SerializeField] private float attackRange = 1.7f;
         [SerializeField] private AttackTimingData attackTiming;
+        [SerializeField] private CombatTimingMode timingMode = CombatTimingMode.Timed;
         [SerializeField] private LayerMask enemyMask = ~0;
         [SerializeField] private bool readLegacyInputDirectly;
         [SerializeField] private int maxHitColliders = 12;
@@ -40,6 +47,7 @@ namespace Game.Combat
         private int activeDamage;
         private RhythmGrade activeGrade = RhythmGrade.Miss;
         private bool activeHitApplied;
+        private float activeBaseCooldown;
 
         public event Action<int, RhythmGrade> AttackWindupStarted;
         public event Action<int, RhythmGrade, int> AttackActiveStarted;
@@ -58,6 +66,8 @@ namespace Game.Combat
             buffer = GetComponent<InputBuffer>();
             judgement = judgement != null ? judgement : GetComponent<RhythmJudgement>();
             hitCache = new Collider[Mathf.Max(1, maxHitColliders)];
+            if (timingMode == CombatTimingMode.AnimationEventDriven && GetComponentInChildren<Animator>() == null)
+                timingMode = CombatTimingMode.Timed;
         }
 
         private void OnEnable()
@@ -106,7 +116,10 @@ namespace Game.Combat
             float mult = judgement != null ? judgement.DamageMultiplier(grade) : 1f;
             int finalDamage = Mathf.Max(1, Mathf.RoundToInt(step.baseDamage * mult));
 
-            attackRoutine = StartCoroutine(ResolveAttackRoutine(stepIndex, step.cooldown, finalDamage, grade));
+            if (timingMode == CombatTimingMode.AnimationEventDriven)
+                StartAttackWindup(stepIndex, step.cooldown, finalDamage, grade);
+            else
+                attackRoutine = StartCoroutine(ResolveAttackRoutine(stepIndex, step.cooldown, finalDamage, grade));
         }
 
         public void ResolveAttackForTests(RhythmGrade grade)
@@ -116,40 +129,54 @@ namespace Game.Combat
 
         private IEnumerator ResolveAttackRoutine(int resolvedStepIndex, float baseCooldown, int finalDamage, RhythmGrade grade)
         {
-            activeStepIndex = resolvedStepIndex;
-            activeDamage = finalDamage;
-            activeGrade = grade;
-            activeHitApplied = false;
-
-            TimingState = AttackTimingState.Windup;
-            AttackWindupStarted?.Invoke(resolvedStepIndex + 1, grade);
+            StartAttackWindup(resolvedStepIndex, baseCooldown, finalDamage, grade);
 
             float windup = attackTiming != null ? attackTiming.windupSeconds : 0f;
             if (windup > 0f)
                 yield return new WaitForSeconds(windup);
 
-            BeginAttackActiveWindow();
+            OpenHitWindow();
 
             float active = attackTiming != null ? attackTiming.activeSeconds : 0f;
             if (active > 0f)
                 yield return new WaitForSeconds(active);
 
-            EndAttackActiveWindow();
+            CloseHitWindow();
 
-            float refund = judgement != null ? judgement.CooldownRefund(grade) : 0f;
-            float recoveryMultiplier = grade == RhythmGrade.Perfect && attackTiming != null && attackTiming.canCancelOnPerfect ? 0.65f : 1f;
-            inputCooldownRemaining = Mathf.Max(0f, baseCooldown * (1f - refund) * recoveryMultiplier);
-            Analytics.LogBeat(grade, resolvedStepIndex + 1);
-
-            stepIndex = (stepIndex + 1) % profile.steps.Length;
-            comboTimer = 0f;
-
+            float recoveryMultiplier = RecoveryMultiplier(grade);
             float recovery = attackTiming != null ? attackTiming.recoverySeconds * recoveryMultiplier : 0f;
             if (recovery > 0f)
                 yield return new WaitForSeconds(recovery);
 
-            FinishRecovery();
+            FinishAttackRecovery();
             attackRoutine = null;
+        }
+
+        public void StartAttackWindup(int resolvedStepIndex, float baseCooldown, int finalDamage, RhythmGrade grade)
+        {
+            activeStepIndex = resolvedStepIndex;
+            activeDamage = finalDamage;
+            activeGrade = grade;
+            activeBaseCooldown = baseCooldown;
+            activeHitApplied = false;
+            TimingState = AttackTimingState.Windup;
+            AttackWindupStarted?.Invoke(resolvedStepIndex + 1, grade);
+        }
+
+        public void OpenHitWindow()
+        {
+            BeginAttackActiveWindow();
+        }
+
+        public void CloseHitWindow()
+        {
+            EndAttackActiveWindow();
+        }
+
+        public void FinishAttackRecovery()
+        {
+            ApplyCooldownAndAdvance();
+            FinishRecovery();
         }
 
         public void BeginAttackActiveWindow()
@@ -178,6 +205,21 @@ namespace Game.Combat
             if (TimingState == AttackTimingState.Ready) return;
             TimingState = AttackTimingState.Ready;
             AttackRecovered?.Invoke(activeStepIndex + 1, activeGrade);
+        }
+
+        private void ApplyCooldownAndAdvance()
+        {
+            float refund = judgement != null ? judgement.CooldownRefund(activeGrade) : 0f;
+            inputCooldownRemaining = Mathf.Max(0f, activeBaseCooldown * (1f - refund) * RecoveryMultiplier(activeGrade));
+            Analytics.LogBeat(activeGrade, activeStepIndex + 1);
+
+            stepIndex = (stepIndex + 1) % profile.steps.Length;
+            comboTimer = 0f;
+        }
+
+        private float RecoveryMultiplier(RhythmGrade grade)
+        {
+            return grade == RhythmGrade.Perfect && attackTiming != null && attackTiming.canCancelOnPerfect ? 0.65f : 1f;
         }
 
         private void DoMeleeHit(int damage, RhythmGrade grade)

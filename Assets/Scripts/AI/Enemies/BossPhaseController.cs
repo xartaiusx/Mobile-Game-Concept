@@ -1,5 +1,7 @@
 using UnityEngine;
 using System.Collections.Generic;
+using System;
+using Game.Combat;
 
 namespace Game.AI.Enemies
 {
@@ -12,13 +14,19 @@ namespace Game.AI.Enemies
         [SerializeField] private List<BossPhaseData> phases = new List<BossPhaseData>();
 
         private Game.Core.BossEnemy boss;
+        private BossTelegraphController telegraphController;
         private int currentPhaseIndex = -1;
+
+        public event Action<BossPhaseData, int> PhaseChanged;
+
+        public BossPhaseData CurrentPhase => currentPhaseIndex >= 0 && currentPhaseIndex < phases.Count ? phases[currentPhaseIndex] : null;
 
         private void Awake()
         {
             phases.RemoveAll(p => p == null);
             phases.Sort((a, b) => a.healthThreshold.CompareTo(b.healthThreshold)); // ascending
             boss = GetComponent<Game.Core.BossEnemy>();
+            telegraphController = GetComponent<BossTelegraphController>();
         }
 
         private void Update()
@@ -39,14 +47,16 @@ namespace Game.AI.Enemies
 
             if (nextIndex != -1 && nextIndex != currentPhaseIndex)
             {
-                ApplyPhase(phases[nextIndex]);
                 currentPhaseIndex = nextIndex;
+                ApplyPhase(phases[nextIndex]);
             }
         }
 
         private void ApplyPhase(BossPhaseData p)
         {
             boss.ApplyPhase(p);
+            telegraphController?.ApplyPhaseTuning(p.telegraphCooldownMultiplier, p.telegraphWarningScale);
+            PhaseChanged?.Invoke(p, currentPhaseIndex + 1);
         }
     }
 }

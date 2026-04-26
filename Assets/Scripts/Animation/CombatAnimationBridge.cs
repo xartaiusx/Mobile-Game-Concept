@@ -15,11 +15,17 @@ namespace Game.Animation
         [SerializeField] private AudioCueDefinition footstepCue;
         [SerializeField] private AudioCueDefinition weaponSwingCue;
 
-        private static readonly int IsMovingHash = Animator.StringToHash("IsMoving");
-        private static readonly int AttackStateHash = Animator.StringToHash("AttackState");
-        private static readonly int RhythmGradeHash = Animator.StringToHash("RhythmGrade");
-        private static readonly int IsDodgingHash = Animator.StringToHash("IsDodging");
-        private static readonly int IsParryingHash = Animator.StringToHash("IsParrying");
+        public const string IsMovingParameter = "IsMoving";
+        public const string AttackStateParameter = "AttackState";
+        public const string RhythmGradeParameter = "RhythmGrade";
+        public const string IsDodgingParameter = "IsDodging";
+        public const string IsParryingParameter = "IsParrying";
+
+        private static readonly int IsMovingHash = Animator.StringToHash(IsMovingParameter);
+        private static readonly int AttackStateHash = Animator.StringToHash(AttackStateParameter);
+        private static readonly int RhythmGradeHash = Animator.StringToHash(RhythmGradeParameter);
+        private static readonly int IsDodgingHash = Animator.StringToHash(IsDodgingParameter);
+        private static readonly int IsParryingHash = Animator.StringToHash(IsParryingParameter);
         private RhythmGrade lastGrade = RhythmGrade.Miss;
 
         private void Awake()
@@ -63,17 +69,32 @@ namespace Game.Animation
 
         public void BeginAttackActiveWindow()
         {
-            comboSystem?.BeginAttackActiveWindow();
+            OpenHitWindow();
         }
 
         public void EndAttackActiveWindow()
         {
-            comboSystem?.EndAttackActiveWindow();
+            CloseHitWindow();
         }
 
         public void FinishRecovery()
         {
-            comboSystem?.FinishRecovery();
+            FinishAttackRecovery();
+        }
+
+        public void OpenHitWindow()
+        {
+            comboSystem?.OpenHitWindow();
+        }
+
+        public void CloseHitWindow()
+        {
+            comboSystem?.CloseHitWindow();
+        }
+
+        public void FinishAttackRecovery()
+        {
+            comboSystem?.FinishAttackRecovery();
         }
 
         public void TriggerFootstep()

@@ -36,6 +36,9 @@ namespace Game.Core
         private int lastActionBeat = -1;
 
         public PlayerSimulationState State { get; private set; } = PlayerSimulationState.ApproachEnemy;
+        public int PerfectCount { get; private set; }
+        public int GoodCount { get; private set; }
+        public int MissCount { get; private set; }
 
         private void Awake()
         {
@@ -108,6 +111,26 @@ namespace Game.Core
             }, false);
         }
 
+        private void OnEnable()
+        {
+            if (comboSystem != null)
+                comboSystem.ComboStepResolved += HandleGrade;
+            if (abilityController != null)
+                abilityController.AbilityResolved += HandleAbilityGrade;
+            if (dodgeController != null)
+                dodgeController.DodgeResolved += HandleDodgeGrade;
+        }
+
+        private void OnDisable()
+        {
+            if (comboSystem != null)
+                comboSystem.ComboStepResolved -= HandleGrade;
+            if (abilityController != null)
+                abilityController.AbilityResolved -= HandleAbilityGrade;
+            if (dodgeController != null)
+                dodgeController.DodgeResolved -= HandleDodgeGrade;
+        }
+
         public void SetSimulationEnabled(bool enabled)
         {
             simulationEnabled = enabled;
@@ -127,12 +150,45 @@ namespace Game.Core
 
             double phase = clock.CurrentPhase;
             bool intentionalMistime = !preferPerfect && Random.value < mistimedPressChance;
+            bool intentionalGood = !preferPerfect && !intentionalMistime && Random.value < 0.28f;
             bool onBeatWindow = phase >= 1.0 - beatPressLead || phase <= beatPressLead;
+            bool goodWindow = phase > 0.09 && phase < 0.18;
             bool mistimeWindow = phase > 0.28 && phase < 0.55;
-            if ((intentionalMistime && mistimeWindow) || (!intentionalMistime && onBeatWindow))
+            if ((intentionalMistime && mistimeWindow) || (intentionalGood && goodWindow) || (!intentionalMistime && !intentionalGood && onBeatWindow))
             {
                 if (action())
                     lastActionBeat = beat;
+            }
+        }
+
+        private void HandleGrade(int step, RhythmGrade grade, int damage)
+        {
+            CountGrade(grade);
+        }
+
+        private void HandleAbilityGrade(AbilityDefinition ability, RhythmGrade grade, float cooldown)
+        {
+            CountGrade(grade);
+        }
+
+        private void HandleDodgeGrade(RhythmGrade grade, float cooldown, float invulnerability)
+        {
+            CountGrade(grade);
+        }
+
+        private void CountGrade(RhythmGrade grade)
+        {
+            switch (grade)
+            {
+                case RhythmGrade.Perfect:
+                    PerfectCount++;
+                    break;
+                case RhythmGrade.Good:
+                    GoodCount++;
+                    break;
+                default:
+                    MissCount++;
+                    break;
             }
         }
 

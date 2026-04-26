@@ -16,3 +16,5 @@ MonoBehaviour:
   displayName: Gold
   icon: {fileID: 0}
   maxStack: 999
+  goldValue: 1
+  healAmount: 0

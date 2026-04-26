@@ -60,6 +60,8 @@ GameObject:
   - component: {fileID: 8173944128618104524}
   - component: {fileID: 2087209386117199898}
   - component: {fileID: 4860747083309036412}
+  - component: {fileID: 6917900444172758228}
+  - component: {fileID: 6694245632129417631}
   - component: {fileID: 6035714796253567040}
   - component: {fileID: 2701557096633163707}
   - component: {fileID: 7466394894541140850}
@@ -200,6 +202,39 @@ MonoBehaviour:
   maxHealth: 0
   currentHealth: 0
   initializeOnAwake: 1
+--- !u!114 &6917900444172758228
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4172262572666840945}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fbf1fee97bd49ee2db816948bc581007, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::Game.Core.InventorySystem
+  capacity: 24
+--- !u!114 &6694245632129417631
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4172262572666840945}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 71725d72ce85dde6f8dece7f4f18187b, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::Game.Feedback.HitReactionController
+  targetRenderer: {fileID: 0}
+  characterController: {fileID: 0}
+  flashSeconds: 0.08
+  knockbackDistance: 0.25
+  perfectKnockbackMultiplier: 2
+  hitColor: {r: 1, g: 1, b: 1, a: 1}
+  perfectHitColor: {r: 0.2, g: 1, b: 0.75, a: 1}
+  playerDamageColor: {r: 1, g: 0.25, b: 0.25, a: 1}
 --- !u!82 &6035714796253567040
 AudioSource:
   m_ObjectHideFlags: 0
@@ -449,6 +484,7 @@ MonoBehaviour:
   judgement: {fileID: 304208724916677265}
   attackRange: 2.35
   attackTiming: {fileID: 11400000, guid: 325b6babb94d1c803b1894959538178f, type: 2}
+  timingMode: 0
   enemyMask:
     serializedVersion: 2
     m_Bits: 4294967295
@@ -504,6 +540,13 @@ MonoBehaviour:
   perfectInvulnerability: 0.35
   goodInvulnerability: 0.22
   missInvulnerability: 0
+  perfectSpeedMultiplier: 1.2
+  goodSpeedMultiplier: 1
+  missSpeedMultiplier: 0.85
+  perfectCooldownMultiplier: 0.65
+  goodCooldownMultiplier: 0.9
+  missCooldownMultiplier: 1
+  perfectInvulnerabilityBonus: 0.05
   readKeyboardInput: 1
   dodgeKey: 304
 --- !u!114 &8260856519851442590

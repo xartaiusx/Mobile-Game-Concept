@@ -60,6 +60,7 @@ GameObject:
   - component: {fileID: 5753751809766255369}
   - component: {fileID: 7654118848745833237}
   - component: {fileID: 3185610614831612373}
+  - component: {fileID: 8634578897256507820}
   - component: {fileID: 9156364312557632280}
   m_Layer: 0
   m_Name: RangedEnemy
@@ -191,6 +192,26 @@ MonoBehaviour:
   projectilePool: {fileID: 3770788252275746959}
   projectileSpeed: 6.5
   currentAttackPattern: 0
+--- !u!114 &8634578897256507820
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9200504802091681432}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 71725d72ce85dde6f8dece7f4f18187b, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::Game.Feedback.HitReactionController
+  targetRenderer: {fileID: 0}
+  characterController: {fileID: 0}
+  flashSeconds: 0.08
+  knockbackDistance: 0.25
+  perfectKnockbackMultiplier: 2
+  hitColor: {r: 1, g: 1, b: 1, a: 1}
+  perfectHitColor: {r: 0.2, g: 1, b: 0.75, a: 1}
+  playerDamageColor: {r: 1, g: 0.25, b: 0.25, a: 1}
 --- !u!114 &9156364312557632280
 MonoBehaviour:
   m_ObjectHideFlags: 0

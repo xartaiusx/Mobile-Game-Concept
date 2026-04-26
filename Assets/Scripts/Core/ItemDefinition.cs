@@ -9,5 +9,7 @@ namespace Game.Core
         public string displayName;
         public Sprite icon;
         public int maxStack = 99;
+        public int goldValue;
+        public int healAmount;
     }
 }

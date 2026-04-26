@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9e28839d98420e2bdb049f52c76c07ff, type: 3}
+  m_Name: BossPhaseOne
+  m_EditorClassIdentifier: Assembly-CSharp::Game.AI.Enemies.BossPhaseData
+  healthThreshold: 1
+  displayName: Phase 1
+  rangedMode: 0
+  burstCount: 1
+  burstInterval: 0.2
+  moveSpeedMultiplier: 1
+  attackCooldownMultiplier: 1
+  telegraphCooldownMultiplier: 1
+  telegraphWarningScale: 1.15

@@ -23,6 +23,7 @@ namespace Game.Core
         private bool defeated;
 
         public static event Action<BaseEnemy> EnemyDefeatedGlobal;
+        public static event Action<BaseEnemy, DamageContext> EnemyDamagedGlobal;
         public event Action<BaseEnemy> AttackStarted;
         public event Action<BaseEnemy, DamageContext> Damaged;
         public event Action<BaseEnemy> Defeated;
@@ -102,6 +103,7 @@ namespace Game.Core
             isInvulnerable = invulnerabilityDuration > 0f;
             invulnerabilityTimer = invulnerabilityDuration;
             Damaged?.Invoke(this, context);
+            EnemyDamagedGlobal?.Invoke(this, context);
 
             if (Health <= 0)
                 Die();

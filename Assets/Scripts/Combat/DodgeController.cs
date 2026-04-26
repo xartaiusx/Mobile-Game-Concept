@@ -17,6 +17,13 @@ namespace Game.Combat
         [SerializeField] private float perfectInvulnerability = 0.35f;
         [SerializeField] private float goodInvulnerability = 0.22f;
         [SerializeField] private float missInvulnerability;
+        [SerializeField] private float perfectSpeedMultiplier = 1.2f;
+        [SerializeField] private float goodSpeedMultiplier = 1f;
+        [SerializeField] private float missSpeedMultiplier = 0.85f;
+        [SerializeField] private float perfectCooldownMultiplier = 0.65f;
+        [SerializeField] private float goodCooldownMultiplier = 0.9f;
+        [SerializeField] private float missCooldownMultiplier = 1f;
+        [SerializeField] private float perfectInvulnerabilityBonus = 0.05f;
         [SerializeField] private bool readKeyboardInput = true;
         [SerializeField] private KeyCode dodgeKey = KeyCode.LeftShift;
 
@@ -31,6 +38,9 @@ namespace Game.Combat
         public bool IsDodging { get; private set; }
         public bool IsInvulnerable => Time.time < invulnerableUntil;
         public float CooldownRemaining => cooldownRemaining;
+        public float LastResolvedCooldown { get; private set; }
+        public float LastResolvedSpeedMultiplier { get; private set; } = 1f;
+        public RhythmGrade LastDodgeGrade { get; private set; } = RhythmGrade.Miss;
 
         private void Awake()
         {
@@ -97,17 +107,46 @@ namespace Game.Combat
         {
             if (cooldownRemaining > 0f) return;
 
-            float gradeDistance = grade == RhythmGrade.Miss ? distance * 0.6f : distance;
-            float invulnerability = grade == RhythmGrade.Perfect ? perfectInvulnerability : grade == RhythmGrade.Good ? goodInvulnerability : missInvulnerability;
-            float recoveryMultiplier = grade == RhythmGrade.Perfect ? 0.75f : grade == RhythmGrade.Miss ? 1.2f : 1f;
+            float speedMultiplier = SpeedMultiplierFor(grade);
+            float cooldownMultiplier = CooldownMultiplierFor(grade);
+            float invulnerability = grade == RhythmGrade.Perfect
+                ? perfectInvulnerability + perfectInvulnerabilityBonus
+                : grade == RhythmGrade.Good
+                    ? goodInvulnerability
+                    : missInvulnerability;
+            float gradeDistance = distance * speedMultiplier;
+            float dodgeDuration = Mathf.Max(0.05f, duration / Mathf.Max(0.1f, speedMultiplier));
 
             invulnerableUntil = Time.time + Mathf.Max(0f, invulnerability);
-            cooldownRemaining = Mathf.Max(0f, cooldown * recoveryMultiplier);
+            cooldownRemaining = Mathf.Max(0f, cooldown * cooldownMultiplier);
+            LastResolvedCooldown = cooldownRemaining;
+            LastResolvedSpeedMultiplier = speedMultiplier;
+            LastDodgeGrade = grade;
             DodgeResolved?.Invoke(grade, cooldownRemaining, invulnerability);
 
             if (dodgeRoutine != null)
                 StopCoroutine(dodgeRoutine);
-            dodgeRoutine = StartCoroutine(DodgeRoutine(requestedDirection, gradeDistance, duration * recoveryMultiplier));
+            dodgeRoutine = StartCoroutine(DodgeRoutine(requestedDirection, gradeDistance, dodgeDuration));
+        }
+
+        private float SpeedMultiplierFor(RhythmGrade grade)
+        {
+            switch (grade)
+            {
+                case RhythmGrade.Perfect: return Mathf.Max(0.1f, perfectSpeedMultiplier);
+                case RhythmGrade.Good: return Mathf.Max(0.1f, goodSpeedMultiplier);
+                default: return Mathf.Max(0.1f, missSpeedMultiplier);
+            }
+        }
+
+        private float CooldownMultiplierFor(RhythmGrade grade)
+        {
+            switch (grade)
+            {
+                case RhythmGrade.Perfect: return Mathf.Max(0f, perfectCooldownMultiplier);
+                case RhythmGrade.Good: return Mathf.Max(0f, goodCooldownMultiplier);
+                default: return Mathf.Max(0f, missCooldownMultiplier);
+            }
         }
 
         private IEnumerator DodgeRoutine(Vector3 direction, float dodgeDistance, float dodgeDuration)

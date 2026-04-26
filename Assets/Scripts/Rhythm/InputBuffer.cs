@@ -46,7 +46,17 @@ namespace Game.Rhythm
         public void RegisterPress()
         {
             double now = AudioSettings.dspTime;
-            // Overwrite if newer press is closer to next beat
+            if (BeatClock.Instance != null)
+            {
+                double dt = BeatClock.Instance.TimeToNearestBeat(now);
+                RhythmGrade grade = System.Math.Abs(dt) <= bufferWindowSeconds && judgement != null
+                    ? judgement.Judge(dt)
+                    : RhythmGrade.Miss;
+                OnResolved?.Invoke(grade);
+                buffered = false;
+                return;
+            }
+
             buffered = true;
             bufferedTime = now;
         }

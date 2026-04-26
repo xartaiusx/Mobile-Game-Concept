@@ -41,23 +41,27 @@ namespace Game.EditorTools
             AbilityDefinition healerPulse = CreateAbility("Assets/ScriptableObjects/Abilities/HealerPulse.asset", "healer_pulse", "Healer Pulse", "Self heal pulse. Perfect timing adds a brief protection window.", 0, 22, 2.4f, 0f, 3.5f, AbilityType.Heal, AbilityTargetMode.Self, AbilityExecutionStyle.Pulse, new AbilityRhythmScaling { perfectMultiplier = 1.65f, goodMultiplier = 1.15f, missMultiplier = 0.75f }, 0f, 0.45f);
             FeedbackPrefabs feedbackPrefabs = CreateFeedbackPrefabs(materials);
             BossTelegraphData bossSlam = CreateBossTelegraph(feedbackPrefabs.bossWarning, feedbackPrefabs.bossImpact);
-            CreateItem("Assets/ScriptableObjects/Items/Gold.asset", "gold", "Gold", 999);
-            CreateItem("Assets/ScriptableObjects/Items/HealthPotion.asset", "health_potion", "Health Potion", 10);
+            BossPhaseData phaseOne = CreateBossPhase("Assets/ScriptableObjects/Boss/BossPhaseOne.asset", "Phase 1", 1f, false, 1, 0.2f, 1f, 1f, 1f, 1.15f);
+            BossPhaseData phaseTwo = CreateBossPhase("Assets/ScriptableObjects/Boss/BossPhaseTwo.asset", "Phase 2", 0.5f, true, 2, 0.25f, 1.08f, 0.78f, 0.72f, 1.35f);
+            ItemDefinition goldItem = CreateItem("Assets/ScriptableObjects/Items/Gold.asset", "gold", "Gold", 999, 1, 0);
+            ItemDefinition potionItem = CreateItem("Assets/ScriptableObjects/Items/HealthPotion.asset", "health_potion", "Health Potion", 10, 0, 25);
 
             GameObject audioPrefab = CreateAudioCuePlayerPrefab();
             GameObject projectilePrefab = CreateProjectilePrefab(materials.projectile, materials.projectileTrail);
+            GameObject goldPickupPrefab = CreatePickupPrefab("Assets/Prefabs/Pickups/GoldPickup.prefab", goldItem, materials.healer, PrimitiveType.Sphere, 0.32f);
+            GameObject potionPickupPrefab = CreatePickupPrefab("Assets/Prefabs/Pickups/HealthPotionPickup.prefab", potionItem, materials.good, PrimitiveType.Cylinder, 0.38f);
             GameObject fighterPrefab = CreatePlayerPrefab("Assets/Prefabs/Player/FighterPlayer.prefab", typeof(Fighter), fighterSlash, rhythmConfig, comboProfile, attackTiming, projectilePrefab, feedbackPrefabs.bossImpact, materials.player, audioCues);
             GameObject magePrefab = CreatePlayerPrefab("Assets/Prefabs/Player/MagePlayer.prefab", typeof(Mage), mageBolt, rhythmConfig, comboProfile, attackTiming, projectilePrefab, feedbackPrefabs.bossImpact, materials.mage, audioCues);
             GameObject archerPrefab = CreatePlayerPrefab("Assets/Prefabs/Player/ArcherPlayer.prefab", typeof(Archer), archerShot, rhythmConfig, comboProfile, attackTiming, projectilePrefab, feedbackPrefabs.perfect, materials.archer, audioCues);
             GameObject healerPrefab = CreatePlayerPrefab("Assets/Prefabs/Player/HealerPlayer.prefab", typeof(Healer), healerPulse, rhythmConfig, comboProfile, attackTiming, projectilePrefab, feedbackPrefabs.parrySuccess, materials.healer, audioCues);
             GameObject meleePrefab = CreateMeleeEnemyPrefab(materials.enemy, feedbackPrefabs.enemyWindup);
             GameObject rangedPrefab = CreateRangedEnemyPrefab(projectilePrefab, materials.rangedEnemy, feedbackPrefabs.enemyWindup);
-            GameObject bossPrefab = CreateBossPrefab(projectilePrefab, bossSlam, materials.boss, feedbackPrefabs.enemyWindup, audioCues);
+            GameObject bossPrefab = CreateBossPrefab(projectilePrefab, bossSlam, new[] { phaseOne, phaseTwo }, materials.boss, feedbackPrefabs.enemyWindup, audioCues);
             GameObject hudPrefab = CreateHudPrefab();
 
             Scene scene = EditorSceneManager.NewScene(NewSceneSetup.DefaultGameObjects, NewSceneMode.Single);
             scene.name = "VerticalSlice";
-            BuildScene(fighterPrefab, magePrefab, archerPrefab, healerPrefab, meleePrefab, rangedPrefab, bossPrefab, hudPrefab, rhythmConfig, bossSlam, materials, feedbackPrefabs, audioCues, audioPrefab);
+            BuildScene(fighterPrefab, magePrefab, archerPrefab, healerPrefab, meleePrefab, rangedPrefab, bossPrefab, hudPrefab, rhythmConfig, bossSlam, goldPickupPrefab, potionPickupPrefab, materials, feedbackPrefabs, audioCues, audioPrefab);
             EditorSceneManager.SaveScene(scene, ScenePath);
             AddSceneToBuildSettings(ScenePath);
 
@@ -84,6 +88,7 @@ namespace Game.EditorTools
                 "Assets/Prefabs/Player",
                 "Assets/Prefabs/Enemies",
                 "Assets/Prefabs/Projectiles",
+                "Assets/Prefabs/Pickups",
                 "Assets/Prefabs/UI",
                 "Assets/Prefabs/Feedback",
                 "Assets/Prefabs/Audio",
@@ -170,6 +175,12 @@ namespace Game.EditorTools
             config.perfectDamageMultiplier = 1.5f;
             config.goodDamageMultiplier = 1.15f;
             config.missDamageMultiplier = 0.75f;
+            config.speedIncreasePerLevel = 0.025f;
+            config.maxSpeedMultiplier = 1.5f;
+            config.perfectScore = 100;
+            config.goodScore = 50;
+            config.missScore = 10;
+            config.comboScoreBonus = 5;
             config.perfectCooldownRefund = 0.2f;
             config.goodCooldownRefund = 0.1f;
             EditorUtility.SetDirty(config);
@@ -241,14 +252,48 @@ namespace Game.EditorTools
             return telegraph;
         }
 
-        private static ItemDefinition CreateItem(string path, string id, string displayName, int maxStack)
+        private static BossPhaseData CreateBossPhase(string path, string displayName, float threshold, bool rangedMode, int burstCount, float burstInterval, float moveSpeedMultiplier, float attackCooldownMultiplier, float telegraphCooldownMultiplier, float telegraphWarningScale)
+        {
+            BossPhaseData phase = CreateOrLoadAsset<BossPhaseData>(path);
+            phase.displayName = displayName;
+            phase.healthThreshold = threshold;
+            phase.rangedMode = rangedMode;
+            phase.burstCount = burstCount;
+            phase.burstInterval = burstInterval;
+            phase.moveSpeedMultiplier = moveSpeedMultiplier;
+            phase.attackCooldownMultiplier = attackCooldownMultiplier;
+            phase.telegraphCooldownMultiplier = telegraphCooldownMultiplier;
+            phase.telegraphWarningScale = telegraphWarningScale;
+            EditorUtility.SetDirty(phase);
+            return phase;
+        }
+
+        private static ItemDefinition CreateItem(string path, string id, string displayName, int maxStack, int goldValue = 0, int healAmount = 0)
         {
             ItemDefinition item = CreateOrLoadAsset<ItemDefinition>(path);
             item.itemId = id;
             item.displayName = displayName;
             item.maxStack = maxStack;
+            item.goldValue = goldValue;
+            item.healAmount = healAmount;
             EditorUtility.SetDirty(item);
             return item;
+        }
+
+        private static GameObject CreatePickupPrefab(string path, ItemDefinition item, Material material, PrimitiveType primitive, float scale)
+        {
+            GameObject pickup = GameObject.CreatePrimitive(primitive);
+            pickup.name = System.IO.Path.GetFileNameWithoutExtension(path);
+            pickup.transform.localScale = Vector3.one * scale;
+            AssignMaterial(pickup, material);
+            Collider collider = pickup.GetComponent<Collider>();
+            if (collider != null)
+                collider.isTrigger = true;
+
+            var pickupComponent = pickup.AddComponent<Pickup>();
+            SetObject(pickupComponent, "item", item);
+            SetInt(pickupComponent, "amount", item != null && item.itemId == "gold" ? 2 : 1);
+            return SavePrefab(path, pickup);
         }
 
         private static GameObject CreatePlayerPrefab(string path, System.Type classType, AbilityDefinition ability, RhythmConfig rhythmConfig, ComboProfile comboProfile, AttackTimingData attackTiming, GameObject projectilePrefab, GameObject projectileImpactPrefab, Material material, AudioCueSet audioCues)
@@ -262,6 +307,8 @@ namespace Game.EditorTools
 
             player.AddComponent<CharacterController>();
             player.AddComponent(classType);
+            player.AddComponent<InventorySystem>();
+            player.AddComponent<Game.Feedback.HitReactionController>();
             player.AddComponent<AudioSource>();
             var cuePlayer = player.AddComponent<AudioCuePlayer>();
             var animationBridge = player.AddComponent<Game.Animation.CombatAnimationBridge>();
@@ -310,6 +357,13 @@ namespace Game.EditorTools
             SetObject(dodge, "dodgeBuffer", dodgeBuffer);
             SetFloat(dodge, "distance", 3.6f);
             SetFloat(dodge, "cooldown", 0.7f);
+            SetFloat(dodge, "perfectSpeedMultiplier", 1.2f);
+            SetFloat(dodge, "goodSpeedMultiplier", 1f);
+            SetFloat(dodge, "missSpeedMultiplier", 0.85f);
+            SetFloat(dodge, "perfectCooldownMultiplier", 0.65f);
+            SetFloat(dodge, "goodCooldownMultiplier", 0.9f);
+            SetFloat(dodge, "missCooldownMultiplier", 1f);
+            SetFloat(dodge, "perfectInvulnerabilityBonus", 0.05f);
 
             var parry = player.AddComponent<ParryController>();
             SetObject(parry, "parryBuffer", parryBuffer);
@@ -330,6 +384,7 @@ namespace Game.EditorTools
             AssignMaterial(enemy, material);
             enemy.AddComponent<CharacterController>();
             var melee = enemy.AddComponent<MeleeEnemy>();
+            enemy.AddComponent<Game.Feedback.HitReactionController>();
             var flash = enemy.AddComponent<EnemyAttackFlash>();
             SetObject(flash, "warningPrefab", windupPrefab);
             SetInt(melee, "maxHealth", 24);
@@ -350,6 +405,7 @@ namespace Game.EditorTools
             AssignMaterial(enemy, material);
             enemy.AddComponent<CharacterController>();
             var ranged = enemy.AddComponent<RangedEnemy>();
+            enemy.AddComponent<Game.Feedback.HitReactionController>();
             var flash = enemy.AddComponent<EnemyAttackFlash>();
             SetObject(flash, "warningPrefab", windupPrefab);
             SetInt(ranged, "maxHealth", 20);
@@ -371,7 +427,7 @@ namespace Game.EditorTools
             return SavePrefab("Assets/Prefabs/Enemies/RangedEnemy.prefab", enemy);
         }
 
-        private static GameObject CreateBossPrefab(GameObject projectilePrefab, BossTelegraphData telegraphData, Material material, GameObject windupPrefab, AudioCueSet audioCues)
+        private static GameObject CreateBossPrefab(GameObject projectilePrefab, BossTelegraphData telegraphData, BossPhaseData[] phases, Material material, GameObject windupPrefab, AudioCueSet audioCues)
         {
             GameObject boss = GameObject.CreatePrimitive(PrimitiveType.Capsule);
             boss.name = "BossEnemy";
@@ -379,6 +435,7 @@ namespace Game.EditorTools
             Object.DestroyImmediate(boss.GetComponent<Collider>());
             AssignMaterial(boss, material);
             boss.AddComponent<CharacterController>();
+            boss.AddComponent<Game.Feedback.HitReactionController>();
             boss.AddComponent<AudioSource>();
             var cuePlayer = boss.AddComponent<AudioCuePlayer>();
             var bossEnemy = boss.AddComponent<BossEnemy>();
@@ -392,7 +449,8 @@ namespace Game.EditorTools
             SetFloat(bossEnemy, "attackRange", 15f);
             SetFloat(bossEnemy, "chaseRange", 18f);
             SetFloat(bossEnemy, "specialAttackCooldown", 8f);
-            boss.AddComponent<BossPhaseController>();
+            var phaseController = boss.AddComponent<BossPhaseController>();
+            SetObject(phaseController, "phases", phases);
             var telegraph = boss.AddComponent<BossTelegraphController>();
             SetObject(telegraph, "audioCuePlayer", cuePlayer);
             SetObject(telegraph, "warningAudioCue", audioCues.bossWarning);
@@ -496,7 +554,7 @@ namespace Game.EditorTools
             panelRect.anchorMax = new Vector2(1f, 1f);
             panelRect.pivot = new Vector2(0.5f, 1f);
             panelRect.anchoredPosition = new Vector2(0f, -12f);
-            panelRect.sizeDelta = new Vector2(-24f, 154f);
+            panelRect.sizeDelta = new Vector2(-24f, 176f);
 
             GameObject beatBar = new GameObject("BeatBar");
             beatBar.transform.SetParent(panel.transform, false);
@@ -527,6 +585,9 @@ namespace Game.EditorTools
             Text dodge = CreateText("DodgeText", panel.transform, new Vector2(-10f, -66f), new Vector2(190f, 22f), 14, TextAnchor.MiddleLeft);
             Text parry = CreateText("ParryText", panel.transform, new Vector2(-10f, -92f), new Vector2(190f, 22f), 14, TextAnchor.MiddleLeft);
             Text attack = CreateText("AttackStateText", panel.transform, new Vector2(220f, -66f), new Vector2(220f, 22f), 14, TextAnchor.MiddleLeft);
+            Text score = CreateText("ScoreText", panel.transform, new Vector2(220f, -92f), new Vector2(220f, 22f), 14, TextAnchor.MiddleLeft);
+            Text inventory = CreateText("InventoryText", panel.transform, new Vector2(-280f, -116f), new Vector2(300f, 22f), 14, TextAnchor.MiddleLeft);
+            Text speed = CreateText("BeatSpeedText", panel.transform, new Vector2(238f, -8f), new Vector2(120f, 18f), 11, TextAnchor.MiddleLeft);
             Text boss = CreateText("BossText", panel.transform, new Vector2(0f, -116f), new Vector2(500f, 22f), 14, TextAnchor.MiddleCenter);
             Text arena = CreateText("ArenaText", panel.transform, new Vector2(0f, -138f), new Vector2(520f, 22f), 14, TextAnchor.MiddleCenter);
             Text debug = CreateText("DebugText", root.transform, new Vector2(12f, 12f), new Vector2(230f, 100f), 12, TextAnchor.LowerLeft);
@@ -538,7 +599,9 @@ namespace Game.EditorTools
             var beatBarUi = root.AddComponent<Game.UI.BeatBarUI>();
             SetObject(beatBarUi, "marker", markerRect);
             SetObject(beatBarUi, "bar", beatBarRect);
+            SetObject(beatBarUi, "perfectWindow", perfectRect);
             SetObject(beatBarUi, "feedbackText", feedback);
+            SetObject(beatBarUi, "speedText", speed);
 
             var hud = root.AddComponent<Game.UI.VerticalSliceHud>();
             SetObject(hud, "feedbackText", feedback);
@@ -547,6 +610,8 @@ namespace Game.EditorTools
             SetObject(hud, "dodgeText", dodge);
             SetObject(hud, "parryText", parry);
             SetObject(hud, "attackStateText", attack);
+            SetObject(hud, "scoreText", score);
+            SetObject(hud, "inventoryText", inventory);
             SetObject(hud, "bossText", boss);
             SetObject(hud, "arenaText", arena);
             SetObject(hud, "debugText", debug);
@@ -584,7 +649,7 @@ namespace Game.EditorTools
             return text;
         }
 
-        private static void BuildScene(GameObject fighterPrefab, GameObject magePrefab, GameObject archerPrefab, GameObject healerPrefab, GameObject meleePrefab, GameObject rangedPrefab, GameObject bossPrefab, GameObject hudPrefab, RhythmConfig rhythmConfig, BossTelegraphData bossTelegraph, MaterialSet materials, FeedbackPrefabs feedbackPrefabs, AudioCueSet audioCues, GameObject audioPrefab)
+        private static void BuildScene(GameObject fighterPrefab, GameObject magePrefab, GameObject archerPrefab, GameObject healerPrefab, GameObject meleePrefab, GameObject rangedPrefab, GameObject bossPrefab, GameObject hudPrefab, RhythmConfig rhythmConfig, BossTelegraphData bossTelegraph, GameObject goldPickupPrefab, GameObject potionPickupPrefab, MaterialSet materials, FeedbackPrefabs feedbackPrefabs, AudioCueSet audioCues, GameObject audioPrefab)
         {
             GameObject ground = GameObject.CreatePrimitive(PrimitiveType.Plane);
             ground.name = "Arena_Ground";
@@ -610,6 +675,15 @@ namespace Game.EditorTools
             var rhythmJudgement = rhythm.AddComponent<RhythmJudgement>();
             SetObject(beatClock, "config", rhythmConfig);
             SetObject(rhythmJudgement, "config", rhythmConfig);
+
+            GameObject scoreObject = new GameObject("ScoreSystem");
+            var scoreSystem = scoreObject.AddComponent<ScoreSystem>();
+            SetObject(scoreSystem, "rhythmConfig", rhythmConfig);
+
+            GameObject pickupSpawnerObject = new GameObject("PickupSpawner");
+            var pickupSpawner = pickupSpawnerObject.AddComponent<PickupSpawner>();
+            SetObject(pickupSpawner, "goldPickupPrefab", goldPickupPrefab);
+            SetObject(pickupSpawner, "healthPotionPickupPrefab", potionPickupPrefab);
 
             GameObject player = (GameObject)PrefabUtility.InstantiatePrefab(fighterPrefab);
             player.name = "Player_Fighter";
@@ -650,6 +724,8 @@ namespace Game.EditorTools
             SetObject(arena, "initialWaveEnemies", new[] { melee.GetComponent<BaseEnemy>(), ranged.GetComponent<BaseEnemy>() });
             SetObject(arena, "waveEnemyPrefabs", new[] { meleePrefab, rangedPrefab });
             SetObject(arena, "waveSpawnPoints", spawnPoints);
+            SetObject(arena, "scoreSystem", scoreSystem);
+            SetObject(arena, "pickupSpawner", pickupSpawner);
             SetInt(arena, "waveCount", 1);
             SetInt(arena, "enemiesPerWave", 2);
             SetFloat(arena, "spawnPacingSeconds", 0.75f);
@@ -664,8 +740,11 @@ namespace Game.EditorTools
                 SetObject(hudController, "dodgeController", player.GetComponent<DodgeController>());
                 SetObject(hudController, "parryController", player.GetComponent<ParryController>());
                 SetObject(hudController, "bossTelegraphController", telegraph);
+                SetObject(hudController, "bossPhaseController", boss.GetComponent<BossPhaseController>());
                 SetObject(hudController, "playerCharacter", player.GetComponent<BaseCharacter>());
                 SetObject(hudController, "arenaController", arena);
+                SetObject(hudController, "scoreSystem", scoreSystem);
+                SetObject(hudController, "inventorySystem", player.GetComponent<InventorySystem>());
             }
 
             GameObject feedbackObject = new GameObject("RhythmFeedback");
