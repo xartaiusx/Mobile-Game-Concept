@@ -183,8 +183,8 @@ MonoBehaviour:
   enemyName: Enemy
   maxHealth: 90
   health: 90
-  attackDamage: 6
-  attackInterval: 2.5
+  attackDamage: 4
+  attackInterval: 3.2
   moveSpeed: 1.4
   invulnerabilityDuration: 0.15
   attackRange: 15
@@ -192,7 +192,7 @@ MonoBehaviour:
   projectilePrefab: {fileID: 3439621045551425630, guid: 83c07bfda74bded02a740b7dd330191b, type: 3}
   projectilePool: {fileID: 8937953102448140470}
   projectileSpeed: 15
-  specialAttackCooldown: 5
+  specialAttackCooldown: 8
   attackMode: 0
   burstCount: 1
   burstInterval: 0.2

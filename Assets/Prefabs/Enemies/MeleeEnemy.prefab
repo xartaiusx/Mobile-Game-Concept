@@ -133,12 +133,12 @@ MonoBehaviour:
   enemyName: Enemy
   maxHealth: 24
   health: 24
-  attackDamage: 4
-  attackInterval: 1.8
-  moveSpeed: 2.2
+  attackDamage: 3
+  attackInterval: 2.25
+  moveSpeed: 1.9
   invulnerabilityDuration: 0.15
-  attackRange: 1.8
-  chaseRange: 10
+  attackRange: 1.65
+  chaseRange: 9
 --- !u!114 &982211008025344716
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -32,6 +32,16 @@ The scene includes `Assets/Prefabs/UI/VerticalSliceHUD.prefab`, backed by `BeatB
 - Attack text: shows `Ready`, `Windup`, `Active`, or `Recovery`.
 - Debug text: optional runtime readout for beat, last grade, attack state, player health, and enemy count.
 
+## Phase 4 Tuning Notes
+
+The current values were tuned with an automated desktop play loop on Linux using Unity GUI Play Mode, `xdotool` input, and screenshot capture under `Artifacts/Phase4Frames`.
+
+- Fighter health is 96 HP in the default slice, giving enough time to test dodge/parry and combo flow.
+- Enemy pressure is intentionally moderate: melee and ranged enemies hit lightly, attack more slowly, and the scene spawner is capped for readability.
+- The follow camera sits higher and farther back so movement near arena edges remains visible.
+- The HUD is compact enough for the default Game view and keeps rhythm, combo, cooldown, and debug feedback readable.
+- Boss slam damage/radius are reduced for the tuning slice; authored VFX/audio and stronger phase tuning belong in the next polish phase.
+
 ## Class Ability Defaults
 
 - Fighter Slash: short-range forward cone damage. Perfect timing has the strongest damage scaling and briefly staggers enemies.
@@ -106,7 +116,7 @@ PlayMode tests:
 
 ## Recommended Next Sequence
 
-1. Manually play `Assets/Scenes/VerticalSlice.unity` and tune hit ranges, enemy spacing, and boss telegraph cadence.
+1. Do a human keyboard/controller pass in `Assets/Scenes/VerticalSlice.unity` to confirm feel beyond automated input.
 2. Replace placeholder pulses with authored VFX/audio cues for beat hits, dodge invulnerability, parry success, and boss impact.
 3. Connect real animation clips/events to `AttackTimingData` and combo timing states.
 4. Tune one ability per class against the default rhythm windows.

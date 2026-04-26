@@ -22,6 +22,7 @@ For detailed setup, asset, and test notes, see [DEVELOPMENT.md](DEVELOPMENT.md).
 - Small primitive arena with boundary walls and a simple follow camera.
 - Runtime HUD for beat phase, judgement feedback, combo, cooldowns, dodge/parry state, boss countdown, and debug readout.
 - Event-driven placeholder feedback pulses for Perfect/Good/Miss attacks, dodge, parry, and boss attacks.
+- Phase 4 tuning values for a readable keyboard/controller combat loop: more survivable Fighter, calmer enemy pressure, compact HUD, and higher follow camera.
 
 ## Class Abilities
 
@@ -57,4 +58,4 @@ This recreates the default folders, ScriptableObject assets, prefabs, scene obje
 
 ## Next
 
-Tune the live feel in Play Mode first: hit ranges, attack windup/recovery, camera offset, enemy distances, boss telegraph cadence, and rhythm feedback readability. Mobile touch controls come after the keyboard/controller slice feels coherent.
+Do a human keyboard/controller pass, then move into Phase 5: authored VFX/audio cues, animation-event integration, and deeper per-class ability polish. Mobile touch controls come after the keyboard/controller slice feels coherent.

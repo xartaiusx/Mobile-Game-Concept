@@ -161,7 +161,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9ffb27b46513bad61816b0177f367037, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Game.Core.PlayerController
-  moveSpeed: 5.5
+  moveSpeed: 5.8
   rotationSpeed: 720
   jumpHeight: 1.4
   gravity: -20
@@ -297,9 +297,9 @@ MonoBehaviour:
   dodgeBuffer: {fileID: 733192674082283607}
   characterController: {fileID: 0}
   cameraTransform: {fileID: 0}
-  distance: 3.4
+  distance: 3.6
   duration: 0.22
-  cooldown: 0.65
+  cooldown: 0.7
   perfectInvulnerability: 0.35
   goodInvulnerability: 0.22
   missInvulnerability: 0

@@ -181,15 +181,15 @@ MonoBehaviour:
   enemyName: Enemy
   maxHealth: 20
   health: 20
-  attackDamage: 3
-  attackInterval: 2.2
-  moveSpeed: 1.8
+  attackDamage: 2
+  attackInterval: 2.8
+  moveSpeed: 1.5
   invulnerabilityDuration: 0.15
-  attackRange: 9
-  chaseRange: 14
+  attackRange: 8.5
+  chaseRange: 12
   projectilePrefab: {fileID: 3439621045551425630, guid: 83c07bfda74bded02a740b7dd330191b, type: 3}
   projectilePool: {fileID: 3770788252275746959}
-  projectileSpeed: 8
+  projectileSpeed: 6.5
   currentAttackPattern: 0
 --- !u!114 &9156364312557632280
 MonoBehaviour:

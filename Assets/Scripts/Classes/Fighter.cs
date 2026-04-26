@@ -4,7 +4,7 @@ namespace Game.Classes
 {
     public class Fighter : BaseCharacter
     {
-        private const int HealthMultiplier = 10;
+        private const int HealthMultiplier = 12;
 
         public override void InitializeStats()
         {

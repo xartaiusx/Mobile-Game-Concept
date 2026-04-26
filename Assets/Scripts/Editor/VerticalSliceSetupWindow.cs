@@ -192,8 +192,8 @@ namespace Game.EditorTools
             telegraph.telegraphId = "boss_slam";
             telegraph.displayName = "Boss Slam";
             telegraph.beatsBeforeImpact = 4;
-            telegraph.damage = 12;
-            telegraph.radius = 3.5f;
+            telegraph.damage = 10;
+            telegraph.radius = 3f;
             telegraph.range = 8f;
             telegraph.attackType = BossTelegraphAttackType.TargetedCircle;
             telegraph.warningVfxPrefab = warningPrefab;
@@ -224,7 +224,7 @@ namespace Game.EditorTools
             player.AddComponent<CharacterController>();
             player.AddComponent(classType);
             var playerController = player.AddComponent<PlayerController>();
-            SetFloat(playerController, "moveSpeed", 5.5f);
+            SetFloat(playerController, "moveSpeed", 5.8f);
             SetFloat(playerController, "jumpHeight", 1.4f);
             var judgement = player.AddComponent<RhythmJudgement>();
             SetObject(judgement, "config", rhythmConfig);
@@ -251,8 +251,8 @@ namespace Game.EditorTools
 
             var dodge = player.AddComponent<DodgeController>();
             SetObject(dodge, "dodgeBuffer", dodgeBuffer);
-            SetFloat(dodge, "distance", 3.4f);
-            SetFloat(dodge, "cooldown", 0.65f);
+            SetFloat(dodge, "distance", 3.6f);
+            SetFloat(dodge, "cooldown", 0.7f);
 
             var parry = player.AddComponent<ParryController>();
             SetObject(parry, "parryBuffer", parryBuffer);
@@ -272,11 +272,11 @@ namespace Game.EditorTools
             enemy.AddComponent<EnemyAttackFlash>();
             SetInt(melee, "maxHealth", 24);
             SetInt(melee, "health", 24);
-            SetInt(melee, "attackDamage", 4);
-            SetFloat(melee, "moveSpeed", 2.2f);
-            SetFloat(melee, "attackInterval", 1.8f);
-            SetFloat(melee, "attackRange", 1.8f);
-            SetFloat(melee, "chaseRange", 10f);
+            SetInt(melee, "attackDamage", 3);
+            SetFloat(melee, "moveSpeed", 1.9f);
+            SetFloat(melee, "attackInterval", 2.25f);
+            SetFloat(melee, "attackRange", 1.65f);
+            SetFloat(melee, "chaseRange", 9f);
             return SavePrefab("Assets/Prefabs/Enemies/MeleeEnemy.prefab", enemy);
         }
 
@@ -291,12 +291,12 @@ namespace Game.EditorTools
             enemy.AddComponent<EnemyAttackFlash>();
             SetInt(ranged, "maxHealth", 20);
             SetInt(ranged, "health", 20);
-            SetInt(ranged, "attackDamage", 3);
-            SetFloat(ranged, "moveSpeed", 1.8f);
-            SetFloat(ranged, "attackInterval", 2.2f);
-            SetFloat(ranged, "attackRange", 9f);
-            SetFloat(ranged, "chaseRange", 14f);
-            SetFloat(ranged, "projectileSpeed", 8f);
+            SetInt(ranged, "attackDamage", 2);
+            SetFloat(ranged, "moveSpeed", 1.5f);
+            SetFloat(ranged, "attackInterval", 2.8f);
+            SetFloat(ranged, "attackRange", 8.5f);
+            SetFloat(ranged, "chaseRange", 12f);
+            SetFloat(ranged, "projectileSpeed", 6.5f);
 
             GameObject poolObject = new GameObject("ProjectilePool");
             poolObject.transform.SetParent(enemy.transform);
@@ -320,12 +320,12 @@ namespace Game.EditorTools
             boss.AddComponent<EnemyAttackFlash>();
             SetInt(bossEnemy, "maxHealth", 90);
             SetInt(bossEnemy, "health", 90);
-            SetInt(bossEnemy, "attackDamage", 6);
+            SetInt(bossEnemy, "attackDamage", 4);
             SetFloat(bossEnemy, "moveSpeed", 1.4f);
-            SetFloat(bossEnemy, "attackInterval", 2.5f);
+            SetFloat(bossEnemy, "attackInterval", 3.2f);
             SetFloat(bossEnemy, "attackRange", 15f);
             SetFloat(bossEnemy, "chaseRange", 18f);
-            SetFloat(bossEnemy, "specialAttackCooldown", 5f);
+            SetFloat(bossEnemy, "specialAttackCooldown", 8f);
             boss.AddComponent<BossPhaseController>();
             var telegraph = boss.AddComponent<BossTelegraphController>();
 
@@ -396,7 +396,9 @@ namespace Game.EditorTools
             GameObject root = new GameObject("VerticalSliceHUD");
             var canvas = root.AddComponent<Canvas>();
             canvas.renderMode = RenderMode.ScreenSpaceOverlay;
-            root.AddComponent<CanvasScaler>().uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
+            var scaler = root.AddComponent<CanvasScaler>();
+            scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
+            scaler.referenceResolution = new Vector2(1920f, 1080f);
             root.AddComponent<GraphicRaycaster>();
 
             GameObject panel = new GameObject("HUDPanel");
@@ -406,7 +408,7 @@ namespace Game.EditorTools
             panelRect.anchorMax = new Vector2(1f, 1f);
             panelRect.pivot = new Vector2(0.5f, 1f);
             panelRect.anchoredPosition = new Vector2(0f, -12f);
-            panelRect.sizeDelta = new Vector2(-24f, 156f);
+            panelRect.sizeDelta = new Vector2(-24f, 132f);
 
             GameObject beatBar = new GameObject("BeatBar");
             beatBar.transform.SetParent(panel.transform, false);
@@ -415,7 +417,7 @@ namespace Game.EditorTools
             beatBarRect.anchorMax = new Vector2(0.5f, 1f);
             beatBarRect.pivot = new Vector2(0.5f, 1f);
             beatBarRect.anchoredPosition = new Vector2(0f, -6f);
-            beatBarRect.sizeDelta = new Vector2(360f, 22f);
+            beatBarRect.sizeDelta = new Vector2(320f, 18f);
             beatBar.AddComponent<Image>().color = new Color(0f, 0f, 0f, 0.55f);
 
             GameObject perfectWindow = CreateUiBox("PerfectWindow", beatBar.transform, new Color(0.2f, 1f, 0.8f, 0.55f));
@@ -429,16 +431,16 @@ namespace Game.EditorTools
             var markerRect = marker.GetComponent<RectTransform>();
             markerRect.anchorMin = new Vector2(0.5f, 0.5f);
             markerRect.anchorMax = new Vector2(0.5f, 0.5f);
-            markerRect.sizeDelta = new Vector2(8f, 30f);
+            markerRect.sizeDelta = new Vector2(8f, 26f);
 
-            Text feedback = CreateText("FeedbackText", panel.transform, new Vector2(0f, -38f), new Vector2(420f, 30f), 24, TextAnchor.MiddleCenter);
-            Text combo = CreateText("ComboText", panel.transform, new Vector2(-320f, -78f), new Vector2(220f, 26f), 18, TextAnchor.MiddleLeft);
-            Text ability = CreateText("AbilityText", panel.transform, new Vector2(-320f, -106f), new Vector2(320f, 26f), 18, TextAnchor.MiddleLeft);
-            Text dodge = CreateText("DodgeText", panel.transform, new Vector2(60f, -78f), new Vector2(220f, 26f), 18, TextAnchor.MiddleLeft);
-            Text parry = CreateText("ParryText", panel.transform, new Vector2(60f, -106f), new Vector2(220f, 26f), 18, TextAnchor.MiddleLeft);
-            Text attack = CreateText("AttackStateText", panel.transform, new Vector2(315f, -78f), new Vector2(220f, 26f), 18, TextAnchor.MiddleLeft);
-            Text boss = CreateText("BossText", panel.transform, new Vector2(0f, -136f), new Vector2(520f, 26f), 18, TextAnchor.MiddleCenter);
-            Text debug = CreateText("DebugText", root.transform, new Vector2(12f, 12f), new Vector2(260f, 120f), 14, TextAnchor.LowerLeft);
+            Text feedback = CreateText("FeedbackText", panel.transform, new Vector2(0f, -32f), new Vector2(380f, 26f), 20, TextAnchor.MiddleCenter);
+            Text combo = CreateText("ComboText", panel.transform, new Vector2(-280f, -66f), new Vector2(220f, 22f), 14, TextAnchor.MiddleLeft);
+            Text ability = CreateText("AbilityText", panel.transform, new Vector2(-280f, -92f), new Vector2(300f, 22f), 14, TextAnchor.MiddleLeft);
+            Text dodge = CreateText("DodgeText", panel.transform, new Vector2(-10f, -66f), new Vector2(190f, 22f), 14, TextAnchor.MiddleLeft);
+            Text parry = CreateText("ParryText", panel.transform, new Vector2(-10f, -92f), new Vector2(190f, 22f), 14, TextAnchor.MiddleLeft);
+            Text attack = CreateText("AttackStateText", panel.transform, new Vector2(220f, -66f), new Vector2(220f, 22f), 14, TextAnchor.MiddleLeft);
+            Text boss = CreateText("BossText", panel.transform, new Vector2(0f, -116f), new Vector2(500f, 22f), 14, TextAnchor.MiddleCenter);
+            Text debug = CreateText("DebugText", root.transform, new Vector2(12f, 12f), new Vector2(230f, 100f), 12, TextAnchor.LowerLeft);
             var debugRect = debug.GetComponent<RectTransform>();
             debugRect.anchorMin = new Vector2(0f, 0f);
             debugRect.anchorMax = new Vector2(0f, 0f);
@@ -541,8 +543,8 @@ namespace Game.EditorTools
             GameObject spawnerObject = new GameObject("EnemySpawner");
             var spawner = spawnerObject.AddComponent<EnemySpawner>();
             spawner.enemyPrefabs = new[] { meleePrefab, rangedPrefab };
-            spawner.spawnInterval = 10f;
-            spawner.maxEnemies = 4;
+            spawner.spawnInterval = 18f;
+            spawner.maxEnemies = 2;
             spawner.spawnPoints = new[]
             {
                 CreateSpawnPoint("EnemySpawn_A", new Vector3(7f, 0f, 4f)),
@@ -597,11 +599,11 @@ namespace Game.EditorTools
             if (Camera.main != null)
             {
                 Camera.main.name = "Main Camera";
-                Camera.main.transform.SetPositionAndRotation(new Vector3(0f, 11f, -14f), Quaternion.Euler(55f, 0f, 0f));
+                Camera.main.transform.SetPositionAndRotation(new Vector3(0f, 12f, -15f), Quaternion.Euler(55f, 0f, 0f));
                 var follow = Camera.main.GetComponent<SimpleFollowCamera>() ?? Camera.main.gameObject.AddComponent<SimpleFollowCamera>();
                 SetObject(follow, "target", player.transform);
-                SetVector3(follow, "offset", new Vector3(0f, 10f, -11f));
-                SetFloat(follow, "followDamping", 7f);
+                SetVector3(follow, "offset", new Vector3(0f, 12f, -13f));
+                SetFloat(follow, "followDamping", 6f);
             }
         }
 
