@@ -47,15 +47,19 @@ Runtime telemetry is local-only and writes human-readable JSON to:
 
 `Application.persistentDataPath/Telemetry/run_<timestamp>.json`
 
-Captured metrics include Perfect/Good/Miss hit and dodge counts, signed input timing offsets, survival time, enemy kills, average time per kill, max/average combo, total score, and score per minute.
+When a batch label is set, runs are written to:
 
-The in-game telemetry overlay is text-only and can be toggled with `F3`. It shows live hit/dodge grade counts, current/max combo, average timing bias, and score per minute.
+`Application.persistentDataPath/Telemetry/<batchLabel>/run_<timestamp>_<batchLabel>.json`
+
+Captured metrics include batch label, optional run notes, Perfect/Good/Miss hit and dodge counts, signed input timing offsets, survival time, enemy kills, average time per kill, max/average combo, total score, and score per minute.
+
+The in-game telemetry overlay is text-only and can be toggled with `F3`. It shows live hit/dodge grade counts, current/max combo, average timing bias, score per minute, and current batch label. Developer hotkeys are `F4` start new run, `F5` end/write run, and `F6` clear current run data.
 
 To review local run data in the Unity Editor, open:
 
 `Game > Telemetry > Analyze Runs`
 
-The analyzer reads local JSON files from the telemetry folder, ignores malformed files safely, marks sessions under 20 seconds as short/smoke-test sessions, and summarizes aggregate Warrior tuning signals:
+The analyzer reads local JSON files from the telemetry folder, can analyze the root folder, all batch folders, or a selected batch folder, ignores malformed files safely, marks sessions under 20 seconds as short/smoke-test sessions, and summarizes aggregate Warrior tuning signals:
 
 - Perfect hit rate: target 20%-40%.
 - Miss hit rate: target below 25%.
@@ -65,7 +69,7 @@ The analyzer reads local JSON files from the telemetry folder, ignores malformed
 - Average combo length: target 3-6.
 - Early wave survival: target 30-90 seconds for normal runs.
 
-Use the Phase 9.5 tuning loop: run 5-10 Warrior sessions, open the telemetry analyzer, review warnings, tune only 2-3 parameters such as rhythm windows, dodge forgiveness, telegraph readability, or feedback clarity, then repeat. Score-per-minute and kill-rate aggregates exclude short sessions because smoke tests can distort those values.
+Use the Phase 9.7 tuning loop: set a batch label such as `warrior_batch_001`, run 5-10 Warrior sessions, open the telemetry analyzer, review warnings, tune only 2-3 parameter groups such as rhythm windows, dodge forgiveness, telegraph readability, or feedback clarity, then repeat. Score-per-minute and kill-rate aggregates exclude short sessions because smoke tests can distort those values.
 
 Phase 9.6 first-pass tuning was based on static sanity review and existing smoke/test telemetry plumbing, not human playtest results. Changes were intentionally narrow:
 

@@ -11,12 +11,14 @@ namespace Game.Systems
     {
         private const string DirectoryName = "Telemetry";
         private const string TimestampFormat = "yyyyMMdd_HHmmss";
-        private const int SchemaVersion = 2;
+        private const int SchemaVersion = 3;
 
         public static TelemetryManager Instance { get; private set; }
 
         [SerializeField] private bool writeOnPlayerDeath = true;
         [SerializeField] private int timingSampleCapacity = 512;
+        [SerializeField] private string batchLabel;
+        [SerializeField] private string runNotes;
 
         private readonly List<float> timingOffsets = new List<float>(512);
         private readonly List<int> completedComboLengths = new List<int>(64);
@@ -28,9 +30,13 @@ namespace Game.Systems
         private int currentComboLength;
         private int scoreAtRunStart;
         private string lastWrittenPath;
+        private string telemetryRootOverride;
+        private bool suppressWriteWarningsForTests;
 
         public TelemetrySnapshot Snapshot { get; private set; } = new TelemetrySnapshot();
         public string LastWrittenPath => lastWrittenPath;
+        public string BatchLabel => batchLabel;
+        public string RunNotes => runNotes;
         public int CurrentComboLength => currentComboLength;
         public float AverageTimingOffset => Snapshot.averageTimingOffset;
         public float ScorePerMinute
@@ -84,9 +90,62 @@ namespace Game.Systems
                 runStartedAtUtc = DateTime.UtcNow.ToString("o"),
                 sceneName = SceneManager.GetActiveScene().name,
                 playerClass = ResolvePlayerClassName(),
+                batchLabel = SanitizeBatchLabel(batchLabel),
+                runNotes = runNotes ?? string.Empty,
                 appVersion = Application.version,
                 unityVersion = Application.unityVersion
             };
+        }
+
+        public void StartNewRun()
+        {
+            ResetRun();
+        }
+
+        public void ClearCurrentRunData()
+        {
+            ResetRun();
+        }
+
+        public void SetBatchLabel(string value)
+        {
+            batchLabel = SanitizeBatchLabel(value);
+            if (Snapshot != null)
+                Snapshot.batchLabel = batchLabel;
+        }
+
+        public void SetRunNotes(string value)
+        {
+            runNotes = value ?? string.Empty;
+            if (Snapshot != null)
+                Snapshot.runNotes = runNotes;
+        }
+
+        public string GetTelemetryDirectory()
+        {
+            return Path.Combine(GetTelemetryRoot(), DirectoryName);
+        }
+
+        public string GetCurrentRunDirectory()
+        {
+            string root = GetTelemetryDirectory();
+            string safeBatch = SanitizeBatchLabel(batchLabel);
+            return string.IsNullOrEmpty(safeBatch) ? root : Path.Combine(root, safeBatch);
+        }
+
+        public void ConfigureTelemetryRootForTests(string rootPath)
+        {
+            telemetryRootOverride = rootPath;
+        }
+
+        public void ClearTelemetryRootOverrideForTests()
+        {
+            telemetryRootOverride = null;
+        }
+
+        public void SuppressWriteWarningsForTests(bool suppress)
+        {
+            suppressWriteWarningsForTests = suppress;
         }
 
         public static void ReportInputJudgement(RhythmGrade grade, float signedTimingOffsetSeconds)
@@ -136,12 +195,19 @@ namespace Game.Systems
             try
             {
                 UpdateDerivedMetrics();
+                Snapshot.sceneName = SceneManager.GetActiveScene().name;
+                Snapshot.playerClass = ResolvePlayerClassName();
+                Snapshot.batchLabel = SanitizeBatchLabel(batchLabel);
+                Snapshot.runNotes = runNotes ?? string.Empty;
                 Snapshot.timingOffsets = timingOffsets.ToArray();
                 Snapshot.runEndedAtUtc = DateTime.UtcNow.ToString("o");
-                string directory = Path.Combine(Application.persistentDataPath, DirectoryName);
+                string directory = GetCurrentRunDirectory();
                 Directory.CreateDirectory(directory);
                 string timestamp = DateTime.UtcNow.ToString(TimestampFormat);
-                string path = Path.Combine(directory, "run_" + timestamp + ".json");
+                string fileName = string.IsNullOrEmpty(Snapshot.batchLabel)
+                    ? "run_" + timestamp + ".json"
+                    : "run_" + timestamp + "_" + Snapshot.batchLabel + ".json";
+                string path = GetUniquePath(Path.Combine(directory, fileName));
                 File.WriteAllText(path, JsonUtility.ToJson(Snapshot, true));
                 lastWrittenPath = path;
                 return path;
@@ -149,7 +215,8 @@ namespace Game.Systems
             catch (Exception ex)
             {
                 lastWrittenPath = string.Empty;
-                Debug.LogWarning("Telemetry summary write failed: " + ex.Message);
+                if (!suppressWriteWarningsForTests)
+                    Debug.LogWarning("Telemetry summary write failed: " + ex.Message);
                 return string.Empty;
             }
         }
@@ -279,6 +346,60 @@ namespace Game.Systems
             Core.BaseCharacter character = manager.Player.GetComponent<Core.BaseCharacter>();
             return character != null ? character.CharacterName : manager.Player.name;
         }
+
+        private string GetTelemetryRoot()
+        {
+            return string.IsNullOrEmpty(telemetryRootOverride) ? Application.persistentDataPath : telemetryRootOverride;
+        }
+
+        private static string GetUniquePath(string desiredPath)
+        {
+            if (!File.Exists(desiredPath))
+                return desiredPath;
+
+            string directory = Path.GetDirectoryName(desiredPath);
+            string name = Path.GetFileNameWithoutExtension(desiredPath);
+            string extension = Path.GetExtension(desiredPath);
+            for (int i = 1; i < 1000; i++)
+            {
+                string candidate = Path.Combine(directory, name + "_" + i.ToString("000") + extension);
+                if (!File.Exists(candidate))
+                    return candidate;
+            }
+
+            return Path.Combine(directory, name + "_" + Guid.NewGuid().ToString("N") + extension);
+        }
+
+        public static string SanitizeBatchLabel(string value)
+        {
+            if (string.IsNullOrWhiteSpace(value))
+                return string.Empty;
+
+            string trimmed = value.Trim();
+            var chars = new char[trimmed.Length];
+            int count = 0;
+            bool previousSeparator = false;
+            for (int i = 0; i < trimmed.Length; i++)
+            {
+                char c = trimmed[i];
+                bool safe = char.IsLetterOrDigit(c) || c == '-' || c == '_';
+                char next = safe ? c : '_';
+                if (next == '_')
+                {
+                    if (previousSeparator)
+                        continue;
+                    previousSeparator = true;
+                }
+                else
+                {
+                    previousSeparator = false;
+                }
+
+                chars[count++] = next;
+            }
+
+            return count > 0 ? new string(chars, 0, count).Trim('_') : string.Empty;
+        }
     }
 
     [Serializable]
@@ -290,6 +411,8 @@ namespace Game.Systems
         public float runDurationSeconds;
         public string sceneName;
         public string playerClass;
+        public string batchLabel;
+        public string runNotes;
         public string appVersion;
         public string unityVersion;
         public int perfectHitCount;

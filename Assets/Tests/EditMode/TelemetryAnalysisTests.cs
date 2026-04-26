@@ -94,6 +94,37 @@ public class TelemetryAnalysisTests
     }
 
     [Test]
+    public void DirectoryAnalysisCanIncludeBatchFoldersAndParseBatchLabels()
+    {
+        string directory = Path.Combine(Application.temporaryCachePath, "TelemetryBatchAnalysisTests");
+        if (Directory.Exists(directory))
+            Directory.Delete(directory, true);
+        Directory.CreateDirectory(directory);
+
+        try
+        {
+            File.WriteAllText(Path.Combine(directory, "run_root.json"), HealthyJson(60f));
+            string batchDirectory = Path.Combine(directory, "warrior_batch_001");
+            Directory.CreateDirectory(batchDirectory);
+            File.WriteAllText(Path.Combine(batchDirectory, "run_batch.json"), HealthyJson(75f, "warrior_batch_001"));
+
+            TelemetryAnalysisSummary rootOnly = TelemetryAnalysis.AnalyzeDirectory(directory, false);
+            TelemetryAnalysisSummary allBatches = TelemetryAnalysis.AnalyzeDirectory(directory, true);
+            TelemetryAnalysisSummary batchOnly = TelemetryAnalysis.AnalyzeDirectory(batchDirectory, false);
+
+            Assert.AreEqual(1, rootOnly.validRunCount);
+            Assert.AreEqual(2, allBatches.validRunCount);
+            Assert.AreEqual(1, batchOnly.validRunCount);
+            Assert.Contains("warrior_batch_001", allBatches.batchLabels);
+            Assert.IsTrue(ContainsBatchLabel(allBatches, "warrior_batch_001"));
+        }
+        finally
+        {
+            Directory.Delete(directory, true);
+        }
+    }
+
+    [Test]
     public void HighMissRateProducesWarning()
     {
         TelemetryAnalysisSummary summary = TelemetryAnalysis.AnalyzeSnapshots(new[]
@@ -101,7 +132,11 @@ public class TelemetryAnalysisTests
             Snapshot(60f, 600f, 2, 4, 10, 2, 5, 3, 0f, 4f, 5)
         });
 
-        Assert.That(string.Join("\n", summary.warnings), Does.Contain("Miss rate is high"));
+        string warnings = string.Join("\n", summary.warnings);
+        Assert.That(warnings, Does.Contain("Miss rate is high"));
+        Assert.That(warnings, Does.Contain("Observed:"));
+        Assert.That(warnings, Does.Contain("Target:"));
+        Assert.That(warnings, Does.Contain("Inspect: RhythmConfig.goodWindow"));
     }
 
     [Test]
@@ -112,7 +147,9 @@ public class TelemetryAnalysisTests
             Snapshot(60f, 600f, 8, 14, 6, 0, 7, 3, 0f, 4f, 5)
         });
 
-        Assert.That(string.Join("\n", summary.warnings), Does.Contain("Perfect dodge rate is too low"));
+        string warnings = string.Join("\n", summary.warnings);
+        Assert.That(warnings, Does.Contain("Perfect dodge rate is too low"));
+        Assert.That(warnings, Does.Contain("Inspect: dodge timing window"));
     }
 
     [Test]
@@ -128,7 +165,9 @@ public class TelemetryAnalysisTests
         });
 
         Assert.That(string.Join("\n", early.warnings), Does.Contain("Average input is early"));
+        Assert.That(string.Join("\n", early.warnings), Does.Contain("Inspect: RhythmConfig.earlyInputBiasSeconds"));
         Assert.That(string.Join("\n", late.warnings), Does.Contain("Average input is late"));
+        Assert.That(string.Join("\n", late.warnings), Does.Contain("Inspect: RhythmConfig.lateInputBiasSeconds"));
     }
 
     [Test]
@@ -171,12 +210,14 @@ public class TelemetryAnalysisTests
     {
         return new TelemetrySnapshot
         {
-            schemaVersion = 2,
+            schemaVersion = 3,
             runStartedAtUtc = "2026-04-26T12:00:00.0000000Z",
             runEndedAtUtc = "2026-04-26T12:01:00.0000000Z",
             runDurationSeconds = duration,
             sceneName = "VerticalSlice",
             playerClass = "Warrior",
+            batchLabel = string.Empty,
+            runNotes = string.Empty,
             perfectHitCount = perfectHits,
             goodHitCount = goodHits,
             missHitCount = missHits,
@@ -194,9 +235,22 @@ public class TelemetryAnalysisTests
         };
     }
 
-    private static string HealthyJson(float duration)
+    private static string HealthyJson(float duration, string batchLabel = "")
     {
-        return JsonUtility.ToJson(Snapshot(duration, 600f, 8, 14, 6, 2, 5, 3, 0.01f, 4f, 5));
+        TelemetrySnapshot snapshot = Snapshot(duration, 600f, 8, 14, 6, 2, 5, 3, 0.01f, 4f, 5);
+        snapshot.batchLabel = batchLabel;
+        return JsonUtility.ToJson(snapshot);
+    }
+
+    private static bool ContainsBatchLabel(TelemetryAnalysisSummary summary, string batchLabel)
+    {
+        for (int i = 0; i < summary.runs.Count; i++)
+        {
+            if (summary.runs[i].batchLabel == batchLabel)
+                return true;
+        }
+
+        return false;
     }
 }
 

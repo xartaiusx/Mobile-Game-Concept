@@ -9,6 +9,9 @@ namespace Game.UI
     {
         [SerializeField] private bool showInDevelopmentBuilds = true;
         [SerializeField] private KeyCode toggleKey = KeyCode.F3;
+        [SerializeField] private KeyCode startRunKey = KeyCode.F4;
+        [SerializeField] private KeyCode writeRunKey = KeyCode.F5;
+        [SerializeField] private KeyCode clearRunKey = KeyCode.F6;
         [SerializeField] private Text telemetryText;
         [SerializeField] private Button mobileToggleButton;
         [SerializeField] private float refreshInterval = 0.25f;
@@ -39,6 +42,17 @@ namespace Game.UI
         {
             if (Input.GetKeyDown(toggleKey))
                 Toggle();
+
+            TelemetryManager telemetry = TelemetryManager.Instance;
+            if (telemetry != null)
+            {
+                if (Input.GetKeyDown(startRunKey))
+                    telemetry.StartNewRun();
+                if (Input.GetKeyDown(writeRunKey))
+                    telemetry.WriteRunSummary();
+                if (Input.GetKeyDown(clearRunKey))
+                    telemetry.ClearCurrentRunData();
+            }
 
             if (!visible || telemetryText == null)
                 return;
@@ -85,6 +99,8 @@ namespace Game.UI
             builder.Append("\nCombo: ").Append(telemetry.CurrentComboLength).Append("  Max: ").Append(snapshot.maxCombo);
             builder.Append("\nTiming Avg: ").Append(telemetry.AverageTimingOffset >= 0f ? "+" : string.Empty).Append(telemetry.AverageTimingOffset.ToString("0.000")).Append("s");
             builder.Append("\nScore/min: ").Append(telemetry.ScorePerMinute.ToString("0"));
+            builder.Append("\nBatch: ").Append(string.IsNullOrEmpty(telemetry.BatchLabel) ? "(none)" : telemetry.BatchLabel);
+            builder.Append("\nF4 start  F5 write  F6 clear");
             telemetryText.text = builder.ToString();
         }
 
@@ -117,7 +133,7 @@ namespace Game.UI
             rect.anchorMax = new Vector2(0f, 1f);
             rect.pivot = new Vector2(0f, 1f);
             rect.anchoredPosition = new Vector2(12f, -12f);
-            rect.sizeDelta = new Vector2(280f, 120f);
+            rect.sizeDelta = new Vector2(320f, 156f);
         }
     }
 }

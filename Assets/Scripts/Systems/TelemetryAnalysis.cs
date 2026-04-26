@@ -48,10 +48,18 @@ namespace Game.Systems
 
         public static TelemetryAnalysisSummary AnalyzeDirectory(string directoryPath)
         {
+            return AnalyzeDirectory(directoryPath, false);
+        }
+
+        public static TelemetryAnalysisSummary AnalyzeDirectory(string directoryPath, bool includeSubdirectories)
+        {
             if (string.IsNullOrWhiteSpace(directoryPath) || !Directory.Exists(directoryPath))
                 return AnalyzeFiles(Array.Empty<string>());
 
-            return AnalyzeFiles(Directory.GetFiles(directoryPath, "*.json", SearchOption.TopDirectoryOnly));
+            TelemetryAnalysisSummary summary = AnalyzeFiles(Directory.GetFiles(directoryPath, "*.json", includeSubdirectories ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly));
+            summary.analyzedDirectory = directoryPath;
+            summary.includedSubdirectories = includeSubdirectories;
+            return summary;
         }
 
         public static TelemetryAnalysisSummary AnalyzeFiles(IEnumerable<string> filePaths)
@@ -106,6 +114,7 @@ namespace Game.Systems
             {
                 sourcePath = sourcePath,
                 snapshot = snapshot,
+                batchLabel = ResolveBatchLabel(snapshot, sourcePath),
                 runDurationSeconds = ResolveRunDuration(snapshot),
                 averageTimingOffset = snapshot.averageTimingOffset,
                 scorePerMinute = snapshot.scorePerMinute,
@@ -154,7 +163,11 @@ namespace Game.Systems
 
             var builder = new StringBuilder(1024);
             builder.AppendLine("Telemetry Analysis Summary");
-            builder.AppendLine("Files: " + summary.fileCount + "  Valid runs: " + summary.validRunCount + "  Short/smoke: " + summary.shortSessionCount + "  Parse errors: " + summary.parseErrors.Count);
+            if (!string.IsNullOrEmpty(summary.analyzedDirectory))
+                builder.AppendLine("Folder: " + summary.analyzedDirectory + (summary.includedSubdirectories ? " (all batches)" : string.Empty));
+            if (summary.batchLabels.Count > 0)
+                builder.AppendLine("Batches: " + string.Join(", ", summary.batchLabels));
+            builder.AppendLine("All files: " + summary.fileCount + "  All runs: " + summary.validRunCount + "  Normal runs: " + summary.normalRunCount + "  Short/smoke: " + summary.shortSessionCount + "  Parse errors: " + summary.parseErrors.Count);
             builder.AppendLine("Average run duration: " + Seconds(summary.averageRunDurationSeconds) + "  Normal run duration: " + Seconds(summary.averageNormalRunDurationSeconds));
             builder.AppendLine("Hits P/G/M: " + Percent(summary.averagePerfectHitRate) + " / " + Percent(summary.averageGoodHitRate) + " / " + Percent(summary.averageMissHitRate));
             builder.AppendLine("Dodges P/G/M: " + Percent(summary.averagePerfectDodgeRate) + " / " + Percent(summary.averageGoodDodgeRate) + " / " + Percent(summary.averageMissDodgeRate));
@@ -194,6 +207,9 @@ namespace Game.Systems
                 else
                     normalCount++;
 
+                if (!string.IsNullOrEmpty(run.batchLabel) && !summary.batchLabels.Contains(run.batchLabel))
+                    summary.batchLabels.Add(run.batchLabel);
+
                 summary.averagePerfectHitRate += run.perfectHitRate;
                 summary.averageGoodHitRate += run.goodHitRate;
                 summary.averageMissHitRate += run.missHitRate;
@@ -231,6 +247,7 @@ namespace Game.Systems
 
             if (normalCount > 0)
             {
+                summary.normalRunCount = normalCount;
                 summary.averageScorePerMinuteExcludingShort /= normalCount;
                 summary.averageEnemyKillsPerMinuteExcludingShort /= normalCount;
                 summary.averageNormalRunDurationSeconds /= normalCount;
@@ -242,47 +259,47 @@ namespace Game.Systems
         private static void AddWarnings(TelemetryAnalysisSummary summary, int normalCount)
         {
             if (summary.shortSessionCount > 0)
-                summary.warnings.Add(summary.shortSessionCount + " short/smoke session(s) excluded from score-per-minute and kill-rate tuning.");
+                summary.warnings.Add(summary.shortSessionCount + " short/smoke session(s) excluded from score-per-minute and kill-rate tuning. Observed: duration < " + Seconds(ShortSessionThresholdSeconds) + ". Target: normal Warrior runs >= " + Seconds(ShortSessionThresholdSeconds) + ". Inspect: run length, death timing, manual end/write controls.");
 
             if (normalCount == 0)
             {
-                summary.warnings.Add("Only short sessions were found. Treat score/minute as smoke-test distorted and collect normal runs before tuning.");
+                summary.warnings.Add("Only short sessions were found. Observed: 0 normal runs. Target: 5-10 normal Warrior runs. Inspect: batch folder selection, run duration, smoke-test files.");
                 return;
             }
 
             if (summary.averagePerfectHitRate < PerfectHitRateMin)
-                summary.warnings.Add("Perfect hit rate is low: consider clarifying beat feedback or slightly widening perfectWindow.");
+                summary.warnings.Add("Perfect hit rate is low. Observed: " + Percent(summary.averagePerfectHitRate) + ". Target: " + Percent(PerfectHitRateMin) + "-" + Percent(PerfectHitRateMax) + ". Inspect: RhythmConfig.perfectWindow, beat bar alignment, hit feedback clarity.");
             else if (summary.averagePerfectHitRate > PerfectHitRateMax)
-                summary.warnings.Add("Perfect hit rate is high: consider tightening perfectWindow after confirming readability feels fair.");
+                summary.warnings.Add("Perfect hit rate is high. Observed: " + Percent(summary.averagePerfectHitRate) + ". Target: " + Percent(PerfectHitRateMin) + "-" + Percent(PerfectHitRateMax) + ". Inspect: RhythmConfig.perfectWindow, input latency compensation, beat bar alignment.");
 
             if (summary.averageMissHitRate > MissHitRateMax)
-                summary.warnings.Add("Miss rate is high: consider widening goodWindow or improving enemy telegraphs.");
+                summary.warnings.Add("Miss rate is high. Observed: " + Percent(summary.averageMissHitRate) + ". Target: < " + Percent(MissHitRateMax) + ". Inspect: RhythmConfig.goodWindow, enemy telegraph duration, beat bar alignment.");
 
             if (summary.averagePerfectDodgeRate < PerfectDodgeRateMin)
-                summary.warnings.Add("Perfect dodge rate is too low: consider widening dodge timing or improving telegraph readability.");
+                summary.warnings.Add("Perfect dodge rate is too low. Observed: " + Percent(summary.averagePerfectDodgeRate) + ". Target: " + Percent(PerfectDodgeRateMin) + "-" + Percent(PerfectDodgeRateMax) + ". Inspect: dodge timing window, telegraph readability, dodge cooldown penalty.");
             else if (summary.averagePerfectDodgeRate > PerfectDodgeRateMax)
-                summary.warnings.Add("Perfect dodge rate is high: consider tightening dodge timing after validating mobile input latency.");
+                summary.warnings.Add("Perfect dodge rate is high. Observed: " + Percent(summary.averagePerfectDodgeRate) + ". Target: " + Percent(PerfectDodgeRateMin) + "-" + Percent(PerfectDodgeRateMax) + ". Inspect: dodge timing window, perfect invulnerability, mobile input latency.");
 
             if (summary.averageMissDodgeRate > MissDodgeRateMax)
-                summary.warnings.Add("Miss dodge rate is high: consider improving defensive telegraph readability or dodge input forgiveness.");
+                summary.warnings.Add("Miss dodge rate is high. Observed: " + Percent(summary.averageMissDodgeRate) + ". Target: < " + Percent(MissDodgeRateMax) + ". Inspect: telegraph readability, dodge input forgiveness, dodge cooldown penalty.");
 
             if (summary.averageTimingOffset < -TimingBiasThresholdSeconds)
-                summary.warnings.Add("Average input is early: consider reducing early bias or shifting beat bar alignment.");
+                summary.warnings.Add("Average input is early. Observed: " + SignedSeconds(summary.averageTimingOffset) + ". Target: -" + Seconds(TimingBiasThresholdSeconds) + " to +" + Seconds(TimingBiasThresholdSeconds) + ". Inspect: RhythmConfig.earlyInputBiasSeconds, beat visual alignment, audio/visual sync.");
             else if (summary.averageTimingOffset > TimingBiasThresholdSeconds)
-                summary.warnings.Add("Average input is late: consider increasing input lead feedback or shifting beat bar alignment.");
+                summary.warnings.Add("Average input is late. Observed: " + SignedSeconds(summary.averageTimingOffset) + ". Target: -" + Seconds(TimingBiasThresholdSeconds) + " to +" + Seconds(TimingBiasThresholdSeconds) + ". Inspect: RhythmConfig.lateInputBiasSeconds, beat visual alignment, input/display latency.");
 
             if (summary.averageComboLength < AverageComboMin)
-                summary.warnings.Add("Average combo length is low: consider softening miss penalty or improving hit feedback.");
+                summary.warnings.Add("Average combo length is low. Observed: " + summary.averageComboLength.ToString("0.0", CultureInfo.InvariantCulture) + ". Target: " + AverageComboMin.ToString("0.0", CultureInfo.InvariantCulture) + "-" + AverageComboMax.ToString("0.0", CultureInfo.InvariantCulture) + ". Inspect: miss penalty, hit feedback clarity, enemy interruption timing.");
             else if (summary.averageComboLength > AverageComboMax)
-                summary.warnings.Add("Average combo length is high: consider adding more pressure before raising rewards.");
+                summary.warnings.Add("Average combo length is high. Observed: " + summary.averageComboLength.ToString("0.0", CultureInfo.InvariantCulture) + ". Target: " + AverageComboMin.ToString("0.0", CultureInfo.InvariantCulture) + "-" + AverageComboMax.ToString("0.0", CultureInfo.InvariantCulture) + ". Inspect: enemy pressure, combo reward scaling, miss recovery.");
 
             if (summary.averageMaxCombo < AverageComboMin)
-                summary.warnings.Add("Max combo is consistently below 3: inspect attack cadence, hit confirmation, and miss recovery.");
+                summary.warnings.Add("Max combo is consistently below 3. Observed: " + summary.averageMaxCombo.ToString("0.0", CultureInfo.InvariantCulture) + ". Target: >= " + AverageComboMin.ToString("0.0", CultureInfo.InvariantCulture) + ". Inspect: attack cadence, hit confirmation, miss recovery.");
 
             if (summary.averageNormalRunDurationSeconds < SurvivalTargetMinSeconds)
-                summary.warnings.Add("Normal run survival is short: consider lowering early wave pressure or improving defensive readability.");
+                summary.warnings.Add("Normal run survival is short. Observed: " + Seconds(summary.averageNormalRunDurationSeconds) + ". Target: " + Seconds(SurvivalTargetMinSeconds) + "-" + Seconds(SurvivalTargetMaxSeconds) + ". Inspect: early wave pressure, defensive readability, pickup generosity.");
             else if (summary.averageNormalRunDurationSeconds > SurvivalTargetMaxSeconds)
-                summary.warnings.Add("Normal run survival is long: consider increasing wave pressure after confirming combat remains readable.");
+                summary.warnings.Add("Normal run survival is long. Observed: " + Seconds(summary.averageNormalRunDurationSeconds) + ". Target: " + Seconds(SurvivalTargetMinSeconds) + "-" + Seconds(SurvivalTargetMaxSeconds) + ". Inspect: enemy pressure, pickup generosity, beat speed scaling.");
         }
 
         private static float ResolveRunDuration(TelemetrySnapshot snapshot)
@@ -300,6 +317,21 @@ namespace Game.Systems
                 return (float)(end - start).TotalSeconds;
 
             return 0f;
+        }
+
+        private static string ResolveBatchLabel(TelemetrySnapshot snapshot, string sourcePath)
+        {
+            if (snapshot != null && !string.IsNullOrWhiteSpace(snapshot.batchLabel))
+                return TelemetryManager.SanitizeBatchLabel(snapshot.batchLabel);
+
+            if (string.IsNullOrEmpty(sourcePath))
+                return string.Empty;
+
+            string parent = Path.GetFileName(Path.GetDirectoryName(sourcePath));
+            if (string.Equals(parent, "Telemetry", StringComparison.OrdinalIgnoreCase))
+                return string.Empty;
+
+            return TelemetryManager.SanitizeBatchLabel(parent);
         }
 
         private static float Rate(int count, int total)
@@ -347,6 +379,7 @@ namespace Game.Systems
     {
         public string sourcePath;
         public TelemetrySnapshot snapshot;
+        public string batchLabel;
         public float runDurationSeconds;
         public bool isShortSession;
         public int hitTotal;
@@ -371,12 +404,16 @@ namespace Game.Systems
 
     public sealed class TelemetryAnalysisSummary
     {
+        public string analyzedDirectory;
+        public bool includedSubdirectories;
         public int fileCount;
         public int validRunCount;
+        public int normalRunCount;
         public int shortSessionCount;
         public readonly List<TelemetryRunMetrics> runs = new List<TelemetryRunMetrics>();
         public readonly List<TelemetryParseError> parseErrors = new List<TelemetryParseError>();
         public readonly List<string> warnings = new List<string>();
+        public readonly List<string> batchLabels = new List<string>();
         public float averagePerfectHitRate;
         public float averageGoodHitRate;
         public float averageMissHitRate;

@@ -144,13 +144,30 @@ Telemetry is local-only. On player death or `WriteRunSummary()`, JSON is written
 
 `Application.persistentDataPath/Telemetry/run_<timestamp>.json`
 
-Captured fields include schema version, scene name, player class, app/Unity versions, run start/end timestamps, run duration, Perfect/Good/Miss hit counts, Perfect/Good/Miss dodge counts, signed timing offsets, average timing offset, time to player death, total survival time, enemy kill count, average time per kill, max combo, average combo length, total score, and score per minute.
+When a batch label is set, JSON is written to:
+
+`Application.persistentDataPath/Telemetry/<batchLabel>/run_<timestamp>_<batchLabel>.json`
+
+Batch labels are sanitized to letters, numbers, `_`, and `-`. Leave the batch label empty to preserve the old root-folder behavior. Optional run notes are stored inside the JSON snapshot and are not added to the file name.
+
+Captured fields include schema version, scene name, player class, batch label, run notes, app/Unity versions, run start/end timestamps, run duration, Perfect/Good/Miss hit counts, Perfect/Good/Miss dodge counts, signed timing offsets, average timing offset, time to player death, total survival time, enemy kill count, average time per kill, max combo, average combo length, total score, and score per minute.
 
 Avoid adding per-frame allocations to telemetry. Keep reporting event-driven and write files only at run end or explicit developer request.
 
 ## Telemetry Analysis Workflow
 
 Use `Game > Telemetry > Analyze Runs` to open the local editor analyzer. It scans `Application.persistentDataPath/Telemetry`, parses `run_*.json`-style files, reports malformed files without crashing, marks sessions under 20 seconds as short/smoke-test sessions, and produces a copy/paste summary for tuning notes.
+
+The analyzer can:
+
+- Analyze root telemetry only.
+- Analyze all batch folders recursively.
+- Analyze one selected batch label.
+- Choose a custom telemetry or batch folder.
+- Set batch label and run notes for the active Play Mode `TelemetryManager`.
+- Start a new run, end/write the current run, or clear current run data while in Play Mode.
+
+The in-game telemetry overlay uses `F3` to toggle visibility, `F4` to start a new run, `F5` to end/write a run, and `F6` to clear current run data. Set batch labels and notes from the editor analyzer window before or during Play Mode.
 
 Metric interpretation:
 
@@ -171,7 +188,7 @@ Phase 9.5 tuning loop:
 4. Tune only 2-3 parameters, such as `perfectWindow`, `goodWindow`, early/late bias, dodge timing, telegraph readability, or hit feedback.
 5. Repeat the run/analyze/tune cycle.
 
-Initial warning recommendations are intentionally practical: high miss rate points to widening `goodWindow` or improving telegraphs, early/late timing bias points to rhythm alignment, low perfect dodge rate points to dodge timing or telegraph readability, and low combo length points to miss penalty or hit feedback.
+Warnings include observed metric, target range, and tuning levers to inspect. They are recommendations only; do not auto-apply changes from warnings. High miss rate points to `RhythmConfig.goodWindow`, telegraph duration, and beat alignment; early/late timing bias points to input bias and beat visual alignment; low Perfect dodge points to dodge timing, telegraph readability, and dodge cooldown penalty; low combo points to miss penalty, hit feedback clarity, and enemy interruption timing.
 
 Phase 9.6 5-10 run Warrior batch:
 
@@ -182,6 +199,33 @@ Phase 9.6 5-10 run Warrior batch:
 5. Copy the analyzer summary into the tuning log.
 6. Change no more than 2-3 tuning groups and record old value, new value, rationale, and whether the evidence is real telemetry, smoke telemetry, or static sanity review.
 7. Re-run compile/import, tests, startup validation, telemetry analyzer validation, and generator idempotency validation.
+
+## Warrior Telemetry Batch Template
+
+Batch label:
+Date:
+Build/commit:
+Runs:
+Target waves:
+Changed parameters before batch:
+Telemetry summary:
+Warnings:
+Parameter changes after batch:
+Rationale:
+Validation:
+Next variables to inspect:
+
+Collect 5-10 normal Warrior runs per batch. A valid tuning run should use `Assets/Scenes/VerticalSlice.unity`, player class `Warrior`, accurate scene name, a nonnegative run duration, and enough play time to represent the target wave range. Runs under 20 seconds are short/smoke sessions; keep them for analyzer validation if useful, but exclude them from feel/balance decisions.
+
+Allowed parameter groups per batch:
+
+- Rhythm timing windows and early/late bias.
+- Dodge forgiveness, cooldown multipliers, movement, and invulnerability.
+- Enemy or boss telegraph readability timing.
+- Hit pause or feedback clarity within tiny safe ranges.
+- Score/combo rewards only when telemetry clearly shows inconsistency.
+
+Rule: change only 2-3 tuning groups per telemetry batch, record old value, new value, evidence, and rationale, then rerun validation before committing.
 
 ## ScriptableObject Assets
 
