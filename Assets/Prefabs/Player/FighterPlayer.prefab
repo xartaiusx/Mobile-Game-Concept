@@ -557,17 +557,17 @@ MonoBehaviour:
   dodgeBuffer: {fileID: 9090235963930212656}
   characterController: {fileID: 0}
   cameraTransform: {fileID: 0}
-  distance: 3.6
-  duration: 0.22
+  distance: 3.5
+  duration: 0.2
   cooldown: 0.7
-  perfectInvulnerability: 0.35
+  perfectInvulnerability: 0.38
   goodInvulnerability: 0.22
   missInvulnerability: 0
-  perfectSpeedMultiplier: 1.2
+  perfectSpeedMultiplier: 1.35
   goodSpeedMultiplier: 1
-  missSpeedMultiplier: 0.85
-  perfectCooldownMultiplier: 0.65
-  goodCooldownMultiplier: 0.9
+  missSpeedMultiplier: 0.8
+  perfectCooldownMultiplier: 0.55
+  goodCooldownMultiplier: 0.85
   missCooldownMultiplier: 1
   perfectInvulnerabilityBonus: 0.05
   readKeyboardInput: 1
@@ -587,8 +587,8 @@ MonoBehaviour:
   parryBuffer: {fileID: 7266940284533923271}
   activeWindow: 0.28
   cooldown: 0.75
-  goodDamageReduction: 0.5
-  perfectStaggerDuration: 0.5
+  goodDamageReduction: 0.6
+  perfectStaggerDuration: 0.8
   readKeyboardInput: 1
   parryKey: 101
 --- !u!114 &8705799664048952707

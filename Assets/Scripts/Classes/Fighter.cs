@@ -4,13 +4,13 @@ namespace Game.Classes
 {
     public class Fighter : BaseCharacter
     {
-        private const int HealthMultiplier = 12;
+        private const int HealthMultiplier = 13;
 
         public override void InitializeStats()
         {
-            CharacterName = "Fighter";
-            Strength = 10;
-            Stamina = 8;
+            CharacterName = "Warrior";
+            Strength = 11;
+            Stamina = 9;
             Intelligence = 3;
             MaxHealth = Stamina * HealthMultiplier;
             CurrentHealth = MaxHealth;

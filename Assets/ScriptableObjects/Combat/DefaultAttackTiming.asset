@@ -12,9 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 84437f4eb41b3894a95b7f7471df7b5d, type: 3}
   m_Name: DefaultAttackTiming
   m_EditorClassIdentifier: Assembly-CSharp::Game.Combat.AttackTimingData
-  windupSeconds: 0.08
-  activeSeconds: 0.1
-  recoverySeconds: 0.18
+  windupSeconds: 0.06
+  activeSeconds: 0.13
+  recoverySeconds: 0.16
   canCancelOnPerfect: 1
   beatAlignedImpact: 1
   hitFrameBeatOffset: 0

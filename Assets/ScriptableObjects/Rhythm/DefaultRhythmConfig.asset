@@ -16,14 +16,14 @@ MonoBehaviour:
   dspOffsetSeconds: 0
   perfectWindow: 0.05
   goodWindow: 0.1
-  speedIncreasePerLevel: 0.025
-  maxSpeedMultiplier: 1.5
-  perfectDamageMultiplier: 1.5
+  speedIncreasePerLevel: 0.015
+  maxSpeedMultiplier: 1.35
+  perfectDamageMultiplier: 1.75
   goodDamageMultiplier: 1.15
-  missDamageMultiplier: 0.75
-  perfectScore: 100
-  goodScore: 50
-  missScore: 10
-  comboScoreBonus: 5
-  perfectCooldownRefund: 0.2
+  missDamageMultiplier: 0.45
+  perfectScore: 125
+  goodScore: 55
+  missScore: 0
+  comboScoreBonus: 8
+  perfectCooldownRefund: 0.25
   goodCooldownRefund: 0.1

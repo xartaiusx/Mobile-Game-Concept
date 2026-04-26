@@ -125,6 +125,16 @@ namespace Game.Core
             AttackInterval *= Mathf.Max(0.01f, attackIntervalMultiplier);
         }
 
+        public void ApplyEndlessDifficulty(float healthMultiplier, float damageMultiplier, float moveSpeedMultiplier, float attackIntervalMultiplier)
+        {
+            int scaledMaxHealth = Mathf.Max(1, Mathf.RoundToInt(maxHealth * Mathf.Max(0.01f, healthMultiplier)));
+            maxHealth = scaledMaxHealth;
+            Health = scaledMaxHealth;
+            AttackDamage = Mathf.RoundToInt(AttackDamage * Mathf.Max(0.01f, damageMultiplier));
+            MoveSpeed *= Mathf.Max(0.01f, moveSpeedMultiplier);
+            AttackInterval *= Mathf.Max(0.01f, attackIntervalMultiplier);
+        }
+
         public virtual void Stagger(float duration)
         {
             attackTimer = 0f;

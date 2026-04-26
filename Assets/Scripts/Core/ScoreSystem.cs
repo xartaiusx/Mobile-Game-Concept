@@ -8,6 +8,10 @@ namespace Game.Core
     {
         [SerializeField] private RhythmConfig rhythmConfig;
         [SerializeField] private int victoryBonus = 250;
+        [SerializeField] private int waveClearBaseBonus = 75;
+        [SerializeField] private int waveClearPerWaveBonus = 15;
+        [SerializeField] private int bossClearBaseBonus = 350;
+        [SerializeField] private string highScorePlayerPrefsKey = "WarriorEndlessHighScore";
         [SerializeField] private bool scoreOnlyPlayerDamage = true;
 
         public static ScoreSystem Instance { get; private set; }
@@ -15,6 +19,7 @@ namespace Game.Core
         public event Action<int, int, RhythmGrade> ScoreChanged;
 
         public int Score { get; private set; }
+        public int HighScore { get; private set; }
 
         private void Awake()
         {
@@ -25,6 +30,7 @@ namespace Game.Core
             }
 
             Instance = this;
+            HighScore = PlayerPrefs.GetInt(highScorePlayerPrefsKey, 0);
         }
 
         private void OnEnable()
@@ -46,7 +52,19 @@ namespace Game.Core
 
         public void AddVictoryBonus()
         {
-            AddScore(victoryBonus, RhythmGrade.Perfect);
+            AddBossClearBonus(1);
+        }
+
+        public void AddWaveClearBonus(int wave)
+        {
+            int safeWave = Mathf.Max(1, wave);
+            AddScore(waveClearBaseBonus + safeWave * waveClearPerWaveBonus, RhythmGrade.Good);
+        }
+
+        public void AddBossClearBonus(int wave)
+        {
+            int safeWave = Mathf.Max(1, wave);
+            AddScore(victoryBonus + bossClearBaseBonus + safeWave * waveClearPerWaveBonus, RhythmGrade.Perfect);
         }
 
         public int ScoreForGrade(RhythmGrade grade)
@@ -86,12 +104,18 @@ namespace Game.Core
         {
             if (amount <= 0) return;
             Score += amount;
+            if (Score > HighScore)
+            {
+                HighScore = Score;
+                PlayerPrefs.SetInt(highScorePlayerPrefsKey, HighScore);
+            }
             ScoreChanged?.Invoke(Score, amount, grade);
         }
 
         public void ResetScore()
         {
             Score = 0;
+            HighScore = PlayerPrefs.GetInt(highScorePlayerPrefsKey, HighScore);
             ScoreChanged?.Invoke(Score, 0, RhythmGrade.Miss);
         }
 

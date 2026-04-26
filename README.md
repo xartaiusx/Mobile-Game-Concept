@@ -1,6 +1,6 @@
 # Mobile Game Concept
 
-Unity mobile rhythm-action RPG prototype.
+Unity mobile rhythm-action prototype focused on one playable class: Warrior.
 
 The current vertical slice targets Unity `6000.4.4f1`, the built-in render pipeline, and the legacy Input Manager. The main playable scene is:
 
@@ -8,42 +8,53 @@ The current vertical slice targets Unity `6000.4.4f1`, the built-in render pipel
 
 For detailed setup, asset, and test notes, see [DEVELOPMENT.md](DEVELOPMENT.md).
 
+## Current Direction
+
+The prototype has pivoted away from multi-class balance. Warrior is the only active playable class for the current slice, using the old Fighter implementation as a compatibility base while exposing Warrior naming and tuning in gameplay.
+
+Mage, Archer, Healer, projectile ability assets, and class swap code remain in the repository as deferred prototype content. They should compile and remain valid as assets, but they are not part of the active `VerticalSlice.unity` gameplay path.
+
 ## Current Slice
 
-- Free 3D player movement with jump.
-- Rhythm-buffered attacks through `InputBuffer`, `BeatClock`, and `RhythmJudgement`.
-- Fighter, Mage, Archer, and Healer placeholder player prefabs.
-- Ability, dodge, and parry controllers with rhythm-grade effects.
-- Class-default ability assets with distinct Fighter, Mage, Archer, and Healer behavior.
-- Animator-ready attack timing states: windup, active, and recovery.
-- Melee, ranged, and boss enemy placeholders.
-- Pooled projectile prefab for ranged attacks.
-- Boss beat telegraph data/controller with beat-pulsed warning and impact placeholders.
-- Small primitive arena with boundary walls and a simple follow camera.
-- Runtime HUD for beat phase, judgement feedback, combo, cooldowns, dodge/parry state, boss countdown, and debug readout.
-- Event-driven placeholder feedback pulses for Perfect/Good/Miss attacks, dodge, parry, and boss attacks.
-- Phase 4 tuning values for a readable keyboard/controller combat loop: more survivable Fighter, calmer enemy pressure, compact HUD, and higher follow camera.
-- Phase 5 placeholder polish: clearer hit/dodge/parry/boss VFX prefabs, procedural audio cue assets, projectile trails, enemy windup warnings, and animation-event relay hooks.
-- Phase 6 gameplay loop: pooled Mage/Archer projectile abilities, class balance defaults, arena wave-to-boss flow, victory/failure state, and a player-like simulation helper.
-- Phase 7 rhythm rules and gameplay: truthful centered Beat Bar timing, score scaling, dodge timing tuning, boss phases, hit reactions, and pickup rewards.
-- Phase 8 stabilization: free CC0 prototype art/VFX textures, debug class swapping, placeholder Animator Controllers, and boss attack scaffolding.
-
-## Class Abilities
-
-- Fighter Slash: close cone strike with high Perfect reward and brief enemy stagger.
-- Mage Bolt: medium-speed projectile with Perfect splash/stagger and longer cooldown.
-- Archer Shot: fast precision projectile; Perfect timing can pierce one target and Miss is sharply reduced.
-- Healer Pulse: self heal; Perfect timing adds brief protection.
+- Endless rhythm-action melee arena loop.
+- Warrior-only active player path through `GameManager`, `PlayerManager`, HUD, camera, arena, score, dodge, parry, pickups, and boss systems.
+- Close-range combo attacks using `ComboSystem`, `DefaultComboProfile`, and `DefaultAttackTiming`.
+- Rhythm precision rewards: Perfect hits deal and score the most, Good hits are moderate, Miss hits are weak and score little or nothing.
+- Perfect dodge moves faster, cools down sooner, and grants stronger invulnerability.
+- Perfect parry cancels parryable damage and staggers enemies for a counter opportunity.
+- Scalable endless waves with short next-wave delay, no terminal victory after wave 1, and failure on player death.
+- Boss/elite warning waves every 5 waves by default.
+- HUD shows wave, score, high score, enemies remaining, boss/elite warning, cooldowns, and rhythm grade feedback.
 
 ## Controls
 
 - Move: `Horizontal` / `Vertical`
 - Jump: `Jump`
 - Attack: `Fire1`
-- Ability: `Q`
+- Ability: `Q` for the active Warrior slash ability
 - Dodge: `Left Shift`
 - Parry: `E`
-- Debug class swap: `F1` Fighter, `F2` Mage, `F3` Archer, `F4` Healer
+- Restart run: `R`
+
+`ClassSwapDebugController` is inactive in `VerticalSlice.unity`. Do not use Mage, Archer, Healer, or class swapping for active prototype validation.
+
+## Endless Scaling
+
+`DifficultyScaler` drives wave-based scaling with conservative caps:
+
+- Enemy count increases every few waves.
+- Enemy health and damage increase modestly.
+- Enemy move speed rises slightly.
+- Enemy attack cooldown tightens slightly.
+- Boss/elite waves get extra health, damage, and cadence pressure.
+- Pickup generosity decreases gradually.
+- Beat speed increases slowly and caps so skill matters more than stat inflation.
+
+## Scoring
+
+`ScoreSystem` awards rhythm-hit score by grade, combo bonus, wave clear bonus, boss/elite bonus, and a local high score through `PlayerPrefs`.
+
+This is not a progression economy yet. There are no skill trees, currencies, upgrades, or long-term unlocks in the active prototype.
 
 ## Bootstrap
 
@@ -51,45 +62,7 @@ Open the project in Unity `6000.4.4f1`, then use:
 
 `Game > Vertical Slice > Create Or Refresh Vertical Slice`
 
-This recreates the default folders, ScriptableObject assets, prefabs, scene objects, and Build Settings entry.
-
-## Phase 5 Feedback
-
-- VFX prefabs live in `Assets/Prefabs/Feedback`.
-- Procedural audio cue assets live in `Assets/ScriptableObjects/Audio`.
-- Player prefabs include `CombatAnimationBridge` and `AnimationEventRelay` so future clips can call attack active/recovery, footstep, and weapon-swing hooks.
-- Boss telegraphs pulse warning rings on beats and show countdown/impact text in the HUD.
-
-## Phase 6 Gameplay
-
-- `AbilityController` launches projectile-style abilities through assigned `ObjectPool` instances.
-- `PoolableProjectile` can now damage enemies, apply rhythm grade, splash Mage impacts, and allow Archer Perfect pierce.
-- `ArenaController` manages the vertical slice loop: initial wave, boss activation, victory, failure, and `R` restart.
-- `PlayerSimulationController` supports cautious automated play behavior for validation without changing mobile input direction.
-
-## Rhythm Rules
-
-- The green center zone on the Beat Bar is the actual Perfect timing window.
-- The white slider travels left to right; overlap with the green center zone is Perfect.
-- Higher player levels increase effective BPM with a small capped multiplier, making timing tighter without desynchronizing combat.
-- Perfect attacks do the most damage and score; Good is moderate; Miss is reduced and scores little only on hit.
-- Perfect dodges move faster, cool down sooner, and add a small invulnerability bonus.
-
-## Phase 7 Gameplay
-
-- `ScoreSystem` listens to rhythm damage and feeds HUD score.
-- `HitReactionController` adds lightweight flashes and knockback/stagger readability.
-- Boss phase assets support slower Phase 1 and faster Phase 2 telegraph behavior.
-- Gold and Health Potion pickup prefabs can drop from defeated enemies and update inventory HUD text.
-- Combat timing now supports both timed placeholder attacks and future animation-event-driven hit windows.
-
-## Phase 8 Stabilization
-
-- `ClassSwapDebugController` lets the vertical slice swap classes without duplicate players.
-- Placeholder Animator Controllers and clips live under `Assets/Animations`.
-- Player/enemy/boss prefabs now include Animator components wired to placeholder controllers.
-- Boss telegraph data now supports `Slam`, `Line`, and `RadialPulse` attack categories plus `Circle`, `Line`, and `Cone` shapes.
-- Kenney CC0 prototype textures and particle sprites are imported under `Assets/ThirdParty/FreeAssets` and used only where they improve arena and feedback readability.
+This recreates the default folders, ScriptableObject assets, prefabs, scene objects, and Build Settings entry with the Warrior-only active path.
 
 ## Free Assets
 
@@ -98,14 +71,15 @@ Imported free assets are documented in `Assets/ThirdParty/FreeAssets/ASSET_CREDI
 - Kenney Prototype Textures: CC0, commercial use allowed, attribution not required.
 - Kenney Particle Pack: CC0, commercial use allowed, attribution not required.
 
-## Tests
+## Validation
 
 ```bash
-"$HOME/Unity/Hub/Editor/6000.4.4f1/Editor/Unity" -quit -batchmode -projectPath "$PWD" -logFile -
-"$HOME/Unity/Hub/Editor/6000.4.4f1/Editor/Unity" -quit -batchmode -projectPath "$PWD" -runTests -testPlatform EditMode
-"$HOME/Unity/Hub/Editor/6000.4.4f1/Editor/Unity" -quit -batchmode -projectPath "$PWD" -runTests -testPlatform PlayMode
+git diff --check
+"$HOME/Unity/Hub/Editor/6000.4.4f1/Editor/Unity" -quit -batchmode -projectPath "$PWD" -logFile /tmp/unity_warrior_endless_compile.log
+"$HOME/Unity/Hub/Editor/6000.4.4f1/Editor/Unity" -quit -batchmode -projectPath "$PWD" -runTests -testPlatform EditMode -logFile /tmp/mobile-game-editmode-warrior-endless.log
+"$HOME/Unity/Hub/Editor/6000.4.4f1/Editor/Unity" -quit -batchmode -projectPath "$PWD" -runTests -testPlatform PlayMode -logFile /tmp/mobile-game-playmode-warrior-endless.log
 ```
 
 ## Next
 
-Next: human Mage/Archer tuning, placeholder animator controllers/clips, better boss attack variety, inventory/potion UI, then early mobile touch controls and device profiling.
+Next phase should be a hands-on Warrior feel pass: melee hit readability, boss/elite rhythm telegraphs, arena pacing over waves 1-10, mobile touch controls, and pooled feedback/pickup effects for mobile stress testing.

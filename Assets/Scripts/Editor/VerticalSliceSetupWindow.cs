@@ -778,12 +778,14 @@ namespace Game.EditorTools
 
             GameObject gameManagerObject = new GameObject("GameManager");
             var gameManager = gameManagerObject.AddComponent<GameManager>();
+            gameManager.warriorPrefab = fighterPrefab;
             gameManager.fighterPrefab = fighterPrefab;
-            gameManager.magePrefab = magePrefab;
-            gameManager.archerPrefab = archerPrefab;
-            gameManager.healerPrefab = healerPrefab;
+            gameManager.magePrefab = null;
+            gameManager.archerPrefab = null;
+            gameManager.healerPrefab = null;
 
             GameObject classSwapObject = new GameObject("ClassSwapDebugController");
+            classSwapObject.SetActive(false);
             var classSwap = classSwapObject.AddComponent<ClassSwapDebugController>();
             SetObject(classSwap, "fighterPrefab", fighterPrefab);
             SetObject(classSwap, "magePrefab", magePrefab);
@@ -806,7 +808,7 @@ namespace Game.EditorTools
             SetObject(pickupSpawner, "healthPotionPickupPrefab", potionPickupPrefab);
 
             GameObject player = (GameObject)PrefabUtility.InstantiatePrefab(fighterPrefab);
-            player.name = "Player_Fighter";
+            player.name = "Player_Warrior";
             player.transform.position = new Vector3(0f, 1f, -8f);
 
             GameObject melee = (GameObject)PrefabUtility.InstantiatePrefab(meleePrefab);
@@ -838,6 +840,7 @@ namespace Game.EditorTools
             spawner.enabled = false;
 
             GameObject arenaObject = new GameObject("ArenaController");
+            arenaObject.AddComponent<DifficultyScaler>();
             var arena = arenaObject.AddComponent<ArenaController>();
             SetObject(arena, "player", player.GetComponent<BaseCharacter>());
             SetObject(arena, "bossObject", boss);

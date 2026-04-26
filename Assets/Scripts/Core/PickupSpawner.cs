@@ -12,6 +12,13 @@ namespace Game.Core
         [SerializeField] private int maxGold = 4;
         [SerializeField] private Vector3 dropOffset = new Vector3(0f, 0.25f, 0f);
 
+        private float generosityMultiplier = 1f;
+
+        public void SetGenerosityMultiplier(float multiplier)
+        {
+            generosityMultiplier = Mathf.Clamp(multiplier, 0.1f, 2f);
+        }
+
         private void OnEnable()
         {
             BaseEnemy.EnemyDefeatedGlobal += HandleEnemyDefeated;
@@ -33,10 +40,10 @@ namespace Game.Core
             if (enemy == null) return;
             Vector3 position = enemy.transform.position + dropOffset;
 
-            if (goldPickupPrefab != null && Random.value <= goldDropChance)
+            if (goldPickupPrefab != null && Random.value <= goldDropChance * generosityMultiplier)
                 Spawn(goldPickupPrefab, position + Random.insideUnitSphere * 0.35f, Random.Range(minGold, maxGold + 1));
 
-            if (healthPotionPickupPrefab != null && Random.value <= potionDropChance)
+            if (healthPotionPickupPrefab != null && Random.value <= potionDropChance * generosityMultiplier)
                 Spawn(healthPotionPickupPrefab, position + Random.insideUnitSphere * 0.35f, 1);
         }
 

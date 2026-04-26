@@ -303,7 +303,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &178278500
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -973,9 +973,11 @@ MonoBehaviour:
   enemiesPerWave: 2
   waveCount: 1
   spawnPacingSeconds: 0.75
+  nextWaveDelaySeconds: 2
   restartKey: 114
   scoreSystem: {fileID: 973536464}
   pickupSpawner: {fileID: 344865493}
+  difficultyScaler: {fileID: 0}
 --- !u!4 &899393953
 Transform:
   m_ObjectHideFlags: 0
@@ -1022,6 +1024,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Game.Core.ScoreSystem
   rhythmConfig: {fileID: 11400000, guid: 4cba4fd95e59abbedbde3cef579614dd, type: 2}
   victoryBonus: 250
+  waveClearBaseBonus: 75
+  waveClearPerWaveBonus: 15
+  bossClearBaseBonus: 350
+  highScorePlayerPrefsKey: WarriorEndlessHighScore
   scoreOnlyPlayerDamage: 1
 --- !u!4 &973536465
 Transform:
@@ -1545,7 +1551,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 4172262572666840945, guid: 98cf41346572ba1188ea307488de1301, type: 3}
       propertyPath: m_Name
-      value: Player_Fighter
+      value: Player_Warrior
       objectReference: {fileID: 0}
     - target: {fileID: 9101531227902170173, guid: 98cf41346572ba1188ea307488de1301, type: 3}
       propertyPath: m_LocalPosition.x
@@ -1692,10 +1698,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0a726b64227ef8fc2951f725a0eb3996, type: 3}
   m_Name:
   m_EditorClassIdentifier: Assembly-CSharp::Game.Core.GameManager
+  warriorPrefab: {fileID: 4172262572666840945, guid: 98cf41346572ba1188ea307488de1301, type: 3}
   fighterPrefab: {fileID: 4172262572666840945, guid: 98cf41346572ba1188ea307488de1301, type: 3}
-  magePrefab: {fileID: 5133671955393446622, guid: 301fc39024e621424bef0af2ccb1f7de, type: 3}
-  archerPrefab: {fileID: 3146442173181068952, guid: 0214c3f637d56f684b246d896dfcdb72, type: 3}
-  healerPrefab: {fileID: 6620568328276737159, guid: 7f94852a92035323ea8b094ac5fdc59b, type: 3}
+  magePrefab: {fileID: 0}
+  archerPrefab: {fileID: 0}
+  healerPrefab: {fileID: 0}
   playerSpawnPoint: {fileID: 0}
 --- !u!4 &1872593787
 Transform:

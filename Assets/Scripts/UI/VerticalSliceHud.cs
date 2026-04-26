@@ -69,7 +69,7 @@ namespace Game.UI
                 attackStateText.text = "Attack: " + (comboSystem != null ? comboSystem.TimingState.ToString() : "Ready");
 
             if (scoreText != null)
-                scoreText.text = "Score: " + (scoreSystem != null ? scoreSystem.Score.ToString() : "0");
+                scoreText.text = FormatScoreText();
 
             if (inventoryText != null)
                 inventoryText.text = FormatInventoryText();
@@ -80,7 +80,7 @@ namespace Game.UI
                 bossText.text = "Boss: watching";
 
             if (arenaText != null && arenaController != null)
-                arenaText.text = "Arena: " + arenaController.State + "  " + arenaController.ActiveEnemyCount;
+                arenaText.text = FormatArenaText();
 
             if (debugText != null)
             {
@@ -367,7 +367,7 @@ namespace Game.UI
         private void HandleScoreChanged(int total, int added, RhythmGrade grade)
         {
             if (scoreText != null)
-                scoreText.text = "Score: " + total;
+                scoreText.text = FormatScoreText();
             if (added > 0 && feedbackText != null)
                 feedbackText.text = grade + " +" + added;
         }
@@ -381,9 +381,26 @@ namespace Game.UI
         private void HandleArenaStateChanged(ArenaState state, string message)
         {
             if (arenaText != null)
-                arenaText.text = "Arena: " + message;
-            if ((state == ArenaState.Victory || state == ArenaState.Failure) && feedbackText != null)
+                arenaText.text = FormatArenaText();
+            if ((state == ArenaState.WaveCleared || state == ArenaState.Boss || state == ArenaState.Elite || state == ArenaState.Failure) && feedbackText != null)
                 feedbackText.text = message;
+        }
+
+        private string FormatScoreText()
+        {
+            if (scoreSystem == null)
+                return "Score: 0  High: 0";
+
+            return "Score: " + scoreSystem.Score + "  High: " + scoreSystem.HighScore;
+        }
+
+        private string FormatArenaText()
+        {
+            if (arenaController == null)
+                return "Wave: 1  Enemies: 0";
+
+            string warning = arenaController.IsBossOrEliteWave ? "  BOSS/ELITE" : string.Empty;
+            return "Wave: " + arenaController.CurrentWave + warning + "  Enemies: " + arenaController.ActiveEnemyCount + "  " + arenaController.LastStateMessage;
         }
 
         private string FormatAbilityText()

@@ -7,6 +7,7 @@ using Game.Audio;
 using Game.Animation;
 using Game.Rhythm;
 using Game.UI;
+using Game.Classes;
 using NUnit.Framework;
 using UnityEditor;
 using UnityEngine;
@@ -27,6 +28,8 @@ public class VerticalSlicePlayModeTests
 
         GameObject player = GameObject.FindWithTag("Player");
         Assert.IsNotNull(player);
+        Assert.IsNotNull(player.GetComponent<Fighter>());
+        Assert.AreEqual("Warrior", player.GetComponent<BaseCharacter>().CharacterName);
         Assert.IsNotNull(player.GetComponent<CharacterController>());
         Assert.IsNotNull(player.GetComponent<PlayerController>());
         Assert.IsNotNull(player.GetComponent<ComboSystem>());
@@ -48,7 +51,7 @@ public class VerticalSlicePlayModeTests
         Assert.IsNotNull(Object.FindAnyObjectByType<ArenaController>());
         Assert.IsNotNull(Object.FindAnyObjectByType<ScoreSystem>());
         Assert.IsNotNull(Object.FindAnyObjectByType<PickupSpawner>());
-        Assert.IsNotNull(Object.FindAnyObjectByType<ClassSwapDebugController>());
+        Assert.IsNull(Object.FindAnyObjectByType<ClassSwapDebugController>());
         Assert.IsNotNull(Object.FindAnyObjectByType<Canvas>());
         Assert.IsNotNull(Object.FindAnyObjectByType<BeatBarUI>());
         Assert.IsNotNull(Object.FindAnyObjectByType<VerticalSliceHud>());
@@ -71,12 +74,12 @@ public class VerticalSlicePlayModeTests
     }
 
     [Test]
-    public void VerticalSliceClassSwapSimulationKeepsSingleManagedPlayer()
+    public void VerticalSliceUsesWarriorOnlyAndLegacyClassSwapIsInactive()
     {
         SceneManager.LoadScene("VerticalSlice");
 
-        ClassSwapDebugController classSwap = Object.FindAnyObjectByType<ClassSwapDebugController>();
-        Assert.IsNotNull(classSwap);
+        ClassSwapDebugController classSwap = Object.FindAnyObjectByType<ClassSwapDebugController>(FindObjectsInactive.Include);
+        Assert.IsTrue(classSwap == null || !classSwap.gameObject.activeInHierarchy);
         SimpleFollowCamera followCamera = Object.FindAnyObjectByType<SimpleFollowCamera>();
         VerticalSliceHud hud = Object.FindAnyObjectByType<VerticalSliceHud>();
         ArenaController arena = Object.FindAnyObjectByType<ArenaController>();
@@ -84,23 +87,48 @@ public class VerticalSlicePlayModeTests
         Assert.IsNotNull(hud);
         Assert.IsNotNull(arena);
 
-        Directory.CreateDirectory("Artifacts/Phase8Frames");
-        string[] classNames = { "Fighter", "Mage", "Archer", "Healer" };
-        for (int i = 0; i < classNames.Length; i++)
-        {
-            GameObject player = classSwap.SwapToClass(classNames[i]);
-            Assert.IsNotNull(player);
-            Assert.AreEqual(player.transform, PlayerManager.Instance.GetPlayerTransform());
-            Assert.AreEqual(1, GameObject.FindGameObjectsWithTag("Player").Length);
-            Assert.IsNotNull(player.GetComponent<Animator>());
-            Assert.IsNotNull(player.GetComponent<PlayerSimulationController>());
-            Assert.AreEqual(player.transform, SerializedTransform(followCamera, "target"));
-            Assert.AreEqual(player.GetComponent<ComboSystem>(), SerializedObjectReference<ComboSystem>(hud, "comboSystem"));
-            Assert.AreEqual(player.GetComponent<BaseCharacter>(), SerializedObjectReference<BaseCharacter>(arena, "player"));
+        Directory.CreateDirectory("Artifacts/WarriorEndless");
+        GameObject player = GameObject.FindWithTag("Player");
+        Assert.IsNotNull(player);
+        Assert.IsNotNull(player.GetComponent<Fighter>());
+        Assert.IsNull(player.GetComponent<Mage>());
+        Assert.IsNull(player.GetComponent<Archer>());
+        Assert.IsNull(player.GetComponent<Healer>());
+        Assert.AreEqual(player.transform, PlayerManager.Instance.GetPlayerTransform());
+        Assert.AreEqual(1, GameObject.FindGameObjectsWithTag("Player").Length);
+        Assert.AreEqual(player.transform, SerializedTransform(followCamera, "target"));
+        Assert.AreEqual(player.GetComponent<ComboSystem>(), SerializedObjectReference<ComboSystem>(hud, "comboSystem"));
+        Assert.AreEqual(player.GetComponent<BaseCharacter>(), SerializedObjectReference<BaseCharacter>(arena, "player"));
 
-            player.GetComponent<PlayerSimulationController>().SetSimulationEnabled(true);
-            ScreenCapture.CaptureScreenshot($"Artifacts/Phase8Frames/{classNames[i]}_playmode_test.png");
+        player.GetComponent<PlayerSimulationController>().SetSimulationEnabled(true);
+        ScreenCapture.CaptureScreenshot("Artifacts/WarriorEndless/warrior_playmode_test.png");
+    }
+
+    [Test]
+    public void VerticalSliceEndlessArenaCanClearWaveAndIncrement()
+    {
+        SceneManager.LoadScene("VerticalSlice");
+
+        ArenaController arena = Object.FindAnyObjectByType<ArenaController>();
+        ScoreSystem score = Object.FindAnyObjectByType<ScoreSystem>();
+        Assert.IsNotNull(arena);
+        Assert.IsNotNull(score);
+
+        int startingWave = arena.CurrentWave;
+        foreach (BaseEnemy enemy in Object.FindObjectsByType<BaseEnemy>(FindObjectsInactive.Exclude))
+        {
+            if (enemy != null)
+                enemy.TakeDamage(9999);
         }
+
+        Assert.AreEqual(ArenaState.WaveCleared, arena.State);
+        Assert.AreNotEqual(ArenaState.Victory, arena.State);
+        Assert.Greater(score.Score, 0);
+
+        arena.BeginNextWaveForTests();
+
+        Assert.AreEqual(startingWave + 1, arena.CurrentWave);
+        Assert.AreNotEqual(ArenaState.Victory, arena.State);
     }
 
     private static Transform SerializedTransform(Object target, string propertyName)

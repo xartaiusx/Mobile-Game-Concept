@@ -11,6 +11,7 @@ namespace Game.Core
     {
         public Dictionary<string, GameObject> characterPrefabs = new Dictionary<string, GameObject>();
 
+        public GameObject warriorPrefab;
         public GameObject fighterPrefab;
         public GameObject magePrefab;
         public GameObject archerPrefab;
@@ -19,10 +20,12 @@ namespace Game.Core
 
         private void Awake()
         {
-            characterPrefabs["Fighter"] = fighterPrefab;
-            characterPrefabs["Mage"] = magePrefab;
-            characterPrefabs["Archer"] = archerPrefab;
-            characterPrefabs["Healer"] = healerPrefab;
+            GameObject activeWarrior = warriorPrefab != null ? warriorPrefab : fighterPrefab;
+            characterPrefabs["Warrior"] = activeWarrior;
+            characterPrefabs["Fighter"] = activeWarrior;
+            characterPrefabs["Mage"] = null;
+            characterPrefabs["Archer"] = null;
+            characterPrefabs["Healer"] = null;
         }
 
         private void Start()
@@ -37,12 +40,12 @@ namespace Game.Core
                 return;
             }
 
-            string selectedClass = PlayerPrefs.GetString("SelectedClass", "Fighter").Trim();
+            string selectedClass = "Warrior";
 
             if (string.IsNullOrEmpty(selectedClass) || !characterPrefabs.ContainsKey(selectedClass) || characterPrefabs[selectedClass] == null)
             {
-                Debug.LogWarning("Invalid class selection, defaulting to Fighter.");
-                selectedClass = "Fighter";
+                Debug.LogWarning("Invalid class selection, defaulting to Warrior.");
+                selectedClass = "Warrior";
             }
 
             if (characterPrefabs[selectedClass] == null)
