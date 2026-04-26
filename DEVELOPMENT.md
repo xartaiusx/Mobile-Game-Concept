@@ -10,7 +10,9 @@ Unity Play Mode startup is explicitly pinned to `Assets/Scenes/VerticalSlice.uni
 
 Phase 9 is a feel calibration and telemetry phase. The goal is to measure the Warrior loop, tune timing/readability, and keep the slice reliable before adding new enemies, classes, narrative systems, or complex UI.
 
-Use `Game > Vertical Slice > Create Or Refresh Vertical Slice` in the Unity Editor to recreate the default folders, ScriptableObject assets, prefabs, scene, and Build Settings entry. The menu is idempotent and now rebuilds the active path around Warrior-only endless arena play.
+Use `Game > Vertical Slice > Create Or Refresh Vertical Slice` in the Unity Editor to create or refresh the default folders, ScriptableObject assets, prefabs, scene, and Build Settings entry. The menu is expected to be diff-idempotent after the first normalization run: running it twice should not produce meaningful scene, prefab, material, animator, or ScriptableObject churn.
+
+Use `Game > Vertical Slice > Validate Generator Idempotency` after generator changes. The validator runs the generator twice, hashes generated scene/prefab/material/animation/ScriptableObject file contents with normalized line endings, checks required scene objects and references, and fails on duplicate managers, missing scripts, missing generated prefabs, or second-run serialized changes. Hashing is intentionally file-based, so it proves repeatability of committed generated assets but does not explain whether an intentional first-run diff is desirable.
 
 The generated setup includes:
 
@@ -171,6 +173,16 @@ Phase 9.5 tuning loop:
 
 Initial warning recommendations are intentionally practical: high miss rate points to widening `goodWindow` or improving telegraphs, early/late timing bias points to rhythm alignment, low perfect dodge rate points to dodge timing or telegraph readability, and low combo length points to miss penalty or hit feedback.
 
+Phase 9.6 5-10 run Warrior batch:
+
+1. Run `Game > Vertical Slice > Create Or Refresh Vertical Slice`.
+2. Run `Game > Vertical Slice > Validate Startup Scene`.
+3. Play 5-10 normal Warrior runs in `Assets/Scenes/VerticalSlice.unity`; do not mix short smoke sessions into the tuning sample.
+4. Open `Game > Telemetry > Analyze Runs`.
+5. Copy the analyzer summary into the tuning log.
+6. Change no more than 2-3 tuning groups and record old value, new value, rationale, and whether the evidence is real telemetry, smoke telemetry, or static sanity review.
+7. Re-run compile/import, tests, startup validation, telemetry analyzer validation, and generator idempotency validation.
+
 ## ScriptableObject Assets
 
 Create assets from the Unity create menu:
@@ -197,6 +209,9 @@ Required commands:
 git diff --check
 "$HOME/Unity/Hub/Editor/6000.4.4f1/Editor/Unity" -quit -batchmode -projectPath "$PWD" -logFile /tmp/unity_warrior_endless_compile.log
 Scripts/run-unity-tests.sh
+"$HOME/Unity/Hub/Editor/6000.4.4f1/Editor/Unity" -batchmode -projectPath "$PWD" -executeMethod Game.Editor.ProjectTestRunner.ValidateStartupSceneCommandLine -quit -logFile /tmp/mobile-game-startup-validation.log
+"$HOME/Unity/Hub/Editor/6000.4.4f1/Editor/Unity" -batchmode -projectPath "$PWD" -executeMethod Game.Editor.ProjectTestRunner.ValidateTelemetryAnalyzerCommandLine -quit -logFile /tmp/mobile-game-telemetry-validation.log
+"$HOME/Unity/Hub/Editor/6000.4.4f1/Editor/Unity" -batchmode -projectPath "$PWD" -executeMethod Game.Editor.ProjectTestRunner.ValidateGeneratorIdempotencyCommandLine -quit -logFile /tmp/mobile-game-generator-idempotency.log
 ```
 
 `Scripts/run-unity-tests.sh` invokes `Game.Editor.ProjectTestRunner.RunEditMode` and `Game.Editor.ProjectTestRunner.RunPlayMode`, writes JSON summaries to `TestResults/editmode-summary.json` and `TestResults/playmode-summary.json`, writes `TestResults/summary.txt`, prints totals, and exits nonzero when summaries are missing, Unity exits nonzero, log scans find compile/null/missing-reference markers, or tests fail.
@@ -218,6 +233,23 @@ Warrior validation artifacts should go under `Artifacts/WarriorEndless/`. Do not
 
 Environment note: Unity licensing handshake/curl messages can appear in batchmode logs without failing validation. Compile errors, `NullReferenceException`, `MissingReferenceException`, missing scripts/references, duplicate singleton warnings, scene load failures, and test failures should still be treated as failures.
 
+## Tuning Log
+
+### Phase 9.6 - 2026-04-26
+
+Evidence source: static sanity review of existing tuning assets, tests, and telemetry analyzer targets. No human playtest telemetry was generated or claimed for this pass.
+
+Changed parameters:
+
+- `DefaultRhythmConfig.goodWindow`: `0.10s` to `0.11s`. Rationale: small miss-rate forgiveness increase while leaving the Perfect target unchanged.
+- `DefaultRhythmConfig.earlyInputBiasSeconds`: `0.015s` to `0.018s`. Rationale: slight mobile/anticipatory input support without heavily favoring early presses.
+- `DefaultRhythmConfig.lateInputBiasSeconds`: `0.005s` to `0.007s`. Rationale: tiny late-input tolerance increase to avoid over-penalizing input/display latency.
+- `BossLineTelegraph.beatsBeforeImpact`: `3` to `4`. Rationale: the line pattern is faster and more spatially specific than slam, so the first readability pass gives one additional beat before impact.
+
+Validation result: generator idempotency validation passes after the determinism patch. Full Phase 9.6 validation should include compile/import, EditMode, PlayMode, startup scene validation, telemetry analyzer validation, generator idempotency validation, and log scans.
+
+Next variables to inspect after real playtest telemetry: Perfect hit rate, miss hit rate, average signed timing offset, Perfect/Miss dodge rates during boss/elite warnings, average combo length, and early wave survival time.
+
 ## Known Limitations
 
 - Art, animation clips, and audio remain placeholder.
@@ -226,6 +258,8 @@ Environment note: Unity licensing handshake/curl messages can appear in batchmod
 - Toolbar Play is expected to start `Assets/Scenes/VerticalSlice.unity`; if it does not, run `Game > Vertical Slice > Validate Startup Scene` and then the startup PlayMode smoke test.
 - Telemetry writes local developer JSON only. It is not network analytics, privacy tooling, or production reporting.
 - Short automated telemetry smoke tests can produce exaggerated score-per-minute values because the run duration is intentionally tiny.
+- Generator idempotency validation proves the second run is stable, but intentional first-run generator changes still need normal code review.
+- Phase 9.6 tuning is not human-validated yet; avoid a second balance pass until a real 5-10 run Warrior batch exists.
 - Mage, Archer, Healer, and class swap are preserved as deferred content and should not be treated as current gameplay.
 - Projectile ability code remains for inactive classes and ranged enemies; Warrior gameplay should not depend on it.
 - Boss line/radial patterns are scaffolding. Slam is the stable baseline.
@@ -234,7 +268,7 @@ Environment note: Unity licensing handshake/curl messages can appear in batchmod
 
 ## Recommended Next Sequence
 
-1. Run telemetry-guided Warrior passes through waves 1-10 and tune enemy count, pickup scarcity, rhythm bias, and beat speed from measured miss/dodge/kill pacing.
+1. Run a real 5-10 session Warrior telemetry batch and compare analyzer output against the Phase 9.6 tuning log before changing more balance.
 2. Add real placeholder Warrior attack, dodge, and parry clips that call the existing animation event relay methods.
 3. Improve boss/elite telegraph readability and punish-window feedback.
 4. Add mobile touch controls for attack, dodge, parry, ability, restart, and optional developer overlay access.

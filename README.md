@@ -67,6 +67,13 @@ The analyzer reads local JSON files from the telemetry folder, ignores malformed
 
 Use the Phase 9.5 tuning loop: run 5-10 Warrior sessions, open the telemetry analyzer, review warnings, tune only 2-3 parameters such as rhythm windows, dodge forgiveness, telegraph readability, or feedback clarity, then repeat. Score-per-minute and kill-rate aggregates exclude short sessions because smoke tests can distort those values.
 
+Phase 9.6 first-pass tuning was based on static sanity review and existing smoke/test telemetry plumbing, not human playtest results. Changes were intentionally narrow:
+
+- `DefaultRhythmConfig.goodWindow`: `0.10s` to `0.11s`.
+- `DefaultRhythmConfig.earlyInputBiasSeconds`: `0.015s` to `0.018s`.
+- `DefaultRhythmConfig.lateInputBiasSeconds`: `0.005s` to `0.007s`.
+- `BossLineTelegraph.beatsBeforeImpact`: `3` to `4`.
+
 ## Endless Scaling
 
 `DifficultyScaler` drives wave-based scaling with conservative caps:
@@ -91,7 +98,13 @@ Open the project in Unity `6000.4.4f1`, then use:
 
 `Game > Vertical Slice > Create Or Refresh Vertical Slice`
 
-This recreates the default folders, ScriptableObject assets, prefabs, scene objects, and Build Settings entry with the Warrior-only active path.
+This creates or refreshes the default folders, ScriptableObject assets, prefabs, scene objects, and Build Settings entry with the Warrior-only active path. The generator is expected to be diff-idempotent after the first normalization run: running it twice in a row should not produce meaningful scene, prefab, material, animator, or ScriptableObject changes.
+
+Validate generator determinism with:
+
+`Game > Vertical Slice > Validate Generator Idempotency`
+
+The validator runs the generator twice, hashes generated scene/prefab/material/animation/ScriptableObject files with normalized line endings, checks required scene objects/references, and fails on duplicate generated managers, missing scripts, or duplicate generated assets. It does not replace human review of intentional first-run generator changes.
 
 The intended Play Mode startup scene is always:
 
@@ -116,6 +129,9 @@ Imported free assets are documented in `Assets/ThirdParty/FreeAssets/ASSET_CREDI
 git diff --check
 "$HOME/Unity/Hub/Editor/6000.4.4f1/Editor/Unity" -quit -batchmode -projectPath "$PWD" -logFile /tmp/unity_warrior_endless_compile.log
 Scripts/run-unity-tests.sh
+"$HOME/Unity/Hub/Editor/6000.4.4f1/Editor/Unity" -batchmode -projectPath "$PWD" -executeMethod Game.Editor.ProjectTestRunner.ValidateStartupSceneCommandLine -quit -logFile /tmp/mobile-game-startup-validation.log
+"$HOME/Unity/Hub/Editor/6000.4.4f1/Editor/Unity" -batchmode -projectPath "$PWD" -executeMethod Game.Editor.ProjectTestRunner.ValidateTelemetryAnalyzerCommandLine -quit -logFile /tmp/mobile-game-telemetry-validation.log
+"$HOME/Unity/Hub/Editor/6000.4.4f1/Editor/Unity" -batchmode -projectPath "$PWD" -executeMethod Game.Editor.ProjectTestRunner.ValidateGeneratorIdempotencyCommandLine -quit -logFile /tmp/mobile-game-generator-idempotency.log
 ```
 
 The PlayMode suite includes a startup smoke regression test that validates the same scene path used by Unity Play Mode, waits several frames, checks the player, camera, HUD, rhythm, score, telemetry, arena/enemy roots, verifies `Time.timeScale == 1`, and fails on fatal startup logs such as null references, missing references, missing scripts, or scene load failures.
@@ -137,7 +153,8 @@ The custom summaries are the source of truth. Unity XML output may exist for com
 - Touch controls and device profiling are not done.
 - Telemetry is local developer instrumentation, not a production analytics service.
 - Some deferred Mage, Archer, Healer, projectile, and class-swap assets still exist for compile compatibility only.
+- Phase 9.6 tuning needs real 5-10 run Warrior telemetry before further balance changes.
 
 ## Next
 
-Next phase should be a hands-on Warrior feel pass: melee hit readability, boss/elite rhythm telegraphs, arena pacing over waves 1-10, mobile touch controls, and pooled feedback/pickup effects for mobile stress testing.
+Next phase should be a hands-on Warrior telemetry batch: 5-10 normal runs, analyzer summary capture, then a second narrow pass on rhythm bias, dodge forgiveness, telegraph readability, or early wave pacing based on measured misses and survival.

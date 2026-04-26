@@ -40,6 +40,25 @@ namespace Game.Editor
             RunOrPrepare(TestMode.PlayMode);
         }
 
+        public static void ValidateStartupSceneCommandLine()
+        {
+            if (!VerticalSliceStartup.ValidateStartupScene())
+                throw new InvalidOperationException("Startup scene validation failed.");
+        }
+
+        public static void ValidateTelemetryAnalyzerCommandLine()
+        {
+            if (!TelemetryAnalysisWindow.ValidateAnalyzer())
+                throw new InvalidOperationException("Telemetry analyzer validation failed.");
+            Debug.Log("Telemetry analyzer validation passed.");
+        }
+
+        public static void ValidateGeneratorIdempotencyCommandLine()
+        {
+            if (!Game.EditorTools.VerticalSliceSetupWindow.ValidateGeneratorIdempotency())
+                throw new InvalidOperationException("Vertical slice generator idempotency validation failed.");
+        }
+
         private static void RunOrPrepare(TestMode mode)
         {
             if (IsUnityRunTestsInvocation())

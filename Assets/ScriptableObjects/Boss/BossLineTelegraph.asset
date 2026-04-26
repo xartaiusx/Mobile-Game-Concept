@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Game.Combat.BossTelegraphData
   telegraphId: boss_line
   displayName: Boss Line
-  beatsBeforeImpact: 3
+  beatsBeforeImpact: 4
   repeatCount: 2
   beatsBetweenRepeats: 1
   damage: 7

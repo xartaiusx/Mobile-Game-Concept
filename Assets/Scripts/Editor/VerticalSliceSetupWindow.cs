@@ -8,6 +8,10 @@ using Game.Feedback;
 using Game.Rhythm;
 using Game.Systems;
 using Game.UI;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Text;
 using UnityEditor;
 using UnityEditor.Animations;
 using UnityEditor.SceneManagement;
@@ -15,6 +19,7 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
+using Object = UnityEngine.Object;
 
 namespace Game.EditorTools
 {
@@ -45,7 +50,7 @@ namespace Game.EditorTools
             AbilityDefinition healerPulse = CreateAbility("Assets/ScriptableObjects/Abilities/HealerPulse.asset", "healer_pulse", "Healer Pulse", "Self heal pulse. Perfect timing adds a brief protection window.", 0, 22, 2.4f, 0f, 3.5f, AbilityType.Heal, AbilityTargetMode.Self, AbilityExecutionStyle.Pulse, new AbilityRhythmScaling { perfectMultiplier = 1.65f, goodMultiplier = 1.15f, missMultiplier = 0.75f }, 0f, 0.45f);
             FeedbackPrefabs feedbackPrefabs = CreateFeedbackPrefabs(materials);
             BossTelegraphData bossSlam = CreateBossTelegraph("Assets/ScriptableObjects/Boss/BossSlamTelegraph.asset", "boss_slam", "Boss Slam", BossAttackType.Slam, TelegraphShape.Circle, 4, 1, 1, 10, 3f, 8f, 1.5f, 6f, feedbackPrefabs.bossWarning, feedbackPrefabs.bossImpact);
-            BossTelegraphData bossLine = CreateBossTelegraph("Assets/ScriptableObjects/Boss/BossLineTelegraph.asset", "boss_line", "Boss Line", BossAttackType.Line, TelegraphShape.Line, 3, 2, 1, 7, 1.5f, 10f, 2.2f, 10f, feedbackPrefabs.bossWarning, feedbackPrefabs.bossImpact);
+            BossTelegraphData bossLine = CreateBossTelegraph("Assets/ScriptableObjects/Boss/BossLineTelegraph.asset", "boss_line", "Boss Line", BossAttackType.Line, TelegraphShape.Line, 4, 2, 1, 7, 1.5f, 10f, 2.2f, 10f, feedbackPrefabs.bossWarning, feedbackPrefabs.bossImpact);
             BossPhaseData phaseOne = CreateBossPhase("Assets/ScriptableObjects/Boss/BossPhaseOne.asset", "Phase 1", 1f, false, 1, 0.2f, 1f, 1f, 1f, 1.15f, new[] { bossSlam });
             BossPhaseData phaseTwo = CreateBossPhase("Assets/ScriptableObjects/Boss/BossPhaseTwo.asset", "Phase 2", 0.5f, true, 2, 0.25f, 1.08f, 0.78f, 0.72f, 1.35f, new[] { bossLine, bossSlam });
             ItemDefinition goldItem = CreateItem("Assets/ScriptableObjects/Items/Gold.asset", "gold", "Gold", 999, 1, 0);
@@ -64,16 +69,239 @@ namespace Game.EditorTools
             GameObject bossPrefab = CreateBossPrefab(projectilePrefab, bossSlam, new[] { phaseOne, phaseTwo }, materials.boss, feedbackPrefabs.enemyWindup, audioCues, animations.bossController);
             GameObject hudPrefab = CreateHudPrefab();
 
-            Scene scene = EditorSceneManager.NewScene(NewSceneSetup.DefaultGameObjects, NewSceneMode.Single);
-            scene.name = "VerticalSlice";
-            BuildScene(fighterPrefab, magePrefab, archerPrefab, healerPrefab, meleePrefab, rangedPrefab, bossPrefab, hudPrefab, rhythmConfig, bossSlam, goldPickupPrefab, potionPickupPrefab, materials, feedbackPrefabs, audioCues, audioPrefab);
-            EditorSceneManager.SaveScene(scene, ScenePath);
+            if (ShouldRebuildScene())
+            {
+                Scene scene = EditorSceneManager.NewScene(NewSceneSetup.DefaultGameObjects, NewSceneMode.Single);
+                scene.name = "VerticalSlice";
+                BuildScene(fighterPrefab, magePrefab, archerPrefab, healerPrefab, meleePrefab, rangedPrefab, bossPrefab, hudPrefab, rhythmConfig, bossSlam, goldPickupPrefab, potionPickupPrefab, materials, feedbackPrefabs, audioCues, audioPrefab);
+                EditorSceneManager.SaveScene(scene, ScenePath);
+            }
+
             AddSceneToBuildSettings(ScenePath);
             Game.Editor.VerticalSliceStartup.EnsureStartupSceneConfigured();
 
             AssetDatabase.SaveAssets();
+            NormalizeGeneratedMaterialYaml();
             AssetDatabase.Refresh();
             Debug.Log("Created playable vertical slice scene at " + ScenePath);
+        }
+
+        [MenuItem("Game/Vertical Slice/Validate Generator Idempotency")]
+        public static bool ValidateGeneratorIdempotency()
+        {
+            CreatePlayableVerticalSlice();
+            Dictionary<string, string> firstSnapshot = CaptureGeneratedFileHashes();
+            CreatePlayableVerticalSlice();
+            Dictionary<string, string> secondSnapshot = CaptureGeneratedFileHashes();
+
+            var failures = new List<string>();
+            foreach (KeyValuePair<string, string> entry in firstSnapshot)
+            {
+                if (!secondSnapshot.TryGetValue(entry.Key, out string secondHash))
+                {
+                    failures.Add("Missing after second generation: " + entry.Key);
+                    continue;
+                }
+
+                if (!string.Equals(entry.Value, secondHash, StringComparison.Ordinal))
+                    failures.Add("Changed after second generation: " + entry.Key);
+            }
+
+            foreach (string path in secondSnapshot.Keys)
+            {
+                if (!firstSnapshot.ContainsKey(path))
+                    failures.Add("New file after second generation: " + path);
+            }
+
+            failures.AddRange(GetGeneratedContentValidationFailures());
+
+            if (failures.Count == 0)
+            {
+                Debug.Log("Vertical slice generator idempotency validation passed.");
+                return true;
+            }
+
+            Debug.LogError("Vertical slice generator idempotency validation failed:\n" + string.Join("\n", failures));
+            return false;
+        }
+
+        private static bool ShouldRebuildScene()
+        {
+            return !File.Exists(ScenePath) || GetGeneratedSceneValidationFailures().Count > 0;
+        }
+
+        private static List<string> GetGeneratedContentValidationFailures()
+        {
+            var failures = new List<string>();
+            failures.AddRange(GetGeneratedSceneValidationFailures());
+
+            string[] prefabPaths =
+            {
+                "Assets/Prefabs/Player/FighterPlayer.prefab",
+                "Assets/Prefabs/Enemies/MeleeEnemy.prefab",
+                "Assets/Prefabs/Enemies/RangedEnemy.prefab",
+                "Assets/Prefabs/Enemies/BossEnemy.prefab",
+                "Assets/Prefabs/UI/VerticalSliceHUD.prefab",
+                "Assets/Prefabs/Projectiles/BasicProjectile.prefab",
+                "Assets/Prefabs/Pickups/GoldPickup.prefab",
+                "Assets/Prefabs/Pickups/HealthPotionPickup.prefab"
+            };
+
+            for (int i = 0; i < prefabPaths.Length; i++)
+            {
+                if (AssetDatabase.LoadAssetAtPath<GameObject>(prefabPaths[i]) == null)
+                    failures.Add("Missing generated prefab: " + prefabPaths[i]);
+            }
+
+            if (AssetDatabase.FindAssets("t:Material", new[] { "Assets/Materials" }).Length < 10)
+                failures.Add("Generated materials are missing or incomplete.");
+
+            return failures;
+        }
+
+        private static List<string> GetGeneratedSceneValidationFailures()
+        {
+            var failures = new List<string>();
+            if (!File.Exists(ScenePath))
+            {
+                failures.Add("Missing scene: " + ScenePath);
+                return failures;
+            }
+
+            Scene previousScene = SceneManager.GetActiveScene();
+            string previousPath = previousScene.path;
+            Scene scene = EditorSceneManager.OpenScene(ScenePath, OpenSceneMode.Single);
+            try
+            {
+                RequireSceneObjectExactlyOnce("GameManager", failures);
+                RequireSceneObjectExactlyOnce("PlayerManager", failures);
+                RequireSceneObjectExactlyOnce("RhythmSystem", failures);
+                RequireSceneObjectExactlyOnce("ScoreSystem", failures);
+                RequireSceneObjectExactlyOnce("TelemetryManager", failures);
+                RequireSceneObjectExactlyOnce("EnemySpawner", failures);
+                RequireSceneObjectExactlyOnce("ArenaController", failures);
+                RequireSceneObjectExactlyOnce("Player_Warrior", failures);
+                RequireSceneObjectExactlyOnce("VerticalSliceHUD", failures);
+
+                var player = GameObject.Find("Player_Warrior");
+                if (player != null)
+                {
+                    if (player.GetComponent<BaseCharacter>() == null)
+                        failures.Add("Player_Warrior missing BaseCharacter.");
+                    if (player.GetComponent<DodgeController>() == null)
+                        failures.Add("Player_Warrior missing DodgeController.");
+                    if (player.GetComponent<ComboSystem>() == null)
+                        failures.Add("Player_Warrior missing ComboSystem.");
+                }
+
+                if (UnityEngine.Object.FindObjectsByType<RhythmJudgement>(FindObjectsInactive.Include).Length != 1)
+                    failures.Add("Expected exactly one RhythmJudgement.");
+
+                Component[] allComponents = UnityEngine.Object.FindObjectsByType<Component>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+                for (int i = 0; i < allComponents.Length; i++)
+                {
+                    if (allComponents[i] == null)
+                        failures.Add("Scene contains a missing script reference.");
+                }
+            }
+            finally
+            {
+                if (!string.IsNullOrEmpty(previousPath) && File.Exists(previousPath) && previousPath != ScenePath)
+                    EditorSceneManager.OpenScene(previousPath, OpenSceneMode.Single);
+            }
+
+            return failures;
+        }
+
+        private static void RequireSceneObjectExactlyOnce(string name, List<string> failures)
+        {
+            GameObject[] objects = Resources.FindObjectsOfTypeAll<GameObject>();
+            int count = 0;
+            for (int i = 0; i < objects.Length; i++)
+            {
+                if (objects[i].hideFlags == HideFlags.None && objects[i].scene.IsValid() && objects[i].name == name)
+                    count++;
+            }
+
+            if (count != 1)
+                failures.Add("Expected exactly one scene object named " + name + ", found " + count + ".");
+        }
+
+        private static Dictionary<string, string> CaptureGeneratedFileHashes()
+        {
+            var hashes = new Dictionary<string, string>(StringComparer.Ordinal);
+            string[] roots =
+            {
+                ScenePath,
+                "Assets/Prefabs",
+                "Assets/Materials",
+                "Assets/Animations",
+                "Assets/ScriptableObjects"
+            };
+
+            for (int i = 0; i < roots.Length; i++)
+            {
+                if (File.Exists(roots[i]))
+                {
+                    hashes[roots[i]] = ComputeNormalizedHash(roots[i]);
+                    continue;
+                }
+
+                if (!Directory.Exists(roots[i]))
+                    continue;
+
+                string[] files = Directory.GetFiles(roots[i], "*", SearchOption.AllDirectories);
+                Array.Sort(files, StringComparer.Ordinal);
+                for (int j = 0; j < files.Length; j++)
+                {
+                    string path = files[j].Replace('\\', '/');
+                    if (path.EndsWith(".meta", StringComparison.Ordinal) || path.Contains("/ThirdParty/", StringComparison.Ordinal))
+                        continue;
+
+                    hashes[path] = ComputeNormalizedHash(path);
+                }
+            }
+
+            return hashes;
+        }
+
+        private static string ComputeNormalizedHash(string path)
+        {
+            string text = File.ReadAllText(path).Replace("\r\n", "\n").Replace('\r', '\n');
+            byte[] bytes = Encoding.UTF8.GetBytes(text);
+            using (var sha = System.Security.Cryptography.SHA256.Create())
+                return Convert.ToBase64String(sha.ComputeHash(bytes));
+        }
+
+        private static void NormalizeGeneratedMaterialYaml()
+        {
+            if (!Directory.Exists("Assets/Materials"))
+                return;
+
+            string[] files = Directory.GetFiles("Assets/Materials", "*.mat", SearchOption.AllDirectories);
+            for (int i = 0; i < files.Length; i++)
+            {
+                string text = File.ReadAllText(files[i]);
+                string normalized = StripTrailingWhitespace(text);
+                if (!string.Equals(text, normalized, StringComparison.Ordinal))
+                    File.WriteAllText(files[i], normalized);
+            }
+        }
+
+        private static string StripTrailingWhitespace(string text)
+        {
+            text = text.Replace("\r\n", "\n").Replace('\r', '\n');
+            string[] lines = text.Split('\n');
+            var builder = new StringBuilder(text.Length);
+            for (int i = 0; i < lines.Length; i++)
+            {
+                string line = lines[i].TrimEnd(' ', '\t');
+                builder.Append(line);
+                if (i < lines.Length - 1)
+                    builder.Append('\n');
+            }
+
+            return builder.ToString();
         }
 
         private void OnGUI()
@@ -237,15 +465,26 @@ namespace Game.EditorTools
             EnsureAnimatorParameter(controller, "RhythmGrade", AnimatorControllerParameterType.Int);
 
             AnimatorStateMachine machine = controller.layers[0].stateMachine;
-            machine.states = new ChildAnimatorState[0];
-            AddState(machine, "Idle", idle, new Vector3(240f, 60f, 0f));
-            AddState(machine, "Move", move != null ? move : idle, new Vector3(240f, 140f, 0f));
-            AddState(machine, "Attack", attack != null ? attack : idle, new Vector3(240f, 220f, 0f));
-            AddState(machine, "Dodge", dodge != null ? dodge : idle, new Vector3(240f, 300f, 0f));
-            AddState(machine, "Parry", parry != null ? parry : idle, new Vector3(240f, 380f, 0f));
-            AddState(machine, "Hit", hit != null ? hit : idle, new Vector3(520f, 180f, 0f));
-            AddState(machine, "Death", death != null ? death : idle, new Vector3(520f, 300f, 0f));
-            EditorUtility.SetDirty(controller);
+            bool changed = false;
+            changed |= EnsureState(machine, "Idle", idle, new Vector3(240f, 60f, 0f));
+            changed |= EnsureState(machine, "Move", move != null ? move : idle, new Vector3(240f, 140f, 0f));
+            changed |= EnsureState(machine, "Attack", attack != null ? attack : idle, new Vector3(240f, 220f, 0f));
+            changed |= EnsureState(machine, "Dodge", dodge != null ? dodge : idle, new Vector3(240f, 300f, 0f));
+            changed |= EnsureState(machine, "Parry", parry != null ? parry : idle, new Vector3(240f, 380f, 0f));
+            changed |= EnsureState(machine, "Hit", hit != null ? hit : idle, new Vector3(520f, 180f, 0f));
+            changed |= EnsureState(machine, "Death", death != null ? death : idle, new Vector3(520f, 300f, 0f));
+            if (machine.defaultState == null)
+            {
+                AnimatorState idleState = FindState(machine, "Idle");
+                if (idleState != null)
+                {
+                    machine.defaultState = idleState;
+                    changed = true;
+                }
+            }
+
+            if (changed)
+                EditorUtility.SetDirty(controller);
             return controller;
         }
 
@@ -259,12 +498,57 @@ namespace Game.EditorTools
             controller.AddParameter(name, type);
         }
 
-        private static void AddState(AnimatorStateMachine machine, string name, Motion motion, Vector3 position)
+        private static bool EnsureState(AnimatorStateMachine machine, string name, Motion motion, Vector3 position)
         {
-            AnimatorState state = machine.AddState(name, position);
-            state.motion = motion;
+            AnimatorState state = FindState(machine, name);
+            bool changed = false;
+            if (state == null)
+            {
+                state = machine.AddState(name, position);
+                changed = true;
+            }
+
+            if (state.motion != motion)
+            {
+                state.motion = motion;
+                changed = true;
+            }
+
+            ChildAnimatorState[] states = machine.states;
+            for (int i = 0; i < states.Length; i++)
+            {
+                if (states[i].state != state)
+                    continue;
+
+                if (states[i].position != position)
+                {
+                    states[i].position = position;
+                    machine.states = states;
+                    changed = true;
+                }
+
+                break;
+            }
+
             if (machine.defaultState == null)
+            {
                 machine.defaultState = state;
+                changed = true;
+            }
+
+            return changed;
+        }
+
+        private static AnimatorState FindState(AnimatorStateMachine machine, string name)
+        {
+            ChildAnimatorState[] states = machine.states;
+            for (int i = 0; i < states.Length; i++)
+            {
+                if (states[i].state != null && states[i].state.name == name)
+                    return states[i].state;
+            }
+
+            return null;
         }
 
         private static RhythmConfig CreateRhythmConfig()
@@ -273,9 +557,9 @@ namespace Game.EditorTools
             config.bpm = 120f;
             config.dspOffsetSeconds = 0d;
             config.perfectWindow = 0.05f;
-            config.goodWindow = 0.10f;
-            config.earlyInputBiasSeconds = 0.015f;
-            config.lateInputBiasSeconds = 0.005f;
+            config.goodWindow = 0.11f;
+            config.earlyInputBiasSeconds = 0.018f;
+            config.lateInputBiasSeconds = 0.007f;
             config.perfectDamageMultiplier = 1.5f;
             config.goodDamageMultiplier = 1.15f;
             config.missDamageMultiplier = 0.75f;
@@ -961,6 +1245,13 @@ namespace Game.EditorTools
 
         private static GameObject SavePrefab(string path, GameObject source)
         {
+            GameObject existing = AssetDatabase.LoadAssetAtPath<GameObject>(path);
+            if (existing != null)
+            {
+                Object.DestroyImmediate(source);
+                return existing;
+            }
+
             GameObject prefab = PrefabUtility.SaveAsPrefabAsset(source, path);
             Object.DestroyImmediate(source);
             return prefab;
@@ -969,44 +1260,104 @@ namespace Game.EditorTools
         private static Material CreateMaterial(string path, Color color, string texturePath = null, bool transparent = false)
         {
             Material material = AssetDatabase.LoadAssetAtPath<Material>(path);
+            bool changed = false;
             if (material == null)
             {
                 material = new Material(Shader.Find("Standard"));
                 AssetDatabase.CreateAsset(material, path);
+                changed = true;
             }
 
-            material.color = color;
-            material.mainTexture = !string.IsNullOrEmpty(texturePath) ? AssetDatabase.LoadAssetAtPath<Texture2D>(texturePath) : null;
+            Texture2D texture = !string.IsNullOrEmpty(texturePath) ? AssetDatabase.LoadAssetAtPath<Texture2D>(texturePath) : null;
+            if (material.color != color)
+            {
+                material.color = color;
+                changed = true;
+            }
+
+            if (material.mainTexture != texture)
+            {
+                material.mainTexture = texture;
+                changed = true;
+            }
+
             if (transparent)
-                ConfigureTransparentMaterial(material);
+                changed |= ConfigureTransparentMaterial(material);
             else
-                ConfigureOpaqueMaterial(material);
-            EditorUtility.SetDirty(material);
+                changed |= ConfigureOpaqueMaterial(material);
+
+            if (changed)
+                EditorUtility.SetDirty(material);
             return material;
         }
 
-        private static void ConfigureTransparentMaterial(Material material)
+        private static bool ConfigureTransparentMaterial(Material material)
         {
-            material.SetFloat("_Mode", 3f);
-            material.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.SrcAlpha);
-            material.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
-            material.SetInt("_ZWrite", 0);
-            material.DisableKeyword("_ALPHATEST_ON");
-            material.EnableKeyword("_ALPHABLEND_ON");
-            material.DisableKeyword("_ALPHAPREMULTIPLY_ON");
-            material.renderQueue = 3000;
+            bool changed = false;
+            changed |= SetMaterialFloat(material, "_Mode", 3f);
+            changed |= SetMaterialInt(material, "_SrcBlend", (int)UnityEngine.Rendering.BlendMode.SrcAlpha);
+            changed |= SetMaterialInt(material, "_DstBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+            changed |= SetMaterialInt(material, "_ZWrite", 0);
+            changed |= SetMaterialKeyword(material, "_ALPHATEST_ON", false);
+            changed |= SetMaterialKeyword(material, "_ALPHABLEND_ON", true);
+            changed |= SetMaterialKeyword(material, "_ALPHAPREMULTIPLY_ON", false);
+            if (material.renderQueue != 3000)
+            {
+                material.renderQueue = 3000;
+                changed = true;
+            }
+
+            return changed;
         }
 
-        private static void ConfigureOpaqueMaterial(Material material)
+        private static bool ConfigureOpaqueMaterial(Material material)
         {
-            material.SetFloat("_Mode", 0f);
-            material.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.One);
-            material.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.Zero);
-            material.SetInt("_ZWrite", 1);
-            material.DisableKeyword("_ALPHATEST_ON");
-            material.DisableKeyword("_ALPHABLEND_ON");
-            material.DisableKeyword("_ALPHAPREMULTIPLY_ON");
-            material.renderQueue = -1;
+            bool changed = false;
+            changed |= SetMaterialFloat(material, "_Mode", 0f);
+            changed |= SetMaterialInt(material, "_SrcBlend", (int)UnityEngine.Rendering.BlendMode.One);
+            changed |= SetMaterialInt(material, "_DstBlend", (int)UnityEngine.Rendering.BlendMode.Zero);
+            changed |= SetMaterialInt(material, "_ZWrite", 1);
+            changed |= SetMaterialKeyword(material, "_ALPHATEST_ON", false);
+            changed |= SetMaterialKeyword(material, "_ALPHABLEND_ON", false);
+            changed |= SetMaterialKeyword(material, "_ALPHAPREMULTIPLY_ON", false);
+            if (material.renderQueue != -1)
+            {
+                material.renderQueue = -1;
+                changed = true;
+            }
+
+            return changed;
+        }
+
+        private static bool SetMaterialFloat(Material material, string propertyName, float value)
+        {
+            if (Mathf.Approximately(material.GetFloat(propertyName), value))
+                return false;
+
+            material.SetFloat(propertyName, value);
+            return true;
+        }
+
+        private static bool SetMaterialInt(Material material, string propertyName, int value)
+        {
+            if (material.GetInt(propertyName) == value)
+                return false;
+
+            material.SetInt(propertyName, value);
+            return true;
+        }
+
+        private static bool SetMaterialKeyword(Material material, string keyword, bool enabled)
+        {
+            if (material.IsKeywordEnabled(keyword) == enabled)
+                return false;
+
+            if (enabled)
+                material.EnableKeyword(keyword);
+            else
+                material.DisableKeyword(keyword);
+
+            return true;
         }
 
         private static void AssignMaterial(GameObject go, Material material)
