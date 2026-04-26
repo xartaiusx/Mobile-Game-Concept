@@ -64,10 +64,10 @@ namespace Game.Core
             GameObject enemyPrefab = enemyPrefabs[Random.Range(0, enemyPrefabs.Length)];
             Transform spawnPoint = spawnPoints[Random.Range(0, spawnPoints.Length)];
             if (enemyPrefab == null || spawnPoint == null) return;
-        
+
             GameObject enemy = Instantiate(enemyPrefab, spawnPoint.position, Quaternion.identity);
             activeEnemies.Add(enemy);
-        
+
             BaseEnemy baseEnemy = enemy.GetComponent<BaseEnemy>();
             if (baseEnemy != null)
                 baseEnemy.Defeated += HandleEnemyDefeated;

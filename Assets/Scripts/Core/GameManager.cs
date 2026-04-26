@@ -15,6 +15,7 @@ namespace Game.Core
         public GameObject magePrefab;
         public GameObject archerPrefab;
         public GameObject healerPrefab;
+        [SerializeField] private Transform playerSpawnPoint;
 
         private void Awake()
         {
@@ -26,6 +27,16 @@ namespace Game.Core
 
         private void Start()
         {
+            if (PlayerManager.Instance != null && PlayerManager.Instance.GetPlayerTransform() != null)
+                return;
+
+            GameObject existingPlayer = GameObject.FindGameObjectWithTag("Player");
+            if (existingPlayer != null)
+            {
+                PlayerManager.Instance?.RegisterPlayer(existingPlayer.transform);
+                return;
+            }
+
             string selectedClass = PlayerPrefs.GetString("SelectedClass", "Fighter").Trim();
 
             if (string.IsNullOrEmpty(selectedClass) || !characterPrefabs.ContainsKey(selectedClass) || characterPrefabs[selectedClass] == null)
@@ -40,7 +51,7 @@ namespace Game.Core
                 return;
             }
 
-            Vector3 spawnPosition = new Vector3(0, 1, 0);
+            Vector3 spawnPosition = playerSpawnPoint != null ? playerSpawnPoint.position : new Vector3(0, 1, 0);
             GameObject player = Instantiate(characterPrefabs[selectedClass], spawnPosition, Quaternion.identity);
             if (player.GetComponent<PlayerController>() == null)
                 player.AddComponent<PlayerController>();
