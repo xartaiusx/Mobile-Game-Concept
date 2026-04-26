@@ -76,9 +76,10 @@ Imported free assets are documented in `Assets/ThirdParty/FreeAssets/ASSET_CREDI
 ```bash
 git diff --check
 "$HOME/Unity/Hub/Editor/6000.4.4f1/Editor/Unity" -quit -batchmode -projectPath "$PWD" -logFile /tmp/unity_warrior_endless_compile.log
-"$HOME/Unity/Hub/Editor/6000.4.4f1/Editor/Unity" -quit -batchmode -projectPath "$PWD" -runTests -testPlatform EditMode -logFile /tmp/mobile-game-editmode-warrior-endless.log
-"$HOME/Unity/Hub/Editor/6000.4.4f1/Editor/Unity" -quit -batchmode -projectPath "$PWD" -runTests -testPlatform PlayMode -logFile /tmp/mobile-game-playmode-warrior-endless.log
+Scripts/run-unity-tests.sh
 ```
+
+`Scripts/run-unity-tests.sh` writes authoritative summaries to `TestResults/editmode-summary.json`, `TestResults/playmode-summary.json`, and `TestResults/summary.txt`.
 
 ## Next
 

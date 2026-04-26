@@ -143,15 +143,16 @@ Required commands:
 ```bash
 git diff --check
 "$HOME/Unity/Hub/Editor/6000.4.4f1/Editor/Unity" -quit -batchmode -projectPath "$PWD" -logFile /tmp/unity_warrior_endless_compile.log
-"$HOME/Unity/Hub/Editor/6000.4.4f1/Editor/Unity" -quit -batchmode -projectPath "$PWD" -runTests -testPlatform EditMode -logFile /tmp/mobile-game-editmode-warrior-endless.log
-"$HOME/Unity/Hub/Editor/6000.4.4f1/Editor/Unity" -quit -batchmode -projectPath "$PWD" -runTests -testPlatform PlayMode -logFile /tmp/mobile-game-playmode-warrior-endless.log
+Scripts/run-unity-tests.sh
 ```
 
-Scan logs for compile errors, `NullReferenceException`, `MissingReferenceException`, missing scripts/references, duplicate singleton warnings, scene load failures, and test failures.
+`Scripts/run-unity-tests.sh` invokes `Game.Editor.ProjectTestRunner.RunEditMode` and `Game.Editor.ProjectTestRunner.RunPlayMode`, writes JSON summaries to `TestResults/editmode-summary.json` and `TestResults/playmode-summary.json`, writes `TestResults/summary.txt`, prints totals, and exits nonzero when summaries are missing, Unity exits nonzero, log scans find compile/null/missing-reference markers, or tests fail.
+
+The JSON summaries are the authoritative test report. `-testResults` XML may still be emitted for compatibility, but CI and local validation should not depend on XML as the only source of truth.
 
 Warrior validation artifacts should go under `Artifacts/WarriorEndless/`. Do not commit `Artifacts/`.
 
-Environment note: batchmode commands exit successfully in this environment but the Test Runner logs may not emit detailed per-test summaries. Use the Unity Test Runner window for detailed per-test reporting if needed.
+Environment note: Unity licensing handshake/curl messages can appear in batchmode logs without failing validation. Compile errors, `NullReferenceException`, `MissingReferenceException`, missing scripts/references, duplicate singleton warnings, scene load failures, and test failures should still be treated as failures.
 
 ## Known Limitations
 
