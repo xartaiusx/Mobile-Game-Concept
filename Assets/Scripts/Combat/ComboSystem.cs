@@ -1,5 +1,6 @@
 using UnityEngine;
 using Game.Rhythm;
+using Game.Systems;
 
 namespace Game.Combat
 {
@@ -14,32 +15,45 @@ namespace Game.Combat
         [SerializeField] private RhythmJudgement judgement;
         [SerializeField] private float attackRange = 1.7f;
         [SerializeField] private LayerMask enemyMask = ~0;
+        [SerializeField] private bool readLegacyInputDirectly;
+        [SerializeField] private int maxHitColliders = 12;
 
         private InputBuffer buffer;
         private int stepIndex;
         private float comboTimer;
+        private float inputCooldownRemaining;
+        private Collider[] hitCache;
+
+        public int CurrentStepIndex => stepIndex;
+        public float InputCooldownRemaining => inputCooldownRemaining;
 
         private void Awake()
         {
             buffer = GetComponent<InputBuffer>();
+            judgement = judgement != null ? judgement : GetComponent<RhythmJudgement>();
+            hitCache = new Collider[Mathf.Max(1, maxHitColliders)];
         }
 
         private void OnEnable()
         {
-            buffer.OnResolved += HandleResolved;
+            if (buffer != null)
+                buffer.OnResolved += HandleResolved;
         }
 
         private void OnDisable()
         {
-            buffer.OnResolved -= HandleResolved;
+            if (buffer != null)
+                buffer.OnResolved -= HandleResolved;
         }
 
         private void Update()
         {
             if (profile == null || profile.steps == null || profile.steps.Length == 0) return;
 
-            // Manual input example: left mouse fires buffer
-            if (Input.GetButtonDown("Fire1"))
+            if (inputCooldownRemaining > 0f)
+                inputCooldownRemaining -= Time.deltaTime;
+
+            if (readLegacyInputDirectly && inputCooldownRemaining <= 0f && buffer != null && Input.GetButtonDown("Fire1"))
                 buffer.RegisterPress();
 
             // combo timeout
@@ -57,22 +71,21 @@ namespace Game.Combat
         private void HandleResolved(RhythmGrade grade)
         {
             if (profile == null || profile.steps == null || profile.steps.Length == 0) return;
+            if (inputCooldownRemaining > 0f) return;
 
             // Clamp step
             if (stepIndex >= profile.steps.Length) stepIndex = 0;
 
             var step = profile.steps[stepIndex];
-            float mult = judgement.DamageMultiplier(grade);
+            float mult = judgement != null ? judgement.DamageMultiplier(grade) : 1f;
             int finalDamage = Mathf.Max(1, Mathf.RoundToInt(step.baseDamage * mult));
 
             DoMeleeHit(finalDamage);
 
-            // cooldown refund concept left as a hook for ability systems
-            float refund = judgement.CooldownRefund(grade);
-            float effectiveCooldown = Mathf.Max(0f, step.cooldown * (1f - refund));
-            // Could lock input for effectiveCooldown, or feed into ability manager
+            float refund = judgement != null ? judgement.CooldownRefund(grade) : 0f;
+            inputCooldownRemaining = Mathf.Max(0f, step.cooldown * (1f - refund));
+            Analytics.LogBeat(grade, stepIndex + 1);
 
-            // advance combo
             stepIndex = (stepIndex + 1) % profile.steps.Length;
             comboTimer = 0f;
         }
@@ -80,10 +93,10 @@ namespace Game.Combat
         private void DoMeleeHit(int damage)
         {
             Vector3 center = transform.position + transform.forward * (attackRange * 0.5f);
-            Collider[] hits = Physics.OverlapSphere(center, attackRange, enemyMask, QueryTriggerInteraction.Ignore);
-            for (int i = 0; i < hits.Length; i++)
+            int count = Physics.OverlapSphereNonAlloc(center, attackRange, hitCache, enemyMask, QueryTriggerInteraction.Ignore);
+            for (int i = 0; i < count; i++)
             {
-                var enemy = hits[i].GetComponent<Game.Core.BaseEnemy>();
+                var enemy = hitCache[i].GetComponent<Game.Core.BaseEnemy>();
                 if (enemy != null)
                 {
                     enemy.TakeDamage(damage);

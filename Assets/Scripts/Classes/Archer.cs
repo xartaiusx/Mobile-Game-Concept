@@ -1,57 +1,54 @@
-public class Archer : BaseCharacter
+using UnityEngine;
+using Game.Core;
+
+namespace Game.Classes
 {
-    private readonly int healthMultiplier;
-    private static readonly float HealthRestorationFactor = 0.3f; // Configurable setting for balance
-
-    public Archer(int customHealthMultiplier = 9)
+    public class Archer : BaseCharacter
     {
-        healthMultiplier = customHealthMultiplier;
-    }
+        [SerializeField] private int healthMultiplier = 9;
+        [SerializeField] private float healthRestorationFactor = 0.3f;
 
-    public override void InitializeStats()
-    {
-        Strength = 7;
-        Stamina = 6;
-        Intelligence = 5;
+        public override void InitializeStats()
+        {
+            CharacterName = "Archer";
+            Strength = 7;
+            Stamina = 6;
+            Intelligence = 5;
 
-        maxHealth = Stamina * healthMultiplier;
-        currentHealth = maxHealth;
-    }
+            MaxHealth = Stamina * healthMultiplier;
+            CurrentHealth = MaxHealth;
+        }
 
-    public override void LevelUp()
-    {
-        level++;
-        ApplyStatIncreases();
-        UpdateHealth();
-        UnlockAbilities();
-        ApplyAdditionalLevelUpEffects();
-    }
+        public override void LevelUp()
+        {
+            base.LevelUp();
+            ApplyStatIncreases();
+            UpdateHealth();
+            UnlockAbilities();
+            ApplyAdditionalLevelUpEffects();
+        }
 
-    private void ApplyStatIncreases()
-    {
-        Strength += 2;
-        Stamina += 2;
-        Intelligence += 2;
-    }
+        private void ApplyStatIncreases()
+        {
+            Strength += 2;
+            Stamina += 2;
+            Intelligence += 2;
+        }
 
-    private void UpdateHealth()
-    {
-        maxHealth = Stamina * healthMultiplier;
-        
-        // Restore a percentage of missing health on level up instead of full reset
-        int healthRestored = Mathf.CeilToInt((maxHealth - currentHealth) * HealthRestorationFactor);
-        currentHealth = Mathf.Min(currentHealth + healthRestored, maxHealth);
-    }
+        private void UpdateHealth()
+        {
+            MaxHealth = Stamina * healthMultiplier;
+            RestoreMissingHealthPercent(healthRestorationFactor);
+        }
 
-    private void UnlockAbilities()
-    {
-        // Placeholder for adding new abilities or skill trees in future expansions
-        Debug.Log("Archer has unlocked a new ability!");
-    }
+        private void UnlockAbilities()
+        {
+            Debug.Log("Archer has unlocked a new ability!");
+        }
 
-    private void ApplyAdditionalLevelUpEffects()
-    {
-        // Placeholder for additional level-up mechanics such as critical hit boosts or passive skills
-        Debug.Log("Archer receives additional level-up bonuses.");
+        private void ApplyAdditionalLevelUpEffects()
+        {
+            Debug.Log("Archer receives additional level-up bonuses.");
+        }
     }
 }

@@ -1,39 +1,40 @@
-public class Fighter : BaseCharacter
+using Game.Core;
+
+namespace Game.Classes
 {
-    private const int HealthMultiplier = 10;
-
-    public override void InitializeStats()
+    public class Fighter : BaseCharacter
     {
-        strength = 10;
-        stamina = 8;
-        intelligence = 3;
+        private const int HealthMultiplier = 10;
 
-        maxHealth = stamina * HealthMultiplier;
-        currentHealth = maxHealth;
-    }
-
-    public override void LevelUp()
-    {
-        level++;
-        IncreaseStats();
-        UpdateHealth();
-    }
-
-    private void IncreaseStats()
-    {
-        strength += 3;
-        stamina += 2;
-        intelligence += 1;
-    }
-
-    private void UpdateHealth()
-    {
-        maxHealth = stamina * HealthMultiplier;
-        
-        // Only reset current health if full healing is desired
-        if (currentHealth == maxHealth)
+        public override void InitializeStats()
         {
-            currentHealth = maxHealth;
+            CharacterName = "Fighter";
+            Strength = 10;
+            Stamina = 8;
+            Intelligence = 3;
+            MaxHealth = Stamina * HealthMultiplier;
+            CurrentHealth = MaxHealth;
+        }
+
+        public override void LevelUp()
+        {
+            base.LevelUp();
+            IncreaseStats();
+            UpdateHealth();
+        }
+
+        private void IncreaseStats()
+        {
+            Strength += 3;
+            Stamina += 2;
+            Intelligence += 1;
+        }
+
+        private void UpdateHealth()
+        {
+            int previousMax = MaxHealth;
+            MaxHealth = Stamina * HealthMultiplier;
+            CurrentHealth += MaxHealth - previousMax;
         }
     }
 }

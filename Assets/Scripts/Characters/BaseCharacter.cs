@@ -1,61 +1,85 @@
 using UnityEngine;
 using System;
 
-/// <summary>
-/// BaseCharacter defines the core properties and methods for all characters (Player + AI).
-/// </summary>
-public abstract class BaseCharacter : MonoBehaviour
+namespace Game.Core
 {
-    public string characterName;
-    public int level = 1;
-
-    private int strength;
-    private int stamina;
-    private int intelligence;
-
-    public int Strength
+    /// <summary>
+    /// BaseCharacter defines shared health, stats, damage, healing, and leveling behavior.
+    /// </summary>
+    public abstract class BaseCharacter : MonoBehaviour
     {
-        get => strength;
-        set => strength = Mathf.Max(0, value); // Prevents negative values
-    }
+        [SerializeField] private string characterName = "Character";
+        [SerializeField] private int level = 1;
+        [SerializeField] private int strength;
+        [SerializeField] private int stamina;
+        [SerializeField] private int intelligence;
+        [SerializeField] private int maxHealth;
+        [SerializeField] private int currentHealth;
+        [SerializeField] private bool initializeOnAwake = true;
 
-    public int Stamina
-    {
-        get => stamina;
-        set => stamina = Mathf.Max(0, value);
-    }
+        public string CharacterName { get => characterName; protected set => characterName = value; }
+        public int Level => level;
+        public int Strength { get => strength; protected set => strength = Mathf.Max(0, value); }
+        public int Stamina { get => stamina; protected set => stamina = Mathf.Max(0, value); }
+        public int Intelligence { get => intelligence; protected set => intelligence = Mathf.Max(0, value); }
+        public int MaxHealth { get => maxHealth; protected set => maxHealth = Mathf.Max(1, value); }
+        public int CurrentHealth { get => currentHealth; protected set => currentHealth = Mathf.Clamp(value, 0, MaxHealth); }
+        public bool IsAlive => CurrentHealth > 0;
 
-    public int Intelligence
-    {
-        get => intelligence;
-        set => intelligence = Mathf.Max(0, value);
-    }
+        public event Action<BaseCharacter> OnDamaged;
+        public event Action<BaseCharacter> OnHealed;
+        public event Action<BaseCharacter> OnDeath;
+        public event Action<BaseCharacter> OnLevelChanged;
 
-    public int maxHealth;
-    public int currentHealth;
-
-    public event Action<BaseCharacter> OnDeath;
-
-    public abstract void InitializeStats();
-    public virtual void LevelUp() {}
-
-    public void TakeDamage(int damage)
-    {
-        currentHealth = Mathf.Max(0, currentHealth - damage);
-        if (currentHealth == 0)
+        protected virtual void Awake()
         {
-            Die();
+            if (initializeOnAwake)
+                InitializeStats();
         }
-    }
 
-    public void Heal(int amount)
-    {
-        currentHealth = Mathf.Min(maxHealth, currentHealth + amount);
-    }
+        public abstract void InitializeStats();
 
-    private void Die()
-    {
-        Debug.Log(characterName + " has died.");
-        OnDeath?.Invoke(this);
+        public virtual void LevelUp()
+        {
+            level++;
+            OnLevelChanged?.Invoke(this);
+        }
+
+        protected void SetLevel(int value)
+        {
+            level = Mathf.Max(1, value);
+            OnLevelChanged?.Invoke(this);
+        }
+
+        protected void RestoreMissingHealthPercent(float fraction)
+        {
+            fraction = Mathf.Clamp01(fraction);
+            int missing = MaxHealth - CurrentHealth;
+            Heal(Mathf.CeilToInt(missing * fraction));
+        }
+
+        public void TakeDamage(int damage)
+        {
+            if (!IsAlive || damage <= 0) return;
+
+            CurrentHealth -= damage;
+            OnDamaged?.Invoke(this);
+
+            if (CurrentHealth == 0)
+                Die();
+        }
+
+        public void Heal(int amount)
+        {
+            if (!IsAlive || amount <= 0) return;
+            CurrentHealth += amount;
+            OnHealed?.Invoke(this);
+        }
+
+        protected virtual void Die()
+        {
+            Debug.Log(CharacterName + " has died.");
+            OnDeath?.Invoke(this);
+        }
     }
 }

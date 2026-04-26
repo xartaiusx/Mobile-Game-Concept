@@ -1,58 +1,57 @@
 using UnityEngine;
 using System.Collections.Generic;
 
-/// <summary>
-/// Handles loot drops from defeated enemies.
-/// </summary>
-public class LootSystem : MonoBehaviour
+namespace Game.Core
 {
-    [System.Serializable]
-    public class LootItem
+    /// <summary>
+    /// Handles loot drops from defeated enemies.
+    /// </summary>
+    public class LootSystem : MonoBehaviour
     {
-        public GameObject itemPrefab;
-        public float dropChance; // Percentage chance of dropping (0-100)
-    }
-
-    private List<LootItem> lootTable = new List<LootItem>();
-    [SerializeField] private Transform dropPoint;
-
-    public List<LootItem> LootTable => lootTable; // Exposed read-only property
-
-    private void Awake()
-    {
-        if (dropPoint == null)
+        [System.Serializable]
+        public class LootItem
         {
-            Debug.LogError("Drop point is not assigned in LootSystem.", this);
+            public GameObject itemPrefab;
+            [Range(0f, 100f)] public float dropChance;
         }
-    }
 
-    public void DropLoot()
-    {
-        if (dropPoint == null)
+        [SerializeField] private List<LootItem> lootTable = new List<LootItem>();
+        [SerializeField] private Transform dropPoint;
+
+        public IReadOnlyList<LootItem> LootTable => lootTable;
+
+        private void OnEnable()
         {
-            Debug.LogWarning("Cannot drop loot: Drop point is not assigned.");
-            return;
+            BaseEnemy.EnemyDefeatedGlobal += HandleEnemyDefeated;
         }
-        
-        foreach (var loot in lootTable)
+
+        private void OnDisable()
         {
-            if (loot.itemPrefab == null)
+            BaseEnemy.EnemyDefeatedGlobal -= HandleEnemyDefeated;
+        }
+
+        private void HandleEnemyDefeated(BaseEnemy enemy)
+        {
+            DropLoot(enemy != null ? enemy.transform.position : transform.position);
+        }
+
+        public void DropLoot()
+        {
+            DropLoot(dropPoint != null ? dropPoint.position : transform.position);
+        }
+
+        public void DropLoot(Vector3 position)
+        {
+            if (lootTable == null) return;
+
+            foreach (var loot in lootTable)
             {
-                Debug.LogWarning("Skipping loot drop: itemPrefab is null.");
-                continue;
-            }
+                if (loot == null || loot.itemPrefab == null)
+                    continue;
             
-            float roll = GetWeightedRandom();
-            if (roll <= loot.dropChance)
-            {
-                Instantiate(loot.itemPrefab, dropPoint.position, Quaternion.identity);
+                if (Random.value * 100f <= loot.dropChance)
+                    Instantiate(loot.itemPrefab, position, Quaternion.identity);
             }
         }
-    }
-
-    private float GetWeightedRandom()
-    {
-        // Generates a weighted random number with a bias towards lower or higher values
-        return Mathf.Pow(Random.value, 2) * 100f; // Adjust exponent for different distributions
     }
 }

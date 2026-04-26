@@ -1,58 +1,58 @@
 using System;
+using UnityEngine;
+using Game.Core;
 
-public class Healer : BaseCharacter
+namespace Game.Classes
 {
-    private static readonly float HealthRestorationFactor = GameSettings.HealerHealthRestorationFactor; // Configurable setting from game settings
-
-    public static event Action<Healer> OnLevelUpEffectsApplied;
-
-    public Healer() : base(10) {}
-
-    public override void InitializeStats()
+    public class Healer : BaseCharacter
     {
-        Strength = 4;
-        Stamina = 7;
-        Intelligence = 10;
+        [SerializeField] private int healthMultiplier = 10;
+        [SerializeField] private float healthRestorationFactor = 0.4f;
 
-        maxHealth = Stamina * healthMultiplier;
-        currentHealth = maxHealth;
-    }
+        public static event Action<Healer> OnLevelUpEffectsApplied;
 
-    public override void LevelUp()
-    {
-        level++;
-        ApplyStatIncreases();
-        UpdateHealth();
-        UnlockAbilities();
-        ApplyAdditionalLevelUpEffects();
-    }
+        public override void InitializeStats()
+        {
+            CharacterName = "Healer";
+            Strength = 4;
+            Stamina = 7;
+            Intelligence = 10;
 
-    private void ApplyStatIncreases()
-    {
-        Strength += 1;
-        Stamina += 3;
-        Intelligence += 3;
-    }
+            MaxHealth = Stamina * healthMultiplier;
+            CurrentHealth = MaxHealth;
+        }
 
-    private void UpdateHealth()
-    {
-        maxHealth = Stamina * healthMultiplier;
-        
-        // Restore a percentage of missing health on level up instead of full reset
-        int healthRestored = Mathf.CeilToInt((maxHealth - currentHealth) * HealthRestorationFactor);
-        currentHealth = Mathf.Min(currentHealth + healthRestored, maxHealth);
-    }
+        public override void LevelUp()
+        {
+            base.LevelUp();
+            ApplyStatIncreases();
+            UpdateHealth();
+            UnlockAbilities();
+            ApplyAdditionalLevelUpEffects();
+        }
 
-    private void UnlockAbilities()
-    {
-        // Placeholder for adding new abilities or skill trees in future expansions
-        Debug.Log("Healer has unlocked a new ability!");
-    }
+        private void ApplyStatIncreases()
+        {
+            Strength += 1;
+            Stamina += 3;
+            Intelligence += 3;
+        }
 
-    private void ApplyAdditionalLevelUpEffects()
-    {
-        // Invoke event-driven approach for extensibility
-        OnLevelUpEffectsApplied?.Invoke(this);
-        Debug.Log("Healer receives additional level-up bonuses.");
+        private void UpdateHealth()
+        {
+            MaxHealth = Stamina * healthMultiplier;
+            RestoreMissingHealthPercent(healthRestorationFactor);
+        }
+
+        private void UnlockAbilities()
+        {
+            Debug.Log("Healer has unlocked a new ability!");
+        }
+
+        private void ApplyAdditionalLevelUpEffects()
+        {
+            OnLevelUpEffectsApplied?.Invoke(this);
+            Debug.Log("Healer receives additional level-up bonuses.");
+        }
     }
 }

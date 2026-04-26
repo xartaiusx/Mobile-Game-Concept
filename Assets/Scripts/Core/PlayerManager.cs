@@ -17,9 +17,21 @@ namespace Game.Core
             Instance = this;
         }
 
+        private void OnDestroy()
+        {
+            if (Instance == this)
+                Instance = null;
+        }
+
         public void RegisterPlayer(Transform t)
         {
             Player = t;
+        }
+
+        public void UnregisterPlayer(Transform t)
+        {
+            if (Player == t)
+                Player = null;
         }
 
         public Transform GetPlayerTransform() => Player;

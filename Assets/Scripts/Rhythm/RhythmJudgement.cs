@@ -12,8 +12,16 @@ namespace Game.Rhythm
     {
         [SerializeField] private RhythmConfig config;
 
+        public RhythmConfig Config => config;
+
+        public void Configure(RhythmConfig rhythmConfig)
+        {
+            config = rhythmConfig;
+        }
+
         public RhythmGrade Judge(double signedDeltaSeconds)
         {
+            if (config == null) return RhythmGrade.Miss;
             double abs = System.Math.Abs(signedDeltaSeconds);
             if (abs <= config.perfectWindow) return RhythmGrade.Perfect;
             if (abs <= config.goodWindow) return RhythmGrade.Good;
@@ -22,6 +30,7 @@ namespace Game.Rhythm
 
         public float DamageMultiplier(RhythmGrade g)
         {
+            if (config == null) return 1f;
             switch (g)
             {
                 case RhythmGrade.Perfect: return config.perfectDamageMultiplier;
@@ -32,6 +41,7 @@ namespace Game.Rhythm
 
         public float CooldownRefund(RhythmGrade g)
         {
+            if (config == null) return 0f;
             switch (g)
             {
                 case RhythmGrade.Perfect: return config.perfectCooldownRefund;

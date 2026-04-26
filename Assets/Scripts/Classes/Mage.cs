@@ -1,50 +1,47 @@
-public class Mage : BaseCharacter
+using UnityEngine;
+using Game.Core;
+
+namespace Game.Classes
 {
-    private int healthMultiplier;
-
-    public Mage(int customHealthMultiplier = 8)
+    public class Mage : BaseCharacter
     {
-        healthMultiplier = customHealthMultiplier;
-    }
+        [SerializeField] private int healthMultiplier = 8;
 
-    public override void InitializeStats()
-    {
-        Strength = 3;
-        Stamina = 5;
-        Intelligence = 12;
+        public override void InitializeStats()
+        {
+            CharacterName = "Mage";
+            Strength = 3;
+            Stamina = 5;
+            Intelligence = 12;
 
-        maxHealth = Stamina * healthMultiplier;
-        currentHealth = maxHealth;
-    }
+            MaxHealth = Stamina * healthMultiplier;
+            CurrentHealth = MaxHealth;
+        }
 
-    public override void LevelUp()
-    {
-        level++;
-        IncreaseStats();
-        UpdateHealth();
-        UnlockAbilities();
-    }
+        public override void LevelUp()
+        {
+            base.LevelUp();
+            IncreaseStats();
+            UpdateHealth();
+            UnlockAbilities();
+        }
 
-    private void IncreaseStats()
-    {
-        Strength += 1;
-        Stamina += 2;
-        Intelligence += 4;
-    }
+        private void IncreaseStats()
+        {
+            Strength += 1;
+            Stamina += 2;
+            Intelligence += 4;
+        }
 
-    private void UpdateHealth()
-    {
-        maxHealth = Stamina * healthMultiplier;
-        
-        // Restore a percentage of missing health on level up instead of full reset
-        float healthRestorationFactor = 0.3f; // Heals 30% of missing health
-        int healthRestored = Mathf.CeilToInt((maxHealth - currentHealth) * healthRestorationFactor);
-        currentHealth = Mathf.Min(currentHealth + healthRestored, maxHealth);
-    }
+        private void UpdateHealth()
+        {
+            MaxHealth = Stamina * healthMultiplier;
+            RestoreMissingHealthPercent(0.3f);
+        }
 
-    private void UnlockAbilities()
-    {
-        // Placeholder for adding new abilities or skill trees in future expansions
-        Debug.Log("Mage has unlocked a new ability!");
+        private void UnlockAbilities()
+        {
+            Debug.Log("Mage has unlocked a new ability!");
+        }
     }
 }

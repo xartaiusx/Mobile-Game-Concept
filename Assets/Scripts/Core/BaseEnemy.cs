@@ -1,98 +1,113 @@
 using UnityEngine;
 using System;
 
-/// <summary>
-/// Base class for all AI enemies.
-/// </summary>
-public abstract class BaseEnemy : MonoBehaviour
+namespace Game.Core
 {
-    public string enemyName;
-    private int health;
-    public int attackDamage;
-    public float attackInterval;
-    public float moveSpeed;
-
-    protected float attackTimer;
-    protected CharacterController controller;
-    private bool isInvulnerable;
-    private float invulnerabilityDuration = 0.5f;
-    private float invulnerabilityTimer;
-
-    public static event Action<BaseEnemy> OnEnemyDefeated;
-
-    public int Health
+    /// <summary>
+    /// Base class for AI enemies. Owns health, attack cadence, and defeat events.
+    /// </summary>
+    public abstract class BaseEnemy : MonoBehaviour
     {
-        get => health;
-        private set => health = Mathf.Max(0, value); // Prevents negative health values
-    }
+        [SerializeField] private string enemyName = "Enemy";
+        [SerializeField] private int maxHealth = 25;
+        [SerializeField] private int health = 25;
+        [SerializeField] private int attackDamage = 5;
+        [SerializeField] private float attackInterval = 1.5f;
+        [SerializeField] private float moveSpeed = 3f;
+        [SerializeField] private float invulnerabilityDuration = 0.15f;
 
-    protected virtual void Start()
-    {
-        controller = GetComponent<CharacterController>();
-        if (controller == null)
+        protected float attackTimer;
+        protected CharacterController controller;
+        private bool isInvulnerable;
+        private float invulnerabilityTimer;
+        private bool defeated;
+
+        public static event Action<BaseEnemy> EnemyDefeatedGlobal;
+        public event Action<BaseEnemy> Defeated;
+
+        public string EnemyName => enemyName;
+        public int MaxHealth => maxHealth;
+        public int Health
         {
-            Debug.LogWarning(enemyName + " is missing a CharacterController. Ensure this enemy type requires one.");
+            get => health;
+            protected set => health = Mathf.Clamp(value, 0, maxHealth);
         }
-    }
+        public int AttackDamage { get => attackDamage; protected set => attackDamage = Mathf.Max(0, value); }
+        public float AttackInterval { get => attackInterval; protected set => attackInterval = Mathf.Max(0.05f, value); }
+        public float MoveSpeed { get => moveSpeed; protected set => moveSpeed = Mathf.Max(0f, value); }
+        public float HealthFraction => maxHealth <= 0 ? 0f : (float)Health / maxHealth;
+        public bool IsAlive => !defeated && Health > 0;
 
-    protected virtual void Update()
-    {
-        HandleAttackTimer();
-        HandleMovement();
-        HandleInvulnerability();
-    }
-
-    private void HandleAttackTimer()
-    {
-        attackTimer += Time.deltaTime;
-        if (attackTimer >= attackInterval)
+        protected virtual void Awake()
         {
-            PerformAttack();
-            attackTimer = 0;
+            Health = health <= 0 ? maxHealth : health;
         }
-    }
 
-    private void HandleInvulnerability()
-    {
-        if (isInvulnerable)
+        protected virtual void Start()
         {
-            invulnerabilityTimer -= Time.deltaTime;
-            if (invulnerabilityTimer <= 0)
+            controller = GetComponent<CharacterController>();
+        }
+
+        protected virtual void Update()
+        {
+            HandleAttackTimer();
+            HandleMovement();
+            HandleInvulnerability();
+        }
+
+        private void HandleAttackTimer()
+        {
+            if (attackInterval <= 0f) return;
+            attackTimer += Time.deltaTime;
+            if (attackTimer >= attackInterval)
             {
-                isInvulnerable = false;
+                PerformAttack();
+                attackTimer = 0f;
             }
         }
-    }
 
-    protected virtual void HandleMovement()
-    {
-        // Placeholder for movement logic; override in derived classes
-    }
-
-    public abstract void PerformAttack();
-
-    public void TakeDamage(int damage)
-    {
-        if (isInvulnerable)
+        private void HandleInvulnerability()
         {
-            Debug.Log(enemyName + " is invulnerable and did not take damage.");
-            return;
+            if (!isInvulnerable) return;
+
+            invulnerabilityTimer -= Time.deltaTime;
+            if (invulnerabilityTimer <= 0f)
+                isInvulnerable = false;
         }
 
-        Health -= damage;
-        isInvulnerable = true;
-        invulnerabilityTimer = invulnerabilityDuration;
-
-        if (Health <= 0)
+        protected virtual void HandleMovement()
         {
-            Die();
         }
-    }
 
-    protected virtual void Die()
-    {
-        Debug.Log(enemyName + " has been defeated.");
-        OnEnemyDefeated?.Invoke(this); // Trigger event for additional effects like loot drops
-        Destroy(gameObject);
+        public abstract void PerformAttack();
+
+        public void TakeDamage(int damage)
+        {
+            if (!IsAlive || damage <= 0) return;
+            if (isInvulnerable) return;
+
+            Health -= damage;
+            isInvulnerable = invulnerabilityDuration > 0f;
+            invulnerabilityTimer = invulnerabilityDuration;
+
+            if (Health <= 0)
+                Die();
+        }
+
+        protected virtual void Die()
+        {
+            if (defeated) return;
+            defeated = true;
+            Debug.Log(EnemyName + " has been defeated.");
+            Defeated?.Invoke(this);
+            EnemyDefeatedGlobal?.Invoke(this);
+            Destroy(gameObject);
+        }
+
+        public void ApplyPhaseStats(float moveSpeedMultiplier, float attackIntervalMultiplier)
+        {
+            MoveSpeed *= Mathf.Max(0.01f, moveSpeedMultiplier);
+            AttackInterval *= Mathf.Max(0.01f, attackIntervalMultiplier);
+        }
     }
 }

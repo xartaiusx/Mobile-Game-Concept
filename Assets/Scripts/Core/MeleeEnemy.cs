@@ -1,66 +1,50 @@
 using UnityEngine;
 
-/// <summary>
-/// Represents a melee-based enemy with close-range attacks.
-/// </summary>
-public class MeleeEnemy : BaseEnemy
+namespace Game.Core
 {
-    public float attackRange = 1.5f;
-    public float chaseRange = 5f;
-    private static Transform playerTarget;
-    private CharacterController characterController;
-    private float attackCooldown = 1.5f;
-    private float lastAttackTime;
-
-    protected override void Start()
+    /// <summary>
+    /// Represents a melee-based enemy with close-range attacks.
+    /// </summary>
+    public class MeleeEnemy : BaseEnemy
     {
-        base.Start();
-        characterController = GetComponent<CharacterController>();
-        if (characterController == null)
+        [SerializeField] private float attackRange = 1.5f;
+        [SerializeField] private float chaseRange = 5f;
+        private Transform playerTarget;
+        private CharacterController characterController;
+
+        protected override void Start()
         {
-            Debug.LogWarning(enemyName + " is missing a CharacterController.");
+            base.Start();
+            characterController = GetComponent<CharacterController>();
+            playerTarget = PlayerManager.Instance != null ? PlayerManager.Instance.GetPlayerTransform() : null;
         }
 
-        if (playerTarget == null)
+        protected override void HandleMovement()
         {
-            GameObject playerObject = GameObject.FindGameObjectWithTag("Player");
-            if (playerObject != null)
+            if (playerTarget == null || characterController == null)
+                return;
+
+            Vector3 flat = new Vector3(playerTarget.position.x, transform.position.y, playerTarget.position.z) - transform.position;
+            float distance = flat.magnitude;
+            if (distance <= chaseRange && distance > attackRange)
             {
-                playerTarget = playerObject.transform;
+                Vector3 direction = flat.normalized;
+                transform.rotation = Quaternion.LookRotation(direction);
+                characterController.Move(direction * MoveSpeed * Time.deltaTime);
             }
         }
-    }
 
-    protected override void Update()
-    {
-        base.Update();
-        HandleChase();
-    }
-
-    private void HandleChase()
-    {
-        if (playerTarget == null || characterController == null)
-            return;
-
-        float distance = Vector3.Distance(transform.position, playerTarget.position);
-        if (distance <= chaseRange)
+        public override void PerformAttack()
         {
-            Vector3 direction = (playerTarget.position - transform.position).normalized;
-            characterController.Move(direction * moveSpeed * Time.deltaTime);
-        }
-    }
+            if (playerTarget == null)
+                return;
 
-    public override void PerformAttack()
-    {
-        if (playerTarget == null)
-            return;
-
-        float distance = Vector3.Distance(transform.position, playerTarget.position);
-        if (distance <= attackRange && Time.time >= lastAttackTime + attackCooldown)
-        {
-            Debug.Log(enemyName + " attacks the player!");
-            lastAttackTime = Time.time;
-            // Placeholder for attack logic (e.g., dealing damage, animations)
+            float distance = Vector3.Distance(transform.position, playerTarget.position);
+            if (distance <= attackRange)
+            {
+                var character = playerTarget.GetComponent<BaseCharacter>();
+                if (character != null) character.TakeDamage(AttackDamage);
+            }
         }
     }
 }

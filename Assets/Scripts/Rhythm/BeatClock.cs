@@ -16,6 +16,7 @@ namespace Game.Rhythm
         public event Action<int, double> OnBeat; // args: beatIndex, dspTimeAtBeat
 
         private double secondsPerBeat;
+        private double firstBeatDspTime;
         private double nextBeatDspTime;
         private int beatIndex;
 
@@ -38,6 +39,12 @@ namespace Game.Rhythm
             ResetClock();
         }
 
+        private void OnDestroy()
+        {
+            if (Instance == this)
+                Instance = null;
+        }
+
         private void Update()
         {
             if (config == null) return;
@@ -55,6 +62,7 @@ namespace Game.Rhythm
             if (config == null) return;
             beatIndex = 0;
             double start = AudioSettings.dspTime + config.dspOffsetSeconds;
+            firstBeatDspTime = start;
             nextBeatDspTime = start;
         }
 
@@ -75,9 +83,8 @@ namespace Game.Rhythm
         public double TimeToNearestBeat(double dspTime)
         {
             if (secondsPerBeat <= 0) return double.MaxValue;
-            // Compute k such that beat time is closest to dspTime
-            double k = System.Math.Round((dspTime - (nextBeatDspTime - secondsPerBeat * beatIndex)) / secondsPerBeat + beatIndex);
-            double nearestBeatTime = (nextBeatDspTime - secondsPerBeat * beatIndex) + k * secondsPerBeat;
+            double k = System.Math.Round((dspTime - firstBeatDspTime) / secondsPerBeat);
+            double nearestBeatTime = firstBeatDspTime + k * secondsPerBeat;
             return dspTime - nearestBeatTime;
         }
 
@@ -86,8 +93,8 @@ namespace Game.Rhythm
         /// </summary>
         public double BeatPhase(double dspTime)
         {
-            double beatStartTime = (nextBeatDspTime - secondsPerBeat * beatIndex);
-            double t = dspTime - beatStartTime;
+            if (secondsPerBeat <= 0) return 0;
+            double t = dspTime - firstBeatDspTime;
             double phase = t / secondsPerBeat;
             phase -= System.Math.Floor(phase);
             return phase;

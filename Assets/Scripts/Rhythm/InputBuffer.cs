@@ -16,17 +16,25 @@ namespace Game.Rhythm
 
         private bool buffered;
         private double bufferedTime;
+        private BeatClock subscribedClock;
 
         private void OnEnable()
         {
-            if (BeatClock.Instance != null)
-                BeatClock.Instance.OnBeat += HandleBeat;
+            TrySubscribe();
+        }
+
+        private void Start()
+        {
+            TrySubscribe();
         }
 
         private void OnDisable()
         {
-            if (BeatClock.Instance != null)
-                BeatClock.Instance.OnBeat -= HandleBeat;
+            if (subscribedClock != null)
+            {
+                subscribedClock.OnBeat -= HandleBeat;
+                subscribedClock = null;
+            }
         }
 
         public void RegisterPress()
@@ -37,13 +45,20 @@ namespace Game.Rhythm
             bufferedTime = now;
         }
 
+        private void TrySubscribe()
+        {
+            if (subscribedClock != null || BeatClock.Instance == null) return;
+            subscribedClock = BeatClock.Instance;
+            subscribedClock.OnBeat += HandleBeat;
+        }
+
         private void HandleBeat(int beatIndex, double beatTime)
         {
             if (!buffered) return;
             double dt = bufferedTime - beatTime; // signed delta to the resolved beat
             if (System.Math.Abs(dt) <= bufferWindowSeconds)
             {
-                var grade = judgement.Judge(dt);
+                var grade = judgement != null ? judgement.Judge(dt) : RhythmGrade.Miss;
                 OnResolved?.Invoke(grade);
                 buffered = false;
             }

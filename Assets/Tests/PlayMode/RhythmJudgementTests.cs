@@ -13,7 +13,7 @@ public class RhythmJudgementTests
         cfg.perfectWindow = 0.05f;
         cfg.goodWindow = 0.10f;
         var judge = go.AddComponent<RhythmJudgement>();
-        go.GetComponent<RhythmJudgement>().GetType().GetField("config", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).SetValue(judge, cfg);
+        judge.Configure(cfg);
 
         Assert.AreEqual(RhythmGrade.Perfect, judge.Judge(0.00));
         Assert.AreEqual(RhythmGrade.Perfect, judge.Judge(0.04));
