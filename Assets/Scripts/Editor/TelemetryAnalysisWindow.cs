@@ -41,8 +41,9 @@ namespace Game.Editor
 
                 Directory.CreateDirectory(sampleDirectory);
                 File.WriteAllText(Path.Combine(sampleDirectory, "run_sample.json"), SampleTelemetryJson());
+                File.WriteAllText(Path.Combine(sampleDirectory, "run_broken.json"), "{broken telemetry");
                 TelemetryAnalysisSummary sample = TelemetryAnalysis.AnalyzeDirectory(sampleDirectory);
-                return sample.fileCount == 1 && sample.validRunCount == 1 && sample.shortSessionCount == 0;
+                return sample.fileCount == 2 && sample.validRunCount == 1 && sample.shortSessionCount == 0 && sample.parseErrors.Count == 1;
             }
             catch (Exception ex)
             {

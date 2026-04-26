@@ -23,6 +23,12 @@ public class VerticalSlicePlayModeTests
 {
     private const string StartupScenePath = VerticalSliceStartup.ScenePath;
 
+    [TearDown]
+    public void TearDown()
+    {
+        Time.timeScale = 1f;
+    }
+
     [UnityTest]
     public IEnumerator EditorPlayButtonStartupSceneLoadsPlayableVerticalSlice()
     {
@@ -231,6 +237,33 @@ public class VerticalSlicePlayModeTests
         Assert.IsNotEmpty(path);
         Assert.IsTrue(File.Exists(path));
         Assert.Greater(new FileInfo(path).Length, 0);
+    }
+
+    [UnityTest]
+    public IEnumerator HitPauseRestoresTimeScaleWhenInterrupted()
+    {
+        Time.timeScale = 1f;
+        GameObject go = new GameObject("hit-pause-audit");
+        try
+        {
+            var hitPause = go.AddComponent<HitPause>();
+
+            hitPause.TriggerPause();
+            yield return null;
+            Assert.AreNotEqual(1f, Time.timeScale);
+
+            go.SetActive(false);
+            Assert.AreEqual(1f, Time.timeScale, 0.001f);
+        }
+        finally
+        {
+            Time.timeScale = 1f;
+            if (go != null)
+                Object.Destroy(go);
+        }
+
+        yield return null;
+        Assert.AreEqual(1f, Time.timeScale, 0.001f);
     }
 
     private static IEnumerator LoadVerticalSlice()
