@@ -19,7 +19,7 @@ namespace Game.AI.Enemies
 
             var character = player.GetComponent<Game.Core.BaseCharacter>();
             if (character != null)
-                character.TakeDamage(damage);
+                character.TakeDamage(new Game.Core.DamageContext(ctx.gameObject, damage, Game.Core.DamageType.Physical, Game.Rhythm.RhythmGrade.Miss, true));
         }
 
         public override void Tick(StateMachine ctx, float dt)

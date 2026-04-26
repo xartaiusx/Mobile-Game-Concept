@@ -106,13 +106,13 @@ namespace Game.Core
             var poolable = projectile.GetComponent<PoolableProjectile>();
             if (poolable != null)
             {
-                poolable.Initialize(playerTarget.position, projectileSpeed, AttackDamage, projectilePool);
+                poolable.Initialize(playerTarget.position, projectileSpeed, AttackDamage, projectilePool, gameObject);
                 return;
             }
 
             var projectileScript = projectile.GetComponent<Projectile>();
             if (projectileScript != null)
-                projectileScript.Initialize(playerTarget.position, projectileSpeed, AttackDamage);
+                projectileScript.Initialize(playerTarget.position, projectileSpeed, AttackDamage, gameObject);
         }
     }
 }

@@ -80,7 +80,7 @@ namespace Game.Combat
             float mult = judgement != null ? judgement.DamageMultiplier(grade) : 1f;
             int finalDamage = Mathf.Max(1, Mathf.RoundToInt(step.baseDamage * mult));
 
-            DoMeleeHit(finalDamage);
+            DoMeleeHit(finalDamage, grade);
 
             float refund = judgement != null ? judgement.CooldownRefund(grade) : 0f;
             inputCooldownRemaining = Mathf.Max(0f, step.cooldown * (1f - refund));
@@ -90,7 +90,7 @@ namespace Game.Combat
             comboTimer = 0f;
         }
 
-        private void DoMeleeHit(int damage)
+        private void DoMeleeHit(int damage, RhythmGrade grade)
         {
             Vector3 center = transform.position + transform.forward * (attackRange * 0.5f);
             int count = Physics.OverlapSphereNonAlloc(center, attackRange, hitCache, enemyMask, QueryTriggerInteraction.Ignore);
@@ -99,7 +99,7 @@ namespace Game.Combat
                 var enemy = hitCache[i].GetComponent<Game.Core.BaseEnemy>();
                 if (enemy != null)
                 {
-                    enemy.TakeDamage(damage);
+                    enemy.TakeDamage(new Game.Core.DamageContext(gameObject, damage, Game.Core.DamageType.Rhythm, grade, true));
                 }
             }
         }

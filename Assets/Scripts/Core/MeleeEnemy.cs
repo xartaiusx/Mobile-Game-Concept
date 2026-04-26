@@ -43,7 +43,8 @@ namespace Game.Core
             if (distance <= attackRange)
             {
                 var character = playerTarget.GetComponent<BaseCharacter>();
-                if (character != null) character.TakeDamage(AttackDamage);
+                if (character != null)
+                    character.TakeDamage(new DamageContext(gameObject, AttackDamage, DamageType.Physical, Game.Rhythm.RhythmGrade.Miss, true));
             }
         }
     }

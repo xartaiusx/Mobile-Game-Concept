@@ -2,6 +2,8 @@ Mobile Game Concept
 
 A Unity-based rhythm-action RPG prototype for mobile, combining class-based combat, enemy AI, loot systems, and modular gameplay architecture. Players choose from unique classes, face waves of enemies and bosses, and collect loot, all while syncing their attacks, dodges, and abilities to the beat of the soundtrack for enhanced effects and combos. The result is fast-paced, music-driven combat that rewards timing, positioning, and precision.
 
+For current vertical-slice setup instructions and asset creation notes, see [DEVELOPMENT.md](DEVELOPMENT.md).
+
 
 ---
 

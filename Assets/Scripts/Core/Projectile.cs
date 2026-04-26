@@ -8,8 +8,10 @@ namespace Game.Core
         [SerializeField] float speed = 12f;
         [SerializeField] int damage = 5;
         [SerializeField] float lifetime = 5f;
+        [SerializeField] DamageType damageType = DamageType.Projectile;
         private Vector3 targetPoint;
         private bool initialized;
+        private GameObject source;
 
         private void OnEnable()
         {
@@ -19,9 +21,15 @@ namespace Game.Core
 
         public void Initialize(Vector3 target, float customSpeed = -1f, int customDamage = -1)
         {
+            Initialize(target, customSpeed, customDamage, null);
+        }
+
+        public void Initialize(Vector3 target, float customSpeed, int customDamage, GameObject damageSource)
+        {
             targetPoint = target;
             if (customSpeed > 0f) speed = customSpeed;
             if (customDamage > 0) damage = customDamage;
+            source = damageSource;
             initialized = true;
         }
 
@@ -44,7 +52,7 @@ namespace Game.Core
             var character = other.GetComponent<BaseCharacter>();
             if (character != null)
             {
-                character.TakeDamage(damage);
+                character.TakeDamage(new DamageContext(source != null ? source : gameObject, damage, damageType, Game.Rhythm.RhythmGrade.Miss, true));
                 Despawn();
             }
         }

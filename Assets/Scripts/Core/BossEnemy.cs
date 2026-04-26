@@ -2,6 +2,7 @@ using UnityEngine;
 using System.Collections;
 using UnityEngine.AI;
 using Game.AI.Enemies;
+using Game.Combat;
 
 namespace Game.Core
 {
@@ -21,6 +22,8 @@ namespace Game.Core
         [SerializeField] private BossAttackMode attackMode = BossAttackMode.Melee;
         [SerializeField] private int burstCount = 1;
         [SerializeField] private float burstInterval = 0.2f;
+        [SerializeField] private BossTelegraphController telegraphController;
+        [SerializeField] private BossTelegraphData specialTelegraph;
 
         private NavMeshAgent navMeshAgent;
         private float lastSpecialAttackTime = float.NegativeInfinity;
@@ -33,6 +36,7 @@ namespace Game.Core
         {
             base.Start();
             navMeshAgent = GetComponent<NavMeshAgent>();
+            telegraphController = telegraphController != null ? telegraphController : GetComponent<BossTelegraphController>();
             if (navMeshAgent != null)
                 navMeshAgent.speed = MoveSpeed;
         }
@@ -86,7 +90,7 @@ namespace Game.Core
         {
             var character = target.GetComponent<BaseCharacter>();
             if (character != null)
-                character.TakeDamage(AttackDamage);
+                character.TakeDamage(new DamageContext(gameObject, AttackDamage, DamageType.Physical, Game.Rhythm.RhythmGrade.Miss, true));
         }
 
         private IEnumerator FireBurst(Transform target)
@@ -116,19 +120,25 @@ namespace Game.Core
             var poolable = projectile.GetComponent<PoolableProjectile>();
             if (poolable != null)
             {
-                poolable.Initialize(target.position, projectileSpeed, AttackDamage, projectilePool);
+                poolable.Initialize(target.position, projectileSpeed, AttackDamage, projectilePool, gameObject);
                 return;
             }
 
             var projectileScript = projectile.GetComponent<Projectile>();
             if (projectileScript != null)
-                projectileScript.Initialize(target.position, projectileSpeed, AttackDamage);
+                projectileScript.Initialize(target.position, projectileSpeed, AttackDamage, gameObject);
         }
 
         private IEnumerator SpecialAttack()
         {
-            Debug.Log(EnemyName + " performs a powerful special attack!");
-            yield return new WaitForSeconds(1f);
+            if (telegraphController != null && specialTelegraph != null)
+            {
+                telegraphController.BeginTelegraph(specialTelegraph);
+                yield break;
+            }
+
+            Debug.Log(EnemyName + " prepares a special attack, but no telegraph data is assigned.");
+            yield return null;
         }
     }
 }

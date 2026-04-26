@@ -18,6 +18,12 @@ namespace Game.Rhythm
         private double bufferedTime;
         private BeatClock subscribedClock;
 
+        private void Awake()
+        {
+            if (judgement == null)
+                judgement = GetComponent<RhythmJudgement>();
+        }
+
         private void OnEnable()
         {
             TrySubscribe();
@@ -43,6 +49,11 @@ namespace Game.Rhythm
             // Overwrite if newer press is closer to next beat
             buffered = true;
             bufferedTime = now;
+        }
+
+        public void Configure(RhythmJudgement rhythmJudgement)
+        {
+            judgement = rhythmJudgement;
         }
 
         private void TrySubscribe()

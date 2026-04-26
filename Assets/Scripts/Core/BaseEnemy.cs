@@ -83,10 +83,15 @@ namespace Game.Core
 
         public void TakeDamage(int damage)
         {
-            if (!IsAlive || damage <= 0) return;
+            TakeDamage(new DamageContext(null, damage));
+        }
+
+        public void TakeDamage(DamageContext context)
+        {
+            if (!IsAlive || context.amount <= 0) return;
             if (isInvulnerable) return;
 
-            Health -= damage;
+            Health -= context.amount;
             isInvulnerable = invulnerabilityDuration > 0f;
             invulnerabilityTimer = invulnerabilityDuration;
 
@@ -108,6 +113,11 @@ namespace Game.Core
         {
             MoveSpeed *= Mathf.Max(0.01f, moveSpeedMultiplier);
             AttackInterval *= Mathf.Max(0.01f, attackIntervalMultiplier);
+        }
+
+        public virtual void Stagger(float duration)
+        {
+            attackTimer = 0f;
         }
     }
 }
