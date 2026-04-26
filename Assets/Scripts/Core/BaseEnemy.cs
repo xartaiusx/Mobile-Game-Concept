@@ -23,6 +23,7 @@ namespace Game.Core
         private bool defeated;
 
         public static event Action<BaseEnemy> EnemyDefeatedGlobal;
+        public event Action<BaseEnemy> AttackStarted;
         public event Action<BaseEnemy, DamageContext> Damaged;
         public event Action<BaseEnemy> Defeated;
 
@@ -81,6 +82,11 @@ namespace Game.Core
         }
 
         public abstract void PerformAttack();
+
+        protected void NotifyAttackStarted()
+        {
+            AttackStarted?.Invoke(this);
+        }
 
         public void TakeDamage(int damage)
         {

@@ -55,7 +55,10 @@ namespace Game.Core
 
             float distance = Vector3.Distance(transform.position, playerTarget.position);
             if (distance <= attackRange)
+            {
+                NotifyAttackStarted();
                 ExecuteAttackPattern();
+            }
         }
 
         private void ExecuteAttackPattern()

@@ -252,6 +252,7 @@ MonoBehaviour:
   profile: {fileID: 11400000, guid: 8df21e7a783a42fdc87a2871440305fa, type: 2}
   judgement: {fileID: 5643275870943956929}
   attackRange: 2.2
+  attackTiming: {fileID: 11400000, guid: 325b6babb94d1c803b1894959538178f, type: 2}
   enemyMask:
     serializedVersion: 2
     m_Bits: 4294967295

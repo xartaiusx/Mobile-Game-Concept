@@ -14,16 +14,19 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Game.Combat.AbilityDefinition
   abilityId: healer_pulse
   displayName: Healer Pulse
-  description: Self heal pulse.
+  description: Self heal pulse. Perfect timing adds a brief protection window.
   baseDamage: 0
-  healAmount: 16
-  cooldown: 2.5
+  healAmount: 20
+  cooldown: 2.6
   range: 0
-  radius: 3
+  radius: 3.5
   resourceCost: 0
   abilityType: 1
   targetMode: 0
+  executionStyle: 2
+  perfectStaggerSeconds: 0
+  perfectProtectionSeconds: 0.35
   rhythmScaling:
-    perfectMultiplier: 1.5
+    perfectMultiplier: 1.6
     goodMultiplier: 1.15
-    missMultiplier: 0.75
+    missMultiplier: 0.7

@@ -22,6 +22,7 @@ namespace Game.UI
         [SerializeField] private Text abilityText;
         [SerializeField] private Text dodgeText;
         [SerializeField] private Text parryText;
+        [SerializeField] private Text attackStateText;
         [SerializeField] private Text bossText;
         [SerializeField] private Text debugText;
         [SerializeField] private bool showDebugOverlay = true;
@@ -54,6 +55,9 @@ namespace Game.UI
 
             if (parryText != null)
                 parryText.text = "Parry: " + FormatCooldown(parryController != null ? parryController.CooldownRemaining : 0f) + (parryController != null && parryController.IsParrying ? "  ACTIVE" : string.Empty);
+
+            if (attackStateText != null)
+                attackStateText.text = "Attack: " + (comboSystem != null ? comboSystem.TimingState.ToString() : "Ready");
 
             if (bossText != null && bossTelegraphController != null && bossTelegraphController.IsTelegraphing)
                 bossText.text = "Boss: " + bossTelegraphController.ActiveTelegraph.displayName + " in " + bossTelegraphController.RemainingBeats + " beats";
@@ -256,7 +260,8 @@ namespace Game.UI
             int enemyCount = FindObjectsByType<BaseEnemy>(FindObjectsInactive.Exclude).Length;
             string beat = clock != null ? clock.CurrentBeatIndex + " / " + clock.CurrentPhase.ToString("0.00") : "none";
             string hp = playerCharacter != null ? playerCharacter.CurrentHealth + "/" + playerCharacter.MaxHealth : "n/a";
-            return "BPM 120\nBeat " + beat + "\nLast " + lastGrade + "\nHP " + hp + "\nEnemies " + enemyCount;
+            string attack = comboSystem != null ? comboSystem.TimingState.ToString() : "Ready";
+            return "BPM 120\nBeat " + beat + "\nLast " + lastGrade + "\nAttack " + attack + "\nHP " + hp + "\nEnemies " + enemyCount;
         }
     }
 }

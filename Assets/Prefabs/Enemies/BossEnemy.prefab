@@ -42,7 +42,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: c6bcdf269b0ba73f389f47bb5daa857c, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: Assembly-CSharp::Game.Core.ObjectPool
   prefab: {fileID: 3439621045551425630, guid: 83c07bfda74bded02a740b7dd330191b, type: 3}
   preloadCount: 8
@@ -60,6 +60,7 @@ GameObject:
   - component: {fileID: 6689441338202949149}
   - component: {fileID: 4672283304850308376}
   - component: {fileID: 4785283601543433771}
+  - component: {fileID: 5246100915690014652}
   - component: {fileID: 8724913583422473066}
   - component: {fileID: 8394431621512484199}
   m_Layer: 0
@@ -177,7 +178,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: cfe60e408e52c2dfe8eed641d283bdf5, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: Assembly-CSharp::Game.Core.BossEnemy
   enemyName: Enemy
   maxHealth: 90
@@ -197,6 +198,21 @@ MonoBehaviour:
   burstInterval: 0.2
   telegraphController: {fileID: 8394431621512484199}
   specialTelegraph: {fileID: 11400000, guid: 212a5ca9c7236e31695cd805ae62a1fd, type: 2}
+--- !u!114 &5246100915690014652
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7221361518462814879}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ca2a98a32a98f17f28e10f9db238c153, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::Game.Feedback.EnemyAttackFlash
+  targetRenderer: {fileID: 0}
+  flashColor: {r: 1, g: 0.9, b: 0.2, a: 1}
+  flashSeconds: 0.18
 --- !u!114 &8724913583422473066
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -207,7 +223,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: b5622e7e9464181649c5a65cfa9ae1f2, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: Assembly-CSharp::Game.AI.Enemies.BossPhaseController
   phases: []
 --- !u!114 &8394431621512484199
@@ -220,7 +236,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 9aec4bb2a257fb864b8ee07e7a6293f9, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: Assembly-CSharp::Game.Combat.BossTelegraphController
   defaultTelegraph: {fileID: 11400000, guid: 212a5ca9c7236e31695cd805ae62a1fd, type: 2}
   target: {fileID: 0}

@@ -13,6 +13,7 @@ GameObject:
   - component: {fileID: 3794565585775743767}
   - component: {fileID: 4509960772943373209}
   - component: {fileID: 7125691098570780780}
+  - component: {fileID: 982211008025344716}
   m_Layer: 0
   m_Name: MeleeEnemy
   m_TagString: Untagged
@@ -127,7 +128,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6282cf45be939d8548138c90ca475f7d, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: Assembly-CSharp::Game.Core.MeleeEnemy
   enemyName: Enemy
   maxHealth: 24
@@ -138,3 +139,18 @@ MonoBehaviour:
   invulnerabilityDuration: 0.15
   attackRange: 1.8
   chaseRange: 10
+--- !u!114 &982211008025344716
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1285705036201510093}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ca2a98a32a98f17f28e10f9db238c153, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::Game.Feedback.EnemyAttackFlash
+  targetRenderer: {fileID: 0}
+  flashColor: {r: 1, g: 0.9, b: 0.2, a: 1}
+  flashSeconds: 0.18

@@ -22,6 +22,7 @@ namespace Game.Combat
         private float[] cooldowns;
         private Collider[] hitCache;
         private BaseCharacter owner;
+        private DodgeController dodgeController;
         private int pendingAbilityIndex = -1;
 
         public event Action<AbilityDefinition, RhythmGrade, float> AbilityResolved;
@@ -39,6 +40,7 @@ namespace Game.Combat
         private void Awake()
         {
             owner = GetComponent<BaseCharacter>();
+            dodgeController = GetComponent<DodgeController>();
             abilityBuffer = abilityBuffer != null ? abilityBuffer : GetComponent<InputBuffer>();
             aimOrigin = aimOrigin != null ? aimOrigin : transform;
             hitCache = new Collider[Mathf.Max(1, maxTargets)];
@@ -147,6 +149,8 @@ namespace Game.Combat
             if (owner != null)
             {
                 owner.Heal(amount);
+                if (grade == RhythmGrade.Perfect && ability.perfectProtectionSeconds > 0f)
+                    dodgeController?.GrantInvulnerability(ability.perfectProtectionSeconds);
                 AbilityEffectApplied?.Invoke(ability, grade, amount);
             }
         }
@@ -195,6 +199,8 @@ namespace Game.Combat
                 if (enemy != null)
                 {
                     enemy.TakeDamage(new DamageContext(gameObject, damage, DamageType.Rhythm, grade, true));
+                    if (grade == RhythmGrade.Perfect && ability.perfectStaggerSeconds > 0f)
+                        enemy.Stagger(ability.perfectStaggerSeconds);
                     AbilityEffectApplied?.Invoke(ability, grade, damage);
                 }
             }

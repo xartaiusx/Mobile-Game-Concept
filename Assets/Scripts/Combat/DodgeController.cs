@@ -87,6 +87,12 @@ namespace Game.Combat
             return true;
         }
 
+        public void GrantInvulnerability(float seconds)
+        {
+            if (seconds <= 0f) return;
+            invulnerableUntil = Mathf.Max(invulnerableUntil, Time.time + seconds);
+        }
+
         private void ResolveDodge(RhythmGrade grade)
         {
             if (cooldownRemaining > 0f) return;

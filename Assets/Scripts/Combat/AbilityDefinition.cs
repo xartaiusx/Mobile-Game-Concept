@@ -22,6 +22,13 @@ namespace Game.Combat
         Ally
     }
 
+    public enum AbilityExecutionStyle
+    {
+        Instant,
+        ProjectileLike,
+        Pulse
+    }
+
     [Serializable]
     public struct AbilityRhythmScaling
     {
@@ -61,6 +68,9 @@ namespace Game.Combat
         public int resourceCost;
         public AbilityType abilityType = AbilityType.Damage;
         public AbilityTargetMode targetMode = AbilityTargetMode.ForwardCone;
+        public AbilityExecutionStyle executionStyle = AbilityExecutionStyle.Instant;
+        public float perfectStaggerSeconds;
+        public float perfectProtectionSeconds;
         public AbilityRhythmScaling rhythmScaling = AbilityRhythmScaling.Default;
 
         public int ScaledDamage(RhythmGrade grade)

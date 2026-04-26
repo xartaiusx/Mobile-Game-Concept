@@ -3,6 +3,7 @@ using Game.AI.Enemies;
 using Game.Classes;
 using Game.Combat;
 using Game.Core;
+using Game.Feedback;
 using Game.Rhythm;
 using UnityEditor;
 using UnityEditor.SceneManagement;
@@ -31,19 +32,21 @@ namespace Game.EditorTools
             var materials = CreateMaterials();
             RhythmConfig rhythmConfig = CreateRhythmConfig();
             ComboProfile comboProfile = CreateComboProfile();
-            AbilityDefinition fighterSlash = CreateAbility("Assets/ScriptableObjects/Abilities/FighterSlash.asset", "fighter_slash", "Fighter Slash", "Close-range rhythm slash.", 18, 0, 1.2f, 3.5f, 45f, AbilityType.Damage, AbilityTargetMode.ForwardCone);
-            AbilityDefinition mageBolt = CreateAbility("Assets/ScriptableObjects/Abilities/MageBolt.asset", "mage_bolt", "Mage Bolt", "Medium-range rhythm spell.", 16, 0, 1.6f, 7f, 1.4f, AbilityType.Damage, AbilityTargetMode.TargetPoint);
-            AbilityDefinition archerShot = CreateAbility("Assets/ScriptableObjects/Abilities/ArcherShot.asset", "archer_shot", "Archer Shot", "Long-range rhythm shot.", 14, 0, 1.1f, 9f, 1f, AbilityType.Damage, AbilityTargetMode.TargetPoint);
-            AbilityDefinition healerPulse = CreateAbility("Assets/ScriptableObjects/Abilities/HealerPulse.asset", "healer_pulse", "Healer Pulse", "Self heal pulse.", 0, 16, 2.5f, 0f, 3f, AbilityType.Heal, AbilityTargetMode.Self);
-            BossTelegraphData bossSlam = CreateBossTelegraph();
+            AttackTimingData attackTiming = CreateAttackTiming();
+            AbilityDefinition fighterSlash = CreateAbility("Assets/ScriptableObjects/Abilities/FighterSlash.asset", "fighter_slash", "Fighter Slash", "Short-range guard-breaking slash. Perfect timing adds a stronger stagger.", 24, 0, 1.15f, 2.8f, 38f, AbilityType.Damage, AbilityTargetMode.ForwardCone, AbilityExecutionStyle.Instant, new AbilityRhythmScaling { perfectMultiplier = 1.75f, goodMultiplier = 1.15f, missMultiplier = 0.6f }, 0.6f, 0f);
+            AbilityDefinition mageBolt = CreateAbility("Assets/ScriptableObjects/Abilities/MageBolt.asset", "mage_bolt", "Mage Bolt", "Medium-range focused spell with a longer recovery.", 28, 0, 2.0f, 7f, 1.2f, AbilityType.Damage, AbilityTargetMode.TargetPoint, AbilityExecutionStyle.ProjectileLike, new AbilityRhythmScaling { perfectMultiplier = 1.55f, goodMultiplier = 1.1f, missMultiplier = 0.65f }, 0.25f, 0f);
+            AbilityDefinition archerShot = CreateAbility("Assets/ScriptableObjects/Abilities/ArcherShot.asset", "archer_shot", "Archer Shot", "Long-range precision shot that heavily rewards Perfect timing.", 20, 0, 1.35f, 10f, 0.9f, AbilityType.Damage, AbilityTargetMode.TargetPoint, AbilityExecutionStyle.ProjectileLike, new AbilityRhythmScaling { perfectMultiplier = 2.0f, goodMultiplier = 1.2f, missMultiplier = 0.5f }, 0.2f, 0f);
+            AbilityDefinition healerPulse = CreateAbility("Assets/ScriptableObjects/Abilities/HealerPulse.asset", "healer_pulse", "Healer Pulse", "Self heal pulse. Perfect timing adds a brief protection window.", 0, 20, 2.6f, 0f, 3.5f, AbilityType.Heal, AbilityTargetMode.Self, AbilityExecutionStyle.Pulse, new AbilityRhythmScaling { perfectMultiplier = 1.6f, goodMultiplier = 1.15f, missMultiplier = 0.7f }, 0f, 0.35f);
+            FeedbackPrefabs feedbackPrefabs = CreateFeedbackPrefabs(materials);
+            BossTelegraphData bossSlam = CreateBossTelegraph(feedbackPrefabs.bossWarning, feedbackPrefabs.bossImpact);
             CreateItem("Assets/ScriptableObjects/Items/Gold.asset", "gold", "Gold", 999);
             CreateItem("Assets/ScriptableObjects/Items/HealthPotion.asset", "health_potion", "Health Potion", 10);
 
             GameObject projectilePrefab = CreateProjectilePrefab(materials.projectile);
-            GameObject fighterPrefab = CreatePlayerPrefab("Assets/Prefabs/Player/FighterPlayer.prefab", typeof(Fighter), fighterSlash, rhythmConfig, comboProfile, materials.player);
-            GameObject magePrefab = CreatePlayerPrefab("Assets/Prefabs/Player/MagePlayer.prefab", typeof(Mage), mageBolt, rhythmConfig, comboProfile, materials.mage);
-            GameObject archerPrefab = CreatePlayerPrefab("Assets/Prefabs/Player/ArcherPlayer.prefab", typeof(Archer), archerShot, rhythmConfig, comboProfile, materials.archer);
-            GameObject healerPrefab = CreatePlayerPrefab("Assets/Prefabs/Player/HealerPlayer.prefab", typeof(Healer), healerPulse, rhythmConfig, comboProfile, materials.healer);
+            GameObject fighterPrefab = CreatePlayerPrefab("Assets/Prefabs/Player/FighterPlayer.prefab", typeof(Fighter), fighterSlash, rhythmConfig, comboProfile, attackTiming, materials.player);
+            GameObject magePrefab = CreatePlayerPrefab("Assets/Prefabs/Player/MagePlayer.prefab", typeof(Mage), mageBolt, rhythmConfig, comboProfile, attackTiming, materials.mage);
+            GameObject archerPrefab = CreatePlayerPrefab("Assets/Prefabs/Player/ArcherPlayer.prefab", typeof(Archer), archerShot, rhythmConfig, comboProfile, attackTiming, materials.archer);
+            GameObject healerPrefab = CreatePlayerPrefab("Assets/Prefabs/Player/HealerPlayer.prefab", typeof(Healer), healerPulse, rhythmConfig, comboProfile, attackTiming, materials.healer);
             GameObject meleePrefab = CreateMeleeEnemyPrefab(materials.enemy);
             GameObject rangedPrefab = CreateRangedEnemyPrefab(projectilePrefab, materials.rangedEnemy);
             GameObject bossPrefab = CreateBossPrefab(projectilePrefab, bossSlam, materials.boss);
@@ -51,7 +54,7 @@ namespace Game.EditorTools
 
             Scene scene = EditorSceneManager.NewScene(NewSceneSetup.DefaultGameObjects, NewSceneMode.Single);
             scene.name = "VerticalSlice";
-            BuildScene(fighterPrefab, magePrefab, archerPrefab, healerPrefab, meleePrefab, rangedPrefab, bossPrefab, hudPrefab, rhythmConfig, bossSlam, materials);
+            BuildScene(fighterPrefab, magePrefab, archerPrefab, healerPrefab, meleePrefab, rangedPrefab, bossPrefab, hudPrefab, rhythmConfig, bossSlam, materials, feedbackPrefabs);
             EditorSceneManager.SaveScene(scene, ScenePath);
             AddSceneToBuildSettings(ScenePath);
 
@@ -79,6 +82,7 @@ namespace Game.EditorTools
                 "Assets/Prefabs/Enemies",
                 "Assets/Prefabs/Projectiles",
                 "Assets/Prefabs/UI",
+                "Assets/Prefabs/Feedback",
                 "Assets/ScriptableObjects",
                 "Assets/ScriptableObjects/Rhythm",
                 "Assets/ScriptableObjects/Abilities",
@@ -86,6 +90,7 @@ namespace Game.EditorTools
                 "Assets/ScriptableObjects/Boss",
                 "Assets/ScriptableObjects/Items",
                 "Assets/Materials",
+                "Assets/Materials/Feedback",
                 "Assets/Editor"
             };
 
@@ -105,7 +110,14 @@ namespace Game.EditorTools
                 rangedEnemy = CreateMaterial("Assets/Materials/Enemy_Ranged.mat", new Color(0.95f, 0.45f, 0.2f)),
                 boss = CreateMaterial("Assets/Materials/Enemy_Boss.mat", new Color(0.35f, 0.15f, 0.15f)),
                 projectile = CreateMaterial("Assets/Materials/Projectile_Basic.mat", new Color(0.1f, 0.9f, 1f)),
-                ground = CreateMaterial("Assets/Materials/Ground_Prototype.mat", new Color(0.28f, 0.32f, 0.28f))
+                ground = CreateMaterial("Assets/Materials/Ground_Prototype.mat", new Color(0.28f, 0.32f, 0.28f)),
+                perfect = CreateMaterial("Assets/Materials/Feedback/PerfectFeedback.mat", new Color(0.2f, 1f, 0.75f, 0.85f)),
+                good = CreateMaterial("Assets/Materials/Feedback/GoodFeedback.mat", new Color(0.35f, 0.65f, 1f, 0.75f)),
+                miss = CreateMaterial("Assets/Materials/Feedback/MissFeedback.mat", new Color(1f, 0.25f, 0.25f, 0.65f)),
+                dodge = CreateMaterial("Assets/Materials/Feedback/DodgeFeedback.mat", new Color(1f, 1f, 0.35f, 0.7f)),
+                parry = CreateMaterial("Assets/Materials/Feedback/ParryFeedback.mat", new Color(1f, 0.45f, 1f, 0.8f)),
+                bossWarning = CreateMaterial("Assets/Materials/Feedback/BossWarning.mat", new Color(1f, 0.65f, 0.1f, 0.55f)),
+                bossImpact = CreateMaterial("Assets/Materials/Feedback/BossImpact.mat", new Color(1f, 0.1f, 0.05f, 0.8f))
             };
         }
 
@@ -139,7 +151,20 @@ namespace Game.EditorTools
             return profile;
         }
 
-        private static AbilityDefinition CreateAbility(string path, string id, string displayName, string description, int damage, int heal, float cooldown, float range, float radius, AbilityType type, AbilityTargetMode targetMode)
+        private static AttackTimingData CreateAttackTiming()
+        {
+            AttackTimingData timing = CreateOrLoadAsset<AttackTimingData>("Assets/ScriptableObjects/Combat/DefaultAttackTiming.asset");
+            timing.windupSeconds = 0.08f;
+            timing.activeSeconds = 0.10f;
+            timing.recoverySeconds = 0.18f;
+            timing.canCancelOnPerfect = true;
+            timing.beatAlignedImpact = true;
+            timing.hitFrameBeatOffset = 0f;
+            EditorUtility.SetDirty(timing);
+            return timing;
+        }
+
+        private static AbilityDefinition CreateAbility(string path, string id, string displayName, string description, int damage, int heal, float cooldown, float range, float radius, AbilityType type, AbilityTargetMode targetMode, AbilityExecutionStyle executionStyle, AbilityRhythmScaling scaling, float perfectStagger, float perfectProtection)
         {
             AbilityDefinition ability = CreateOrLoadAsset<AbilityDefinition>(path);
             ability.abilityId = id;
@@ -153,12 +178,15 @@ namespace Game.EditorTools
             ability.resourceCost = 0;
             ability.abilityType = type;
             ability.targetMode = targetMode;
-            ability.rhythmScaling = AbilityRhythmScaling.Default;
+            ability.executionStyle = executionStyle;
+            ability.perfectStaggerSeconds = perfectStagger;
+            ability.perfectProtectionSeconds = perfectProtection;
+            ability.rhythmScaling = scaling;
             EditorUtility.SetDirty(ability);
             return ability;
         }
 
-        private static BossTelegraphData CreateBossTelegraph()
+        private static BossTelegraphData CreateBossTelegraph(GameObject warningPrefab, GameObject impactPrefab)
         {
             BossTelegraphData telegraph = CreateOrLoadAsset<BossTelegraphData>("Assets/ScriptableObjects/Boss/BossSlamTelegraph.asset");
             telegraph.telegraphId = "boss_slam";
@@ -168,6 +196,8 @@ namespace Game.EditorTools
             telegraph.radius = 3.5f;
             telegraph.range = 8f;
             telegraph.attackType = BossTelegraphAttackType.TargetedCircle;
+            telegraph.warningVfxPrefab = warningPrefab;
+            telegraph.impactVfxPrefab = impactPrefab;
             EditorUtility.SetDirty(telegraph);
             return telegraph;
         }
@@ -182,7 +212,7 @@ namespace Game.EditorTools
             return item;
         }
 
-        private static GameObject CreatePlayerPrefab(string path, System.Type classType, AbilityDefinition ability, RhythmConfig rhythmConfig, ComboProfile comboProfile, Material material)
+        private static GameObject CreatePlayerPrefab(string path, System.Type classType, AbilityDefinition ability, RhythmConfig rhythmConfig, ComboProfile comboProfile, AttackTimingData attackTiming, Material material)
         {
             GameObject player = GameObject.CreatePrimitive(PrimitiveType.Capsule);
             player.name = System.IO.Path.GetFileNameWithoutExtension(path);
@@ -212,6 +242,7 @@ namespace Game.EditorTools
             var combo = player.AddComponent<ComboSystem>();
             SetObject(combo, "profile", comboProfile);
             SetObject(combo, "judgement", judgement);
+            SetObject(combo, "attackTiming", attackTiming);
             SetFloat(combo, "attackRange", 2.2f);
 
             var abilityController = player.AddComponent<AbilityController>();
@@ -238,6 +269,7 @@ namespace Game.EditorTools
             AssignMaterial(enemy, material);
             enemy.AddComponent<CharacterController>();
             var melee = enemy.AddComponent<MeleeEnemy>();
+            enemy.AddComponent<EnemyAttackFlash>();
             SetInt(melee, "maxHealth", 24);
             SetInt(melee, "health", 24);
             SetInt(melee, "attackDamage", 4);
@@ -256,6 +288,7 @@ namespace Game.EditorTools
             AssignMaterial(enemy, material);
             enemy.AddComponent<CharacterController>();
             var ranged = enemy.AddComponent<RangedEnemy>();
+            enemy.AddComponent<EnemyAttackFlash>();
             SetInt(ranged, "maxHealth", 20);
             SetInt(ranged, "health", 20);
             SetInt(ranged, "attackDamage", 3);
@@ -284,6 +317,7 @@ namespace Game.EditorTools
             AssignMaterial(boss, material);
             boss.AddComponent<CharacterController>();
             var bossEnemy = boss.AddComponent<BossEnemy>();
+            boss.AddComponent<EnemyAttackFlash>();
             SetInt(bossEnemy, "maxHealth", 90);
             SetInt(bossEnemy, "health", 90);
             SetInt(bossEnemy, "attackDamage", 6);
@@ -321,6 +355,40 @@ namespace Game.EditorTools
             body.isKinematic = true;
             projectile.AddComponent<PoolableProjectile>();
             return SavePrefab("Assets/Prefabs/Projectiles/BasicProjectile.prefab", projectile);
+        }
+
+        private static FeedbackPrefabs CreateFeedbackPrefabs(MaterialSet materials)
+        {
+            return new FeedbackPrefabs
+            {
+                perfect = CreateFeedbackPrefab("Assets/Prefabs/Feedback/PerfectAttackFeedback.prefab", PrimitiveType.Sphere, materials.perfect, 0.35f, 2.3f, false),
+                good = CreateFeedbackPrefab("Assets/Prefabs/Feedback/GoodAttackFeedback.prefab", PrimitiveType.Sphere, materials.good, 0.28f, 1.8f, false),
+                miss = CreateFeedbackPrefab("Assets/Prefabs/Feedback/MissAttackFeedback.prefab", PrimitiveType.Sphere, materials.miss, 0.22f, 1.3f, false),
+                dodge = CreateFeedbackPrefab("Assets/Prefabs/Feedback/DodgeFeedback.prefab", PrimitiveType.Cylinder, materials.dodge, 0.28f, 2.4f, true),
+                parry = CreateFeedbackPrefab("Assets/Prefabs/Feedback/ParryFeedback.prefab", PrimitiveType.Sphere, materials.parry, 0.3f, 2.1f, false),
+                bossWarning = CreateFeedbackPrefab("Assets/Prefabs/Feedback/BossWarningPulse.prefab", PrimitiveType.Cylinder, materials.bossWarning, 0.45f, 1.45f, true),
+                bossImpact = CreateFeedbackPrefab("Assets/Prefabs/Feedback/BossImpactPulse.prefab", PrimitiveType.Cylinder, materials.bossImpact, 0.45f, 1.9f, true)
+            };
+        }
+
+        private static GameObject CreateFeedbackPrefab(string path, PrimitiveType primitive, Material material, float lifetime, float expansion, bool flatten)
+        {
+            GameObject feedback = GameObject.CreatePrimitive(primitive);
+            feedback.name = System.IO.Path.GetFileNameWithoutExtension(path);
+            AssignMaterial(feedback, material);
+            Collider collider = feedback.GetComponent<Collider>();
+            if (collider != null)
+                Object.DestroyImmediate(collider);
+
+            if (flatten)
+                feedback.transform.localScale = new Vector3(1f, 0.04f, 1f);
+
+            var pulse = feedback.AddComponent<FeedbackPulse>();
+            SetFloat(pulse, "lifetime", lifetime);
+            SetFloat(pulse, "expansion", expansion);
+            SetBool(pulse, "flattenToRing", flatten);
+
+            return SavePrefab(path, feedback);
         }
 
         private static GameObject CreateHudPrefab()
@@ -368,6 +436,7 @@ namespace Game.EditorTools
             Text ability = CreateText("AbilityText", panel.transform, new Vector2(-320f, -106f), new Vector2(320f, 26f), 18, TextAnchor.MiddleLeft);
             Text dodge = CreateText("DodgeText", panel.transform, new Vector2(60f, -78f), new Vector2(220f, 26f), 18, TextAnchor.MiddleLeft);
             Text parry = CreateText("ParryText", panel.transform, new Vector2(60f, -106f), new Vector2(220f, 26f), 18, TextAnchor.MiddleLeft);
+            Text attack = CreateText("AttackStateText", panel.transform, new Vector2(315f, -78f), new Vector2(220f, 26f), 18, TextAnchor.MiddleLeft);
             Text boss = CreateText("BossText", panel.transform, new Vector2(0f, -136f), new Vector2(520f, 26f), 18, TextAnchor.MiddleCenter);
             Text debug = CreateText("DebugText", root.transform, new Vector2(12f, 12f), new Vector2(260f, 120f), 14, TextAnchor.LowerLeft);
             var debugRect = debug.GetComponent<RectTransform>();
@@ -386,6 +455,7 @@ namespace Game.EditorTools
             SetObject(hud, "abilityText", ability);
             SetObject(hud, "dodgeText", dodge);
             SetObject(hud, "parryText", parry);
+            SetObject(hud, "attackStateText", attack);
             SetObject(hud, "bossText", boss);
             SetObject(hud, "debugText", debug);
 
@@ -422,7 +492,7 @@ namespace Game.EditorTools
             return text;
         }
 
-        private static void BuildScene(GameObject fighterPrefab, GameObject magePrefab, GameObject archerPrefab, GameObject healerPrefab, GameObject meleePrefab, GameObject rangedPrefab, GameObject bossPrefab, GameObject hudPrefab, RhythmConfig rhythmConfig, BossTelegraphData bossTelegraph, MaterialSet materials)
+        private static void BuildScene(GameObject fighterPrefab, GameObject magePrefab, GameObject archerPrefab, GameObject healerPrefab, GameObject meleePrefab, GameObject rangedPrefab, GameObject bossPrefab, GameObject hudPrefab, RhythmConfig rhythmConfig, BossTelegraphData bossTelegraph, MaterialSet materials, FeedbackPrefabs feedbackPrefabs)
         {
             GameObject ground = GameObject.CreatePrimitive(PrimitiveType.Plane);
             ground.name = "Arena_Ground";
@@ -491,6 +561,23 @@ namespace Game.EditorTools
                 SetObject(hudController, "bossTelegraphController", telegraph);
                 SetObject(hudController, "playerCharacter", player.GetComponent<BaseCharacter>());
             }
+
+            GameObject feedbackObject = new GameObject("RhythmFeedback");
+            feedbackObject.AddComponent<AudioSource>();
+            var feedback = feedbackObject.AddComponent<RhythmFeedbackController>();
+            SetObject(feedback, "comboSystem", player.GetComponent<ComboSystem>());
+            SetObject(feedback, "abilityController", player.GetComponent<AbilityController>());
+            SetObject(feedback, "dodgeController", player.GetComponent<DodgeController>());
+            SetObject(feedback, "parryController", player.GetComponent<ParryController>());
+            SetObject(feedback, "bossTelegraphController", telegraph);
+            SetObject(feedback, "playerAnchor", player.transform);
+            SetObject(feedback, "perfectAttackPrefab", feedbackPrefabs.perfect);
+            SetObject(feedback, "goodAttackPrefab", feedbackPrefabs.good);
+            SetObject(feedback, "missAttackPrefab", feedbackPrefabs.miss);
+            SetObject(feedback, "dodgePrefab", feedbackPrefabs.dodge);
+            SetObject(feedback, "parryPrefab", feedbackPrefabs.parry);
+            SetObject(feedback, "bossWarningPrefab", feedbackPrefabs.bossWarning);
+            SetObject(feedback, "bossImpactPrefab", feedbackPrefabs.bossImpact);
 
             if (Object.FindAnyObjectByType<EventSystem>() == null)
             {
@@ -637,6 +724,17 @@ namespace Game.EditorTools
             }
         }
 
+        private static void SetBool(Object target, string fieldName, bool value)
+        {
+            SerializedObject serialized = new SerializedObject(target);
+            SerializedProperty property = serialized.FindProperty(fieldName);
+            if (property != null)
+            {
+                property.boolValue = value;
+                serialized.ApplyModifiedPropertiesWithoutUndo();
+            }
+        }
+
         private static void SetVector3(Object target, string fieldName, Vector3 value)
         {
             SerializedObject serialized = new SerializedObject(target);
@@ -659,6 +757,24 @@ namespace Game.EditorTools
             public Material boss;
             public Material projectile;
             public Material ground;
+            public Material perfect;
+            public Material good;
+            public Material miss;
+            public Material dodge;
+            public Material parry;
+            public Material bossWarning;
+            public Material bossImpact;
+        }
+
+        private struct FeedbackPrefabs
+        {
+            public GameObject perfect;
+            public GameObject good;
+            public GameObject miss;
+            public GameObject dodge;
+            public GameObject parry;
+            public GameObject bossWarning;
+            public GameObject bossImpact;
         }
     }
 }

@@ -12,11 +12,12 @@ The generated setup includes:
 
 - `PlayerManager`, `GameManager`, and a rhythm system object.
 - A small primitive arena with boundary walls, follow camera, and directional light.
-- Default `RhythmConfig`, `ComboProfile`, class ability assets, boss telegraph data, and item assets under `Assets/ScriptableObjects`.
+- Default `RhythmConfig`, `ComboProfile`, `AttackTimingData`, class ability assets, boss telegraph data, and item assets under `Assets/ScriptableObjects`.
 - Player prefabs for Fighter, Mage, Archer, and Healer under `Assets/Prefabs/Player`.
 - Melee, ranged, and boss prefabs under `Assets/Prefabs/Enemies`.
 - A pooled projectile prefab under `Assets/Prefabs/Projectiles`.
 - A scene Fighter player, melee enemy, ranged enemy, boss, basic enemy spawner, and readable rhythm-combat HUD.
+- Placeholder feedback prefabs and materials under `Assets/Prefabs/Feedback` and `Assets/Materials/Feedback`.
 
 ## Vertical Slice UI
 
@@ -28,7 +29,15 @@ The scene includes `Assets/Prefabs/UI/VerticalSliceHUD.prefab`, backed by `BeatB
 - Ability text: shows the first equipped ability and cooldown.
 - Dodge/parry text: shows cooldown and active/invulnerable state.
 - Boss text: shows boss telegraph countdown and impact status.
-- Debug text: optional runtime readout for beat, last grade, player health, and enemy count.
+- Attack text: shows `Ready`, `Windup`, `Active`, or `Recovery`.
+- Debug text: optional runtime readout for beat, last grade, attack state, player health, and enemy count.
+
+## Class Ability Defaults
+
+- Fighter Slash: short-range forward cone damage. Perfect timing has the strongest damage scaling and briefly staggers enemies.
+- Mage Bolt: medium-range target-point spell. It hits harder than the basic combo but has a longer cooldown.
+- Archer Shot: long-range precision hit. Perfect timing has the highest damage multiplier, while misses are heavily reduced.
+- Healer Pulse: self heal. Perfect timing adds bonus healing and a brief protection window.
 
 ## Controls
 
@@ -45,6 +54,7 @@ Create assets from the Unity create menu:
 
 - `Game/Rhythm/RhythmConfig`: BPM, DSP offset, judgement windows, damage multipliers, and cooldown refund values.
 - `Game/Combat/ComboProfile`: ordered melee combo steps and combo timeout.
+- `Game/Combat/AttackTimingData`: windup, active, and recovery timing for animator-ready attacks.
 - `Game/Combat/AbilityDefinition`: class ability data such as damage, healing, cost, range, target mode, and rhythm scaling.
 - `Game/Combat/BossTelegraphData`: beat-counted boss warnings and impact settings.
 - `Game/AI/BossPhase`: boss phase thresholds and attack pacing modifiers.
@@ -54,10 +64,12 @@ Create assets from the Unity create menu:
 - Attacks are buffered through `InputBuffer` and resolved on `BeatClock.OnBeat`.
 - `RhythmJudgement` maps timing deltas to `Perfect`, `Good`, or `Miss`.
 - Combos use grade multipliers for damage and cooldown refunds.
+- Combo attacks now move through windup, active, and recovery states before returning to ready.
 - Abilities use per-ability rhythm scaling for damage or healing.
 - Dodges use the rhythm grade to adjust invulnerability and recovery.
 - Parries use the rhythm grade to cancel or reduce incoming parryable damage.
 - Boss telegraphs count down by beats before applying `DamageContext`.
+- `RhythmFeedbackController` listens to combat events and spawns placeholder pulses for attack grades, dodge/parry events, boss warnings, and boss impacts.
 
 ## Projectile Path
 
@@ -87,7 +99,7 @@ PlayMode tests:
 
 - Placeholder keyboard input is included for local testing; mobile UI buttons should call `RequestAbility`, `RequestDodge`, and `RequestParry`.
 - Ability targeting is intentionally simple and should be expanded with animation events, lock-on, or touch targeting later.
-- Boss telegraph visuals and audio cues are optional and still need authored assets.
+- Boss telegraph and combat feedback currently use primitive placeholder pulses; authored VFX/audio are still needed.
 - No equipment UI, skill trees, addressables, Cinemachine, or multiplayer are included yet.
 - The batchmode Test Runner exits successfully in this environment but does not currently emit XML result files; use the Unity Test Runner window for detailed per-test reporting if needed.
 - The HUD uses legacy `UnityEngine.UI` placeholders; replace with final UI art/layout after combat feel is stable.
@@ -95,8 +107,8 @@ PlayMode tests:
 ## Recommended Next Sequence
 
 1. Manually play `Assets/Scenes/VerticalSlice.unity` and tune hit ranges, enemy spacing, and boss telegraph cadence.
-2. Add simple VFX/audio cues for beat hits, dodge invulnerability, parry success, and boss impact.
-3. Replace placeholder primitives with real prefabs and animator-driven attacks.
+2. Replace placeholder pulses with authored VFX/audio cues for beat hits, dodge invulnerability, parry success, and boss impact.
+3. Connect real animation clips/events to `AttackTimingData` and combo timing states.
 4. Tune one ability per class against the default rhythm windows.
 5. Add mobile UI buttons for attack, ability, dodge, and parry after keyboard/controller feel is stable.
 6. Profile on Android/iOS and tune pooling, physics masks, and input latency.

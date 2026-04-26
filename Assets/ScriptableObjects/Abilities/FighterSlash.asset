@@ -14,16 +14,19 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Game.Combat.AbilityDefinition
   abilityId: fighter_slash
   displayName: Fighter Slash
-  description: Close-range rhythm slash.
-  baseDamage: 18
+  description: Short-range guard-breaking slash. Perfect timing adds a stronger stagger.
+  baseDamage: 24
   healAmount: 0
-  cooldown: 1.2
-  range: 3.5
-  radius: 45
+  cooldown: 1.15
+  range: 2.8
+  radius: 38
   resourceCost: 0
   abilityType: 0
   targetMode: 1
+  executionStyle: 0
+  perfectStaggerSeconds: 0.6
+  perfectProtectionSeconds: 0
   rhythmScaling:
-    perfectMultiplier: 1.5
+    perfectMultiplier: 1.75
     goodMultiplier: 1.15
-    missMultiplier: 0.75
+    missMultiplier: 0.6

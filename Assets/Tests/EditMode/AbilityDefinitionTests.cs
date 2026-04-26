@@ -24,5 +24,23 @@ public class AbilityDefinitionTests
         Assert.AreEqual(10, ability.ScaledDamage(RhythmGrade.Miss));
         Assert.AreEqual(20, ability.ScaledHealing(RhythmGrade.Perfect));
     }
+
+    [Test]
+    public void ClassIdentityFieldsSupportPerfectBonuses()
+    {
+        var fighterAbility = ScriptableObject.CreateInstance<AbilityDefinition>();
+        fighterAbility.executionStyle = AbilityExecutionStyle.Instant;
+        fighterAbility.perfectStaggerSeconds = 0.5f;
+
+        var healerAbility = ScriptableObject.CreateInstance<AbilityDefinition>();
+        healerAbility.abilityType = AbilityType.Heal;
+        healerAbility.executionStyle = AbilityExecutionStyle.Pulse;
+        healerAbility.perfectProtectionSeconds = 0.35f;
+
+        Assert.AreEqual(AbilityExecutionStyle.Instant, fighterAbility.executionStyle);
+        Assert.Greater(fighterAbility.perfectStaggerSeconds, 0f);
+        Assert.AreEqual(AbilityExecutionStyle.Pulse, healerAbility.executionStyle);
+        Assert.Greater(healerAbility.perfectProtectionSeconds, 0f);
+    }
 }
 #endif

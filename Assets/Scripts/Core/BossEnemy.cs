@@ -61,6 +61,7 @@ namespace Game.Core
             float distance = Vector3.Distance(transform.position, PlayerTarget.position);
             if (distance > attackRange) return;
 
+            NotifyAttackStarted();
             if (attackMode == BossAttackMode.Ranged)
                 StartCoroutine(FireBurst(PlayerTarget));
             else

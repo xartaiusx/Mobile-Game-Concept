@@ -14,16 +14,19 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Game.Combat.AbilityDefinition
   abilityId: archer_shot
   displayName: Archer Shot
-  description: Long-range rhythm shot.
-  baseDamage: 14
+  description: Long-range precision shot that heavily rewards Perfect timing.
+  baseDamage: 20
   healAmount: 0
-  cooldown: 1.1
-  range: 9
-  radius: 1
+  cooldown: 1.35
+  range: 10
+  radius: 0.9
   resourceCost: 0
   abilityType: 0
   targetMode: 3
+  executionStyle: 1
+  perfectStaggerSeconds: 0.2
+  perfectProtectionSeconds: 0
   rhythmScaling:
-    perfectMultiplier: 1.5
-    goodMultiplier: 1.15
-    missMultiplier: 0.75
+    perfectMultiplier: 2
+    goodMultiplier: 1.2
+    missMultiplier: 0.5

@@ -14,16 +14,19 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Game.Combat.AbilityDefinition
   abilityId: mage_bolt
   displayName: Mage Bolt
-  description: Medium-range rhythm spell.
-  baseDamage: 16
+  description: Medium-range focused spell with a longer recovery.
+  baseDamage: 28
   healAmount: 0
-  cooldown: 1.6
+  cooldown: 2
   range: 7
-  radius: 1.4
+  radius: 1.2
   resourceCost: 0
   abilityType: 0
   targetMode: 3
+  executionStyle: 1
+  perfectStaggerSeconds: 0.25
+  perfectProtectionSeconds: 0
   rhythmScaling:
-    perfectMultiplier: 1.5
-    goodMultiplier: 1.15
-    missMultiplier: 0.75
+    perfectMultiplier: 1.55
+    goodMultiplier: 1.1
+    missMultiplier: 0.65

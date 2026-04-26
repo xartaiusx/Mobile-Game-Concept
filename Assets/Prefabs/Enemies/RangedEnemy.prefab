@@ -42,7 +42,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: c6bcdf269b0ba73f389f47bb5daa857c, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: Assembly-CSharp::Game.Core.ObjectPool
   prefab: {fileID: 3439621045551425630, guid: 83c07bfda74bded02a740b7dd330191b, type: 3}
   preloadCount: 8
@@ -60,6 +60,7 @@ GameObject:
   - component: {fileID: 5753751809766255369}
   - component: {fileID: 7654118848745833237}
   - component: {fileID: 3185610614831612373}
+  - component: {fileID: 9156364312557632280}
   m_Layer: 0
   m_Name: RangedEnemy
   m_TagString: Untagged
@@ -175,7 +176,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 5c407ddf07b3821059b8697801797ba6, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: Assembly-CSharp::Game.Core.RangedEnemy
   enemyName: Enemy
   maxHealth: 20
@@ -190,3 +191,18 @@ MonoBehaviour:
   projectilePool: {fileID: 3770788252275746959}
   projectileSpeed: 8
   currentAttackPattern: 0
+--- !u!114 &9156364312557632280
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9200504802091681432}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ca2a98a32a98f17f28e10f9db238c153, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::Game.Feedback.EnemyAttackFlash
+  targetRenderer: {fileID: 0}
+  flashColor: {r: 1, g: 0.9, b: 0.2, a: 1}
+  flashSeconds: 0.18

@@ -1,6 +1,7 @@
 #if UNITY_EDITOR
 using Game.Combat;
 using Game.Core;
+using Game.Feedback;
 using Game.Rhythm;
 using Game.UI;
 using NUnit.Framework;
@@ -25,6 +26,7 @@ public class VerticalSlicePlayModeTests
         Assert.IsNotNull(player.GetComponent<CharacterController>());
         Assert.IsNotNull(player.GetComponent<PlayerController>());
         Assert.IsNotNull(player.GetComponent<ComboSystem>());
+        Assert.AreEqual(AttackTimingState.Ready, player.GetComponent<ComboSystem>().TimingState);
         Assert.IsNotNull(player.GetComponent<AbilityController>());
         Assert.IsNotNull(player.GetComponent<DodgeController>());
         Assert.IsNotNull(player.GetComponent<ParryController>());
@@ -36,6 +38,7 @@ public class VerticalSlicePlayModeTests
         Assert.IsNotNull(Object.FindAnyObjectByType<Canvas>());
         Assert.IsNotNull(Object.FindAnyObjectByType<BeatBarUI>());
         Assert.IsNotNull(Object.FindAnyObjectByType<VerticalSliceHud>());
+        Assert.IsNotNull(Object.FindAnyObjectByType<RhythmFeedbackController>());
     }
 }
 #endif

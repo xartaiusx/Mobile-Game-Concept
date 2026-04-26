@@ -42,6 +42,7 @@ namespace Game.Core
             float distance = Vector3.Distance(transform.position, playerTarget.position);
             if (distance <= attackRange)
             {
+                NotifyAttackStarted();
                 var character = playerTarget.GetComponent<BaseCharacter>();
                 if (character != null)
                     character.TakeDamage(new DamageContext(gameObject, AttackDamage, DamageType.Physical, Game.Rhythm.RhythmGrade.Miss, true));
