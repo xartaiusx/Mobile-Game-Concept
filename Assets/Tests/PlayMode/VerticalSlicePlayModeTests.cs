@@ -8,6 +8,7 @@ using Game.Animation;
 using Game.Rhythm;
 using Game.UI;
 using NUnit.Framework;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
@@ -56,12 +57,32 @@ public class VerticalSlicePlayModeTests
     }
 
     [Test]
+    public void VerticalSliceHasNoDuplicateCriticalSingletons()
+    {
+        SceneManager.LoadScene("VerticalSlice");
+
+        Assert.AreEqual(1, Object.FindObjectsByType<PlayerManager>(FindObjectsInactive.Exclude).Length);
+        Assert.AreEqual(1, Object.FindObjectsByType<GameManager>(FindObjectsInactive.Exclude).Length);
+        Assert.AreEqual(1, Object.FindObjectsByType<BeatClock>(FindObjectsInactive.Exclude).Length);
+        Assert.AreEqual(1, Object.FindObjectsByType<RhythmJudgement>(FindObjectsInactive.Exclude).Length);
+        Assert.AreEqual(1, Object.FindObjectsByType<ScoreSystem>(FindObjectsInactive.Exclude).Length);
+        Assert.AreEqual(1, Object.FindObjectsByType<VerticalSliceHud>(FindObjectsInactive.Exclude).Length);
+        Assert.AreEqual(1, GameObject.FindGameObjectsWithTag("Player").Length);
+    }
+
+    [Test]
     public void VerticalSliceClassSwapSimulationKeepsSingleManagedPlayer()
     {
         SceneManager.LoadScene("VerticalSlice");
 
         ClassSwapDebugController classSwap = Object.FindAnyObjectByType<ClassSwapDebugController>();
         Assert.IsNotNull(classSwap);
+        SimpleFollowCamera followCamera = Object.FindAnyObjectByType<SimpleFollowCamera>();
+        VerticalSliceHud hud = Object.FindAnyObjectByType<VerticalSliceHud>();
+        ArenaController arena = Object.FindAnyObjectByType<ArenaController>();
+        Assert.IsNotNull(followCamera);
+        Assert.IsNotNull(hud);
+        Assert.IsNotNull(arena);
 
         Directory.CreateDirectory("Artifacts/Phase8Frames");
         string[] classNames = { "Fighter", "Mage", "Archer", "Healer" };
@@ -73,10 +94,23 @@ public class VerticalSlicePlayModeTests
             Assert.AreEqual(1, GameObject.FindGameObjectsWithTag("Player").Length);
             Assert.IsNotNull(player.GetComponent<Animator>());
             Assert.IsNotNull(player.GetComponent<PlayerSimulationController>());
+            Assert.AreEqual(player.transform, SerializedTransform(followCamera, "target"));
+            Assert.AreEqual(player.GetComponent<ComboSystem>(), SerializedObjectReference<ComboSystem>(hud, "comboSystem"));
+            Assert.AreEqual(player.GetComponent<BaseCharacter>(), SerializedObjectReference<BaseCharacter>(arena, "player"));
 
             player.GetComponent<PlayerSimulationController>().SetSimulationEnabled(true);
             ScreenCapture.CaptureScreenshot($"Artifacts/Phase8Frames/{classNames[i]}_playmode_test.png");
         }
+    }
+
+    private static Transform SerializedTransform(Object target, string propertyName)
+    {
+        return new SerializedObject(target).FindProperty(propertyName).objectReferenceValue as Transform;
+    }
+
+    private static T SerializedObjectReference<T>(Object target, string propertyName) where T : Object
+    {
+        return new SerializedObject(target).FindProperty(propertyName).objectReferenceValue as T;
     }
 }
 #endif

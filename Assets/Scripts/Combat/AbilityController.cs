@@ -259,7 +259,7 @@ namespace Game.Combat
 
         private BaseEnemy FindNearestEnemyInArc(Vector3 origin, Vector3 forward, float range)
         {
-            BaseEnemy[] enemies = FindObjectsByType<BaseEnemy>(FindObjectsInactive.Exclude, FindObjectsSortMode.None);
+            BaseEnemy[] enemies = FindObjectsByType<BaseEnemy>(FindObjectsInactive.Exclude);
             float bestDistance = float.MaxValue;
             BaseEnemy best = null;
             float coneDot = Mathf.Cos(forwardConeAngle * 0.5f * Mathf.Deg2Rad);

@@ -194,7 +194,7 @@ namespace Game.Core
 
         private BaseEnemy FindNearestEnemy()
         {
-            BaseEnemy[] enemies = FindObjectsByType<BaseEnemy>(FindObjectsInactive.Exclude, FindObjectsSortMode.None);
+            BaseEnemy[] enemies = FindObjectsByType<BaseEnemy>(FindObjectsInactive.Exclude);
             BaseEnemy best = null;
             float bestDistance = float.MaxValue;
             for (int i = 0; i < enemies.Length; i++)

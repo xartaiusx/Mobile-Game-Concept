@@ -11,7 +11,7 @@ public class RhythmRuleTests
     [TearDown]
     public void TearDown()
     {
-        foreach (GameObject go in Object.FindObjectsByType<GameObject>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+        foreach (GameObject go in Object.FindObjectsByType<GameObject>(FindObjectsInactive.Include))
             Object.DestroyImmediate(go);
     }
 

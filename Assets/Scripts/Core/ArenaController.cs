@@ -126,7 +126,7 @@ namespace Game.Core
             }
 
             if (initialWaveEnemies == null || initialWaveEnemies.Length == 0)
-                initialWaveEnemies = FindObjectsByType<BaseEnemy>(FindObjectsInactive.Exclude, FindObjectsSortMode.None);
+                initialWaveEnemies = FindObjectsByType<BaseEnemy>(FindObjectsInactive.Exclude);
 
             if (scoreSystem == null)
                 scoreSystem = FindAnyObjectByType<ScoreSystem>();

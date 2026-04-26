@@ -108,6 +108,37 @@ Phase 8 focuses on safer testing and production-readiness scaffolding without ad
 - Boss telegraphs now distinguish attack category from shape: `Slam`, `Line`, `RadialPulse` and `Circle`, `Line`, `Cone`.
 - Boss phase data can reference multiple telegraph assets. Phase 1 uses the readable slam; Phase 2 can select a line pattern while staying conservative.
 
+## System Audit 2026-04-26
+
+Status: validated and ready for the next feature phase, with the limitations below.
+
+Validated:
+
+- Repository hygiene: `.meta` pairing, generated folder ignores, duplicate type scan, `git diff --check`, package manifest, and Unity version.
+- Scene integrity: `Assets/Scenes/VerticalSlice.unity` loads in Unity `6000.4.4f1`; no missing script markers were found in scenes, prefabs, or ScriptableObject assets.
+- Core scene objects: `PlayerManager`, `GameManager`, `BeatClock`, `RhythmJudgement`, `ScoreSystem`, `ArenaController`, `VerticalSliceHud`, feedback/audio objects, pickups, and boss systems.
+- Prefabs and assets: all class prefabs, enemy prefabs, boss prefab, projectile prefab, pickup prefabs, feedback prefabs, Animator controllers, ability assets, boss phases, telegraphs, rhythm config, combo profile, and attack timing data.
+- Runtime rules through tests: rhythm judgement windows, level-based BPM scaling, score/damage scaling, dodge cooldown/speed scaling, arena state changes, pickup collection, projectile ability setup, boss telegraph data, class swap rebinding, and duplicate singleton guards.
+- Class swap: `F1`-`F4` replacement keeps one player, updates `PlayerManager`, retargets the follow camera, and rebinds HUD/arena references.
+
+Validation commands:
+
+```bash
+git diff --check
+"$HOME/Unity/Hub/Editor/6000.4.4f1/Editor/Unity" -quit -batchmode -projectPath "$PWD" -logFile /tmp/unity_system_audit_compile.log
+"$HOME/Unity/Hub/Editor/6000.4.4f1/Editor/Unity" -quit -batchmode -projectPath "$PWD" -runTests -testPlatform EditMode -logFile /tmp/mobile-game-editmode-system-audit.log
+"$HOME/Unity/Hub/Editor/6000.4.4f1/Editor/Unity" -quit -batchmode -projectPath "$PWD" -runTests -testPlatform PlayMode -logFile /tmp/mobile-game-playmode-system-audit.log
+```
+
+Environment note: `Xvfb :99` works for `scrot` on this machine, but Unity GUI does not attach to that virtual display. Use the normal desktop display for visual screenshots and use batchmode for authoritative compile/test validation.
+
+Known remaining risks:
+
+- Desktop input automation is still less reliable than batchmode state tests on this Wayland/XWayland setup.
+- Human hands-on Mage/Archer projectile feel validation is still recommended before adding more content.
+- Pickup and feedback effects are not yet pooled everywhere; this is acceptable for the current small slice, but should be revisited before mobile stress testing.
+- Boss line/radial scaffolding is covered for data safety, but only the current readable slam behavior should be considered tuned gameplay.
+
 ## Free Asset Integration
 
 Imported assets are intentionally small and limited to files used by generated materials/prefabs:

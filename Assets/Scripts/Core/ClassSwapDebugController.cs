@@ -108,10 +108,10 @@ namespace Game.Core
             if (arena != null)
                 arena.ReplacePlayer(player.GetComponent<BaseCharacter>());
 
-            foreach (VerticalSliceHud hud in FindObjectsByType<VerticalSliceHud>(FindObjectsInactive.Exclude, FindObjectsSortMode.None))
+            foreach (VerticalSliceHud hud in FindObjectsByType<VerticalSliceHud>(FindObjectsInactive.Exclude))
                 hud.BindPlayer(player);
 
-            foreach (RhythmFeedbackController feedback in FindObjectsByType<RhythmFeedbackController>(FindObjectsInactive.Exclude, FindObjectsSortMode.None))
+            foreach (RhythmFeedbackController feedback in FindObjectsByType<RhythmFeedbackController>(FindObjectsInactive.Exclude))
                 feedback.BindPlayer(player);
         }
     }
