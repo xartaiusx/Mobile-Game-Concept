@@ -6,6 +6,8 @@ Use Unity `6000.4.4f1`. The project uses the built-in render pipeline and the le
 
 Open `Assets/Scenes/VerticalSlice.unity` to run the current playable placeholder scene. The scene is enabled in Build Settings.
 
+Phase 8 is a stabilization phase. The goal is to keep the Warrior slice reliable, testable, and readable moment to moment before adding new enemies, classes, narrative systems, or complex UI.
+
 Use `Game > Vertical Slice > Create Or Refresh Vertical Slice` in the Unity Editor to recreate the default folders, ScriptableObject assets, prefabs, scene, and Build Settings entry. The menu is idempotent and now rebuilds the active path around Warrior-only endless arena play.
 
 The generated setup includes:
@@ -150,6 +152,14 @@ Scripts/run-unity-tests.sh
 
 The JSON summaries are the authoritative test report. `-testResults` XML may still be emitted for compatibility, but CI and local validation should not depend on XML as the only source of truth.
 
+Current expected discovery after Phase 8 stabilization:
+
+- EditMode discovers the core system and prefab validation tests.
+- PlayMode discovers the rhythm judgement test plus vertical slice smoke tests.
+- Both modes should remain separated by `Game.Tests.EditMode.asmdef` and `Game.Tests.PlayMode.asmdef`.
+
+`TestResults/summary.txt` is the quickest human-readable status. The two JSON files are better for CI parsing because they include totals and failure messages per mode.
+
 Warrior validation artifacts should go under `Artifacts/WarriorEndless/`. Do not commit `Artifacts/`.
 
 Environment note: Unity licensing handshake/curl messages can appear in batchmode logs without failing validation. Compile errors, `NullReferenceException`, `MissingReferenceException`, missing scripts/references, duplicate singleton warnings, scene load failures, and test failures should still be treated as failures.
@@ -158,6 +168,7 @@ Environment note: Unity licensing handshake/curl messages can appear in batchmod
 
 - Art, animation clips, and audio remain placeholder.
 - The Fighter script is still the serialized active component for prefab compatibility, even though gameplay names/treats it as Warrior.
+- The active slice uses one scene-level `RhythmJudgement`; player input buffers and combo systems fall back to it when they do not have a local judgement reference.
 - Mage, Archer, Healer, and class swap are preserved as deferred content and should not be treated as current gameplay.
 - Projectile ability code remains for inactive classes and ranged enemies; Warrior gameplay should not depend on it.
 - Boss line/radial patterns are scaffolding. Slam is the stable baseline.

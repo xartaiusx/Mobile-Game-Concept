@@ -43,7 +43,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: c6bcdf269b0ba73f389f47bb5daa857c, type: 3}
   m_Name:
-  m_EditorClassIdentifier: Assembly-CSharp::Game.Core.ObjectPool
+  m_EditorClassIdentifier: Game.Runtime::Game.Core.ObjectPool
   prefab: {fileID: 3439621045551425630, guid: 83c07bfda74bded02a740b7dd330191b, type: 3}
   preloadCount: 8
   expandable: 1
@@ -205,7 +205,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 71725d72ce85dde6f8dece7f4f18187b, type: 3}
   m_Name:
-  m_EditorClassIdentifier: Assembly-CSharp::Game.Feedback.HitReactionController
+  m_EditorClassIdentifier: Game.Runtime::Game.Feedback.HitReactionController
   targetRenderer: {fileID: 0}
   characterController: {fileID: 0}
   flashSeconds: 0.08
@@ -322,7 +322,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1a7979e9744e542808c9a55974354138, type: 3}
   m_Name:
-  m_EditorClassIdentifier: Assembly-CSharp::Game.Audio.AudioCuePlayer
+  m_EditorClassIdentifier: Game.Runtime::Game.Audio.AudioCuePlayer
   audioSource: {fileID: 0}
   masterVolume: 0.8
   sampleRate: 22050
@@ -337,7 +337,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: cfe60e408e52c2dfe8eed641d283bdf5, type: 3}
   m_Name:
-  m_EditorClassIdentifier: Assembly-CSharp::Game.Core.BossEnemy
+  m_EditorClassIdentifier: Game.Runtime::Game.Core.BossEnemy
   enemyName: Enemy
   maxHealth: 90
   health: 90
@@ -367,7 +367,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: ca2a98a32a98f17f28e10f9db238c153, type: 3}
   m_Name:
-  m_EditorClassIdentifier: Assembly-CSharp::Game.Feedback.EnemyAttackFlash
+  m_EditorClassIdentifier: Game.Runtime::Game.Feedback.EnemyAttackFlash
   targetRenderer: {fileID: 0}
   warningPrefab: {fileID: 1694020544728164433, guid: 52a2da44fd46d473e8c36d36de5cbfa5, type: 3}
   flashColor: {r: 1, g: 0.9, b: 0.2, a: 1}
@@ -385,7 +385,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: b5622e7e9464181649c5a65cfa9ae1f2, type: 3}
   m_Name:
-  m_EditorClassIdentifier: Assembly-CSharp::Game.AI.Enemies.BossPhaseController
+  m_EditorClassIdentifier: Game.Runtime::Game.AI.Enemies.BossPhaseController
   phases:
   - {fileID: 11400000, guid: 35685f2fd5eff4c72a3820f4a8451caf, type: 2}
   - {fileID: 11400000, guid: 32ec0ed4935b12346b371b0b1f8244d1, type: 2}
@@ -400,7 +400,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 9aec4bb2a257fb864b8ee07e7a6293f9, type: 3}
   m_Name:
-  m_EditorClassIdentifier: Assembly-CSharp::Game.Combat.BossTelegraphController
+  m_EditorClassIdentifier: Game.Runtime::Game.Combat.BossTelegraphController
   defaultTelegraph: {fileID: 11400000, guid: 212a5ca9c7236e31695cd805ae62a1fd, type: 2}
   target: {fileID: 0}
   targetMask:

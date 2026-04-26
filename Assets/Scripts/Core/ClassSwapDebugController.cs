@@ -54,6 +54,8 @@ namespace Game.Core
 
             CurrentPlayer = Instantiate(prefab, position, rotation);
             CurrentPlayer.name = "Player_" + className;
+            CurrentPlayer.tag = "Player";
+            CurrentPlayer.SetActive(true);
             PlayerManager.Instance?.RegisterPlayer(CurrentPlayer.transform);
             RebindSceneReferences(CurrentPlayer);
             return CurrentPlayer;
@@ -65,6 +67,10 @@ namespace Game.Core
             magePrefab = mage;
             archerPrefab = archer;
             healerPrefab = healer;
+            PrepareSceneTemplate(fighterPrefab);
+            PrepareSceneTemplate(magePrefab);
+            PrepareSceneTemplate(archerPrefab);
+            PrepareSceneTemplate(healerPrefab);
         }
 
         private void ResolveCurrentPlayer()
@@ -113,6 +119,16 @@ namespace Game.Core
 
             foreach (RhythmFeedbackController feedback in FindObjectsByType<RhythmFeedbackController>(FindObjectsInactive.Exclude))
                 feedback.BindPlayer(player);
+        }
+
+        private static void PrepareSceneTemplate(GameObject template)
+        {
+            if (template == null || !template.scene.IsValid())
+                return;
+
+            template.SetActive(false);
+            if (template.CompareTag("Player"))
+                template.tag = "Untagged";
         }
     }
 }

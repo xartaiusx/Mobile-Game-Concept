@@ -102,7 +102,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6ebd7f243881ea94abf17f01453c321c, type: 3}
   m_Name:
-  m_EditorClassIdentifier: Assembly-CSharp::Game.Feedback.FeedbackPulse
+  m_EditorClassIdentifier: Game.Runtime::Game.Feedback.FeedbackPulse
   lifetime: 0.38
   expansion: 2.7
   flattenToRing: 0

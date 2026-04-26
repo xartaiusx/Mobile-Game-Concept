@@ -8,32 +8,39 @@ namespace Game.Animation
 
         private void Awake()
         {
-            bridge = bridge != null ? bridge : GetComponentInParent<CombatAnimationBridge>();
+            ResolveBridge();
         }
 
         public void BeginAttackActiveWindow()
         {
-            bridge?.OpenHitWindow();
+            ResolveBridge()?.OpenHitWindow();
         }
 
         public void EndAttackActiveWindow()
         {
-            bridge?.CloseHitWindow();
+            ResolveBridge()?.CloseHitWindow();
         }
 
         public void FinishRecovery()
         {
-            bridge?.FinishAttackRecovery();
+            ResolveBridge()?.FinishAttackRecovery();
         }
 
         public void TriggerFootstep()
         {
-            bridge?.TriggerFootstep();
+            ResolveBridge()?.TriggerFootstep();
         }
 
         public void TriggerWeaponSwing()
         {
-            bridge?.TriggerWeaponSwing();
+            ResolveBridge()?.TriggerWeaponSwing();
+        }
+
+        private CombatAnimationBridge ResolveBridge()
+        {
+            if (bridge == null)
+                bridge = GetComponentInParent<CombatAnimationBridge>();
+            return bridge;
         }
     }
 }

@@ -1,4 +1,5 @@
 #if UNITY_EDITOR
+using System.Collections;
 using System.IO;
 using Game.Combat;
 using Game.Core;
@@ -12,14 +13,15 @@ using NUnit.Framework;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.TestTools;
 using UnityEngine.UI;
 
 public class VerticalSlicePlayModeTests
 {
-    [Test]
-    public void VerticalSliceSceneStartsWithCoreGameplayObjects()
+    [UnityTest]
+    public IEnumerator VerticalSliceSceneStartsWithCoreGameplayObjects()
     {
-        SceneManager.LoadScene("VerticalSlice");
+        yield return LoadVerticalSlice();
 
         Assert.IsNotNull(Object.FindAnyObjectByType<PlayerManager>());
         Assert.IsNotNull(Object.FindAnyObjectByType<GameManager>());
@@ -46,8 +48,8 @@ public class VerticalSlicePlayModeTests
 
         Assert.IsNotNull(Object.FindAnyObjectByType<MeleeEnemy>());
         Assert.IsNotNull(Object.FindAnyObjectByType<RangedEnemy>());
-        Assert.IsNotNull(Object.FindAnyObjectByType<BossEnemy>());
-        Assert.IsNotNull(Object.FindAnyObjectByType<BossTelegraphController>());
+        Assert.IsNotNull(Object.FindAnyObjectByType<BossEnemy>(FindObjectsInactive.Include));
+        Assert.IsNotNull(Object.FindAnyObjectByType<BossTelegraphController>(FindObjectsInactive.Include));
         Assert.IsNotNull(Object.FindAnyObjectByType<ArenaController>());
         Assert.IsNotNull(Object.FindAnyObjectByType<ScoreSystem>());
         Assert.IsNotNull(Object.FindAnyObjectByType<PickupSpawner>());
@@ -59,10 +61,10 @@ public class VerticalSlicePlayModeTests
         Assert.IsNotNull(Object.FindAnyObjectByType<AudioCuePlayer>());
     }
 
-    [Test]
-    public void VerticalSliceHasNoDuplicateCriticalSingletons()
+    [UnityTest]
+    public IEnumerator VerticalSliceHasNoDuplicateCriticalSingletons()
     {
-        SceneManager.LoadScene("VerticalSlice");
+        yield return LoadVerticalSlice();
 
         Assert.AreEqual(1, Object.FindObjectsByType<PlayerManager>(FindObjectsInactive.Exclude).Length);
         Assert.AreEqual(1, Object.FindObjectsByType<GameManager>(FindObjectsInactive.Exclude).Length);
@@ -73,10 +75,10 @@ public class VerticalSlicePlayModeTests
         Assert.AreEqual(1, GameObject.FindGameObjectsWithTag("Player").Length);
     }
 
-    [Test]
-    public void VerticalSliceUsesWarriorOnlyAndLegacyClassSwapIsInactive()
+    [UnityTest]
+    public IEnumerator VerticalSliceUsesWarriorOnlyAndLegacyClassSwapIsInactive()
     {
-        SceneManager.LoadScene("VerticalSlice");
+        yield return LoadVerticalSlice();
 
         ClassSwapDebugController classSwap = Object.FindAnyObjectByType<ClassSwapDebugController>(FindObjectsInactive.Include);
         Assert.IsTrue(classSwap == null || !classSwap.gameObject.activeInHierarchy);
@@ -104,10 +106,10 @@ public class VerticalSlicePlayModeTests
         ScreenCapture.CaptureScreenshot("Artifacts/WarriorEndless/warrior_playmode_test.png");
     }
 
-    [Test]
-    public void VerticalSliceEndlessArenaCanClearWaveAndIncrement()
+    [UnityTest]
+    public IEnumerator VerticalSliceEndlessArenaCanClearWaveAndIncrement()
     {
-        SceneManager.LoadScene("VerticalSlice");
+        yield return LoadVerticalSlice();
 
         ArenaController arena = Object.FindAnyObjectByType<ArenaController>();
         ScoreSystem score = Object.FindAnyObjectByType<ScoreSystem>();
@@ -129,6 +131,31 @@ public class VerticalSlicePlayModeTests
 
         Assert.AreEqual(startingWave + 1, arena.CurrentWave);
         Assert.AreNotEqual(ArenaState.Victory, arena.State);
+    }
+
+    [UnityTest]
+    public IEnumerator VerticalSliceSmokeTestHasNoMissingScripts()
+    {
+        yield return LoadVerticalSlice();
+
+        Assert.AreEqual(1, GameObject.FindGameObjectsWithTag("Player").Length);
+        Assert.AreEqual(1, Object.FindObjectsByType<BeatClock>(FindObjectsInactive.Exclude).Length);
+        Assert.AreEqual(1, Object.FindObjectsByType<ScoreSystem>(FindObjectsInactive.Exclude).Length);
+        Assert.IsNotNull(Object.FindAnyObjectByType<VerticalSliceHud>());
+        Assert.Greater(Object.FindObjectsByType<BaseEnemy>(FindObjectsInactive.Exclude).Length, 0);
+
+        foreach (GameObject go in Object.FindObjectsByType<GameObject>(FindObjectsInactive.Include))
+            Assert.AreEqual(0, GameObjectUtility.GetMonoBehavioursWithMissingScriptCount(go), go.name + " has missing scripts.");
+    }
+
+    private static IEnumerator LoadVerticalSlice()
+    {
+        AsyncOperation load = SceneManager.LoadSceneAsync("VerticalSlice", LoadSceneMode.Single);
+        Assert.IsNotNull(load);
+        while (!load.isDone)
+            yield return null;
+
+        yield return null;
     }
 
     private static Transform SerializedTransform(Object target, string propertyName)

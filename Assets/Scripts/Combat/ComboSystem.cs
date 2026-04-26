@@ -65,6 +65,8 @@ namespace Game.Combat
         {
             buffer = GetComponent<InputBuffer>();
             judgement = judgement != null ? judgement : GetComponent<RhythmJudgement>();
+            if (judgement == null)
+                judgement = FindAnyObjectByType<RhythmJudgement>();
             hitCache = new Collider[Mathf.Max(1, maxHitColliders)];
             if (timingMode == CombatTimingMode.AnimationEventDriven && GetComponentInChildren<Animator>() == null)
                 timingMode = CombatTimingMode.Timed;
@@ -175,6 +177,9 @@ namespace Game.Combat
 
         public void FinishAttackRecovery()
         {
+            if (TimingState == AttackTimingState.Ready)
+                return;
+
             ApplyCooldownAndAdvance();
             FinishRecovery();
         }
@@ -213,7 +218,10 @@ namespace Game.Combat
             inputCooldownRemaining = Mathf.Max(0f, activeBaseCooldown * (1f - refund) * RecoveryMultiplier(activeGrade));
             Analytics.LogBeat(activeGrade, activeStepIndex + 1);
 
-            stepIndex = (stepIndex + 1) % profile.steps.Length;
+            if (profile != null && profile.steps != null && profile.steps.Length > 0)
+                stepIndex = (stepIndex + 1) % profile.steps.Length;
+            else
+                stepIndex = 0;
             comboTimer = 0f;
         }
 

@@ -1,6 +1,8 @@
 #if UNITY_EDITOR
+using Game.Classes;
 using Game.Combat;
 using Game.Core;
+using Game.Feedback;
 using Game.Rhythm;
 using Game.UI;
 using NUnit.Framework;
@@ -93,6 +95,38 @@ public class RhythmRuleTests
 
         Assert.Less(perfect.LastResolvedCooldown, miss.LastResolvedCooldown);
         Assert.Greater(perfect.LastResolvedSpeedMultiplier, miss.LastResolvedSpeedMultiplier);
+    }
+
+    [Test]
+    public void DodgeGradesProduceDistinctFeelOutcomes()
+    {
+        var perfect = new GameObject("perfect-dodge").AddComponent<DodgeController>();
+        var good = new GameObject("good-dodge").AddComponent<DodgeController>();
+        var miss = new GameObject("miss-dodge").AddComponent<DodgeController>();
+
+        perfect.ResolveDodgeForTests(RhythmGrade.Perfect, Vector3.forward);
+        good.ResolveDodgeForTests(RhythmGrade.Good, Vector3.forward);
+        miss.ResolveDodgeForTests(RhythmGrade.Miss, Vector3.forward);
+
+        Assert.AreEqual(RhythmGrade.Perfect, perfect.LastDodgeGrade);
+        Assert.AreEqual(RhythmGrade.Good, good.LastDodgeGrade);
+        Assert.AreEqual(RhythmGrade.Miss, miss.LastDodgeGrade);
+        Assert.Greater(perfect.LastResolvedSpeedMultiplier, good.LastResolvedSpeedMultiplier);
+        Assert.Greater(good.LastResolvedSpeedMultiplier, miss.LastResolvedSpeedMultiplier);
+        Assert.Less(perfect.LastResolvedCooldown, good.LastResolvedCooldown);
+        Assert.Less(good.LastResolvedCooldown, miss.LastResolvedCooldown);
+        Assert.Greater(perfect.LastResolvedInvulnerability, good.LastResolvedInvulnerability);
+        Assert.Greater(good.LastResolvedInvulnerability, miss.LastResolvedInvulnerability);
+    }
+
+    [Test]
+    public void HitReactionToleratesMissingOptionalRenderer()
+    {
+        var go = new GameObject("warrior-hit-reaction");
+        var fighter = go.AddComponent<Fighter>();
+        go.AddComponent<HitReactionController>();
+
+        Assert.DoesNotThrow(() => fighter.TakeDamage(1));
     }
 
     [Test]

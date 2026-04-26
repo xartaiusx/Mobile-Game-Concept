@@ -153,7 +153,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6282cf45be939d8548138c90ca475f7d, type: 3}
   m_Name:
-  m_EditorClassIdentifier: Assembly-CSharp::Game.Core.MeleeEnemy
+  m_EditorClassIdentifier: Game.Runtime::Game.Core.MeleeEnemy
   enemyName: Enemy
   maxHealth: 24
   health: 24
@@ -174,7 +174,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 71725d72ce85dde6f8dece7f4f18187b, type: 3}
   m_Name:
-  m_EditorClassIdentifier: Assembly-CSharp::Game.Feedback.HitReactionController
+  m_EditorClassIdentifier: Game.Runtime::Game.Feedback.HitReactionController
   targetRenderer: {fileID: 0}
   characterController: {fileID: 0}
   flashSeconds: 0.08
@@ -194,7 +194,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: ca2a98a32a98f17f28e10f9db238c153, type: 3}
   m_Name:
-  m_EditorClassIdentifier: Assembly-CSharp::Game.Feedback.EnemyAttackFlash
+  m_EditorClassIdentifier: Game.Runtime::Game.Feedback.EnemyAttackFlash
   targetRenderer: {fileID: 0}
   warningPrefab: {fileID: 1694020544728164433, guid: 52a2da44fd46d473e8c36d36de5cbfa5, type: 3}
   flashColor: {r: 1, g: 0.9, b: 0.2, a: 1}

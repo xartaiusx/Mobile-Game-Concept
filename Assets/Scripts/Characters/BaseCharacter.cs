@@ -19,14 +19,32 @@ namespace Game.Core
         [SerializeField] private bool initializeOnAwake = true;
 
         private readonly List<IDamageResponder> damageResponders = new List<IDamageResponder>(4);
+        private bool statsInitialized;
+        private bool initializingStats;
 
         public string CharacterName { get => characterName; protected set => characterName = value; }
         public int Level => level;
         public int Strength { get => strength; protected set => strength = Mathf.Max(0, value); }
         public int Stamina { get => stamina; protected set => stamina = Mathf.Max(0, value); }
         public int Intelligence { get => intelligence; protected set => intelligence = Mathf.Max(0, value); }
-        public int MaxHealth { get => maxHealth; protected set => maxHealth = Mathf.Max(1, value); }
-        public int CurrentHealth { get => currentHealth; protected set => currentHealth = Mathf.Clamp(value, 0, MaxHealth); }
+        public int MaxHealth
+        {
+            get
+            {
+                EnsureStatsInitialized();
+                return maxHealth;
+            }
+            protected set => maxHealth = Mathf.Max(1, value);
+        }
+        public int CurrentHealth
+        {
+            get
+            {
+                EnsureStatsInitialized();
+                return currentHealth;
+            }
+            protected set => currentHealth = Mathf.Clamp(value, 0, maxHealth > 0 ? maxHealth : 1);
+        }
         public bool IsAlive => CurrentHealth > 0;
 
         public event Action<BaseCharacter> OnDamaged;
@@ -37,8 +55,7 @@ namespace Game.Core
         protected virtual void Awake()
         {
             RefreshDamageResponders();
-            if (initializeOnAwake)
-                InitializeStats();
+            EnsureStatsInitialized();
         }
 
         public void RefreshDamageResponders()
@@ -75,6 +92,7 @@ namespace Game.Core
 
         public void TakeDamage(DamageContext context)
         {
+            EnsureStatsInitialized();
             if (!IsAlive || context.amount <= 0) return;
 
             RefreshDamageResponders();
@@ -95,9 +113,21 @@ namespace Game.Core
 
         public void Heal(int amount)
         {
+            EnsureStatsInitialized();
             if (!IsAlive || amount <= 0) return;
             CurrentHealth += amount;
             OnHealed?.Invoke(this);
+        }
+
+        private void EnsureStatsInitialized()
+        {
+            if (statsInitialized || initializingStats || !initializeOnAwake)
+                return;
+
+            initializingStats = true;
+            InitializeStats();
+            statsInitialized = true;
+            initializingStats = false;
         }
 
         protected virtual void Die()

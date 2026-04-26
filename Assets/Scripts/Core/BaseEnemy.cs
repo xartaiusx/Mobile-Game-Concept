@@ -116,7 +116,10 @@ namespace Game.Core
             Debug.Log(EnemyName + " has been defeated.");
             Defeated?.Invoke(this);
             EnemyDefeatedGlobal?.Invoke(this);
-            Destroy(gameObject);
+            if (Application.isPlaying)
+                Destroy(gameObject);
+            else
+                DestroyImmediate(gameObject);
         }
 
         public void ApplyPhaseStats(float moveSpeedMultiplier, float attackIntervalMultiplier)

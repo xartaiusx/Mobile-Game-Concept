@@ -427,22 +427,14 @@ namespace Game.EditorTools
             float moveSpeed = classType == typeof(Archer) ? 6.1f : classType == typeof(Mage) ? 5.35f : classType == typeof(Healer) ? 5.45f : 5.8f;
             SetFloat(playerController, "moveSpeed", moveSpeed);
             SetFloat(playerController, "jumpHeight", 1.4f);
-            var judgement = player.AddComponent<RhythmJudgement>();
-            SetObject(judgement, "config", rhythmConfig);
-
             var attackBuffer = player.AddComponent<InputBuffer>();
             var abilityBuffer = player.AddComponent<InputBuffer>();
             var dodgeBuffer = player.AddComponent<InputBuffer>();
             var parryBuffer = player.AddComponent<InputBuffer>();
-            SetObject(attackBuffer, "judgement", judgement);
-            SetObject(abilityBuffer, "judgement", judgement);
-            SetObject(dodgeBuffer, "judgement", judgement);
-            SetObject(parryBuffer, "judgement", judgement);
             SetObject(playerController, "attackBuffer", attackBuffer);
 
             var combo = player.AddComponent<ComboSystem>();
             SetObject(combo, "profile", comboProfile);
-            SetObject(combo, "judgement", judgement);
             SetObject(combo, "attackTiming", attackTiming);
             SetFloat(combo, "attackRange", classType == typeof(Fighter) ? 2.35f : 2.05f);
 

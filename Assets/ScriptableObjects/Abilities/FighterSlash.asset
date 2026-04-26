@@ -12,21 +12,21 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e5440b6c30ee83487a69983cfa5e26f6, type: 3}
   m_Name: WarriorSlash
   m_EditorClassIdentifier: Assembly-CSharp::Game.Combat.AbilityDefinition
-  abilityId: warrior_slash
-  displayName: Warrior Slash
-  description: Close-range guard-breaking slash. Perfect timing adds the strongest damage and stagger.
-  baseDamage: 25
+  abilityId: fighter_slash
+  displayName: Fighter Slash
+  description: Short-range guard-breaking slash. Perfect timing adds a stronger stagger.
+  baseDamage: 23
   healAmount: 0
-  cooldown: 0.95
-  range: 2.55
+  cooldown: 1.05
+  range: 2.7
   radius: 38
   resourceCost: 0
   abilityType: 0
   targetMode: 1
   executionStyle: 0
-  perfectStaggerSeconds: 0.85
+  perfectStaggerSeconds: 0.75
   perfectProtectionSeconds: 0
   rhythmScaling:
-    perfectMultiplier: 1.85
-    goodMultiplier: 1.15
-    missMultiplier: 0.45
+    perfectMultiplier: 1.65
+    goodMultiplier: 1.2
+    missMultiplier: 0.75

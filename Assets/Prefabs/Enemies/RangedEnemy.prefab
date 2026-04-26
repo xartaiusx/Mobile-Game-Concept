@@ -43,7 +43,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: c6bcdf269b0ba73f389f47bb5daa857c, type: 3}
   m_Name:
-  m_EditorClassIdentifier: Assembly-CSharp::Game.Core.ObjectPool
+  m_EditorClassIdentifier: Game.Runtime::Game.Core.ObjectPool
   prefab: {fileID: 3439621045551425630, guid: 83c07bfda74bded02a740b7dd330191b, type: 3}
   preloadCount: 8
   expandable: 1
@@ -201,7 +201,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 5c407ddf07b3821059b8697801797ba6, type: 3}
   m_Name:
-  m_EditorClassIdentifier: Assembly-CSharp::Game.Core.RangedEnemy
+  m_EditorClassIdentifier: Game.Runtime::Game.Core.RangedEnemy
   enemyName: Enemy
   maxHealth: 20
   health: 20
@@ -226,7 +226,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 71725d72ce85dde6f8dece7f4f18187b, type: 3}
   m_Name:
-  m_EditorClassIdentifier: Assembly-CSharp::Game.Feedback.HitReactionController
+  m_EditorClassIdentifier: Game.Runtime::Game.Feedback.HitReactionController
   targetRenderer: {fileID: 0}
   characterController: {fileID: 0}
   flashSeconds: 0.08
@@ -246,7 +246,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: ca2a98a32a98f17f28e10f9db238c153, type: 3}
   m_Name:
-  m_EditorClassIdentifier: Assembly-CSharp::Game.Feedback.EnemyAttackFlash
+  m_EditorClassIdentifier: Game.Runtime::Game.Feedback.EnemyAttackFlash
   targetRenderer: {fileID: 0}
   warningPrefab: {fileID: 1694020544728164433, guid: 52a2da44fd46d473e8c36d36de5cbfa5, type: 3}
   flashColor: {r: 1, g: 0.9, b: 0.2, a: 1}

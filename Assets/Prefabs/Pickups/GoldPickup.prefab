@@ -124,7 +124,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 9047cce3f1cc81889b1a7290895b285e, type: 3}
   m_Name:
-  m_EditorClassIdentifier: Assembly-CSharp::Game.Core.Pickup
+  m_EditorClassIdentifier: Game.Runtime::Game.Core.Pickup
   item: {fileID: 11400000, guid: 065060cb7844580b8a71002ffb5584e1, type: 2}
   amount: 2
   autoUseHealthPotionWhenLow: 1

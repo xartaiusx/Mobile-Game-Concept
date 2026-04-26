@@ -40,6 +40,7 @@ namespace Game.Combat
         public float CooldownRemaining => cooldownRemaining;
         public float LastResolvedCooldown { get; private set; }
         public float LastResolvedSpeedMultiplier { get; private set; } = 1f;
+        public float LastResolvedInvulnerability { get; private set; }
         public RhythmGrade LastDodgeGrade { get; private set; } = RhythmGrade.Miss;
 
         private void Awake()
@@ -121,6 +122,7 @@ namespace Game.Combat
             cooldownRemaining = Mathf.Max(0f, cooldown * cooldownMultiplier);
             LastResolvedCooldown = cooldownRemaining;
             LastResolvedSpeedMultiplier = speedMultiplier;
+            LastResolvedInvulnerability = invulnerability;
             LastDodgeGrade = grade;
             DodgeResolved?.Invoke(grade, cooldownRemaining, invulnerability);
 

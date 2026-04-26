@@ -22,6 +22,8 @@ namespace Game.Rhythm
         {
             if (judgement == null)
                 judgement = GetComponent<RhythmJudgement>();
+            if (judgement == null)
+                judgement = FindAnyObjectByType<RhythmJudgement>();
         }
 
         private void OnEnable()

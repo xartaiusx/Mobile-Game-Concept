@@ -16,6 +16,7 @@ Mage, Archer, Healer, projectile ability assets, and class swap code remain in t
 
 ## Current Slice
 
+- Phase 8 goal: stabilize the playable vertical slice and core-loop feel before adding content.
 - Endless rhythm-action melee arena loop.
 - Warrior-only active player path through `GameManager`, `PlayerManager`, HUD, camera, arena, score, dodge, parry, pickups, and boss systems.
 - Close-range combo attacks using `ComboSystem`, `DefaultComboProfile`, and `DefaultAttackTiming`.
@@ -79,7 +80,20 @@ git diff --check
 Scripts/run-unity-tests.sh
 ```
 
-`Scripts/run-unity-tests.sh` writes authoritative summaries to `TestResults/editmode-summary.json`, `TestResults/playmode-summary.json`, and `TestResults/summary.txt`.
+`Scripts/run-unity-tests.sh` writes authoritative summaries to:
+
+- `TestResults/editmode-summary.json`: EditMode totals, failures, and messages.
+- `TestResults/playmode-summary.json`: PlayMode totals, failures, and messages.
+- `TestResults/summary.txt`: combined human-readable totals.
+
+The custom summaries are the source of truth. Unity XML output may exist for compatibility, but validation should not depend on XML alone.
+
+## Current Risks
+
+- Combat, animation, and UI assets are still placeholder-grade.
+- Boss/elite cadence works as a scaffold, but wave 5+ pacing still needs hands-on tuning.
+- Touch controls and device profiling are not done.
+- Some deferred Mage, Archer, Healer, projectile, and class-swap assets still exist for compile compatibility only.
 
 ## Next
 

@@ -141,7 +141,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1a7979e9744e542808c9a55974354138, type: 3}
   m_Name:
-  m_EditorClassIdentifier: Assembly-CSharp::Game.Audio.AudioCuePlayer
+  m_EditorClassIdentifier: Game.Runtime::Game.Audio.AudioCuePlayer
   audioSource: {fileID: 0}
   masterVolume: 0.8
   sampleRate: 22050

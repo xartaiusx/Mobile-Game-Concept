@@ -4,7 +4,18 @@ namespace Game.Core
 {
     public class PlayerManager : MonoBehaviour
     {
-        public static PlayerManager Instance { get; private set; }
+        private static PlayerManager instance;
+
+        public static PlayerManager Instance
+        {
+            get
+            {
+                if (instance == null)
+                    instance = FindAnyObjectByType<PlayerManager>();
+                return instance;
+            }
+            private set => instance = value;
+        }
         public Transform Player { get; private set; }
 
         private void Awake()

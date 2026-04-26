@@ -13,13 +13,13 @@ MonoBehaviour:
   m_Name: DefaultComboProfile
   m_EditorClassIdentifier: Assembly-CSharp::Game.Combat.ComboProfile
   steps:
-  - baseDamage: 10
-    cooldown: 0.14
+  - baseDamage: 8
+    cooldown: 0.15
     tag: Step 1
-  - baseDamage: 14
+  - baseDamage: 11
     cooldown: 0.2
     tag: Step 2
-  - baseDamage: 22
-    cooldown: 0.34
+  - baseDamage: 16
+    cooldown: 0.35
     tag: Finisher
-  comboTimeout: 1.7
+  comboTimeout: 1.5

@@ -1102,7 +1102,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 03d862fd7155b8667b57550a828c814f, type: 3}
   m_Name:
-  m_EditorClassIdentifier: Assembly-CSharp::Game.UI.BeatBarUI
+  m_EditorClassIdentifier: Game.Runtime::Game.UI.BeatBarUI
   marker: {fileID: 3063185799262978266}
   bar: {fileID: 3248524125268911114}
   perfectWindow: {fileID: 1632755597410239420}
@@ -1125,7 +1125,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: ec2b9622157dcb138968fa9a3f055e6b, type: 3}
   m_Name:
-  m_EditorClassIdentifier: Assembly-CSharp::Game.UI.VerticalSliceHud
+  m_EditorClassIdentifier: Game.Runtime::Game.UI.VerticalSliceHud
   comboSystem: {fileID: 0}
   abilityController: {fileID: 0}
   dodgeController: {fileID: 0}

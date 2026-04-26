@@ -43,7 +43,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: c6bcdf269b0ba73f389f47bb5daa857c, type: 3}
   m_Name:
-  m_EditorClassIdentifier: Assembly-CSharp::Game.Core.ObjectPool
+  m_EditorClassIdentifier: Game.Runtime::Game.Core.ObjectPool
   prefab: {fileID: 3439621045551425630, guid: 83c07bfda74bded02a740b7dd330191b, type: 3}
   preloadCount: 8
   expandable: 1
@@ -68,7 +68,6 @@ GameObject:
   - component: {fileID: 5427545084183045018}
   - component: {fileID: 2259368556393732943}
   - component: {fileID: 7102252939301883591}
-  - component: {fileID: 7692584106784309868}
   - component: {fileID: 1290978576103647456}
   - component: {fileID: 4001726281217862374}
   - component: {fileID: 733192674082283607}
@@ -194,7 +193,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 52810dfd5eff8e961afec645ee197a0d, type: 3}
   m_Name:
-  m_EditorClassIdentifier: Assembly-CSharp::Game.Classes.Healer
+  m_EditorClassIdentifier: Game.Runtime::Game.Classes.Healer
   characterName: Character
   level: 1
   strength: 0
@@ -216,7 +215,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: fbf1fee97bd49ee2db816948bc581007, type: 3}
   m_Name:
-  m_EditorClassIdentifier: Assembly-CSharp::Game.Core.InventorySystem
+  m_EditorClassIdentifier: Game.Runtime::Game.Core.InventorySystem
   capacity: 24
 --- !u!114 &2863345480665842958
 MonoBehaviour:
@@ -229,7 +228,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 71725d72ce85dde6f8dece7f4f18187b, type: 3}
   m_Name:
-  m_EditorClassIdentifier: Assembly-CSharp::Game.Feedback.HitReactionController
+  m_EditorClassIdentifier: Game.Runtime::Game.Feedback.HitReactionController
   targetRenderer: {fileID: 0}
   characterController: {fileID: 0}
   flashSeconds: 0.08
@@ -368,7 +367,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1a7979e9744e542808c9a55974354138, type: 3}
   m_Name:
-  m_EditorClassIdentifier: Assembly-CSharp::Game.Audio.AudioCuePlayer
+  m_EditorClassIdentifier: Game.Runtime::Game.Audio.AudioCuePlayer
   audioSource: {fileID: 0}
   masterVolume: 0.8
   sampleRate: 22050
@@ -383,7 +382,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 30c9e80e03c7b49a38d35771a4af4875, type: 3}
   m_Name:
-  m_EditorClassIdentifier: Assembly-CSharp::Game.Animation.CombatAnimationBridge
+  m_EditorClassIdentifier: Game.Runtime::Game.Animation.CombatAnimationBridge
   animator: {fileID: 0}
   comboSystem: {fileID: 0}
   dodgeController: {fileID: 0}
@@ -402,7 +401,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 3a11fe74250ee8e3e84a2aba35ce3dfd, type: 3}
   m_Name:
-  m_EditorClassIdentifier: Assembly-CSharp::Game.Animation.AnimationEventRelay
+  m_EditorClassIdentifier: Game.Runtime::Game.Animation.AnimationEventRelay
   bridge: {fileID: 0}
 --- !u!114 &7102252939301883591
 MonoBehaviour:
@@ -415,7 +414,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 9ffb27b46513bad61816b0177f367037, type: 3}
   m_Name:
-  m_EditorClassIdentifier: Assembly-CSharp::Game.Core.PlayerController
+  m_EditorClassIdentifier: Game.Runtime::Game.Core.PlayerController
   moveSpeed: 5.45
   rotationSpeed: 720
   jumpHeight: 1.4
@@ -424,19 +423,6 @@ MonoBehaviour:
   cameraFollowSpeed: 5
   driveCameraDirectly: 0
   attackBuffer: {fileID: 1290978576103647456}
---- !u!114 &7692584106784309868
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6620568328276737159}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: df0054887d487d21eac10ed0593b8057, type: 3}
-  m_Name:
-  m_EditorClassIdentifier: Assembly-CSharp::Game.Rhythm.RhythmJudgement
-  config: {fileID: 11400000, guid: 4cba4fd95e59abbedbde3cef579614dd, type: 2}
 --- !u!114 &1290978576103647456
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -448,8 +434,8 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 537430a28ba487a3785f82816511af97, type: 3}
   m_Name:
-  m_EditorClassIdentifier: Assembly-CSharp::Game.Rhythm.InputBuffer
-  judgement: {fileID: 7692584106784309868}
+  m_EditorClassIdentifier: Game.Runtime::Game.Rhythm.InputBuffer
+  judgement: {fileID: 0}
   bufferWindowSeconds: 0.15
 --- !u!114 &4001726281217862374
 MonoBehaviour:
@@ -462,8 +448,8 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 537430a28ba487a3785f82816511af97, type: 3}
   m_Name:
-  m_EditorClassIdentifier: Assembly-CSharp::Game.Rhythm.InputBuffer
-  judgement: {fileID: 7692584106784309868}
+  m_EditorClassIdentifier: Game.Runtime::Game.Rhythm.InputBuffer
+  judgement: {fileID: 0}
   bufferWindowSeconds: 0.15
 --- !u!114 &733192674082283607
 MonoBehaviour:
@@ -476,8 +462,8 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 537430a28ba487a3785f82816511af97, type: 3}
   m_Name:
-  m_EditorClassIdentifier: Assembly-CSharp::Game.Rhythm.InputBuffer
-  judgement: {fileID: 7692584106784309868}
+  m_EditorClassIdentifier: Game.Runtime::Game.Rhythm.InputBuffer
+  judgement: {fileID: 0}
   bufferWindowSeconds: 0.15
 --- !u!114 &5335004040636693653
 MonoBehaviour:
@@ -490,8 +476,8 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 537430a28ba487a3785f82816511af97, type: 3}
   m_Name:
-  m_EditorClassIdentifier: Assembly-CSharp::Game.Rhythm.InputBuffer
-  judgement: {fileID: 7692584106784309868}
+  m_EditorClassIdentifier: Game.Runtime::Game.Rhythm.InputBuffer
+  judgement: {fileID: 0}
   bufferWindowSeconds: 0.15
 --- !u!114 &4700299924408505544
 MonoBehaviour:
@@ -504,9 +490,9 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1ca0810ce509b0e2488f4168beb901f2, type: 3}
   m_Name:
-  m_EditorClassIdentifier: Assembly-CSharp::Game.Combat.ComboSystem
+  m_EditorClassIdentifier: Game.Runtime::Game.Combat.ComboSystem
   profile: {fileID: 11400000, guid: 8df21e7a783a42fdc87a2871440305fa, type: 2}
-  judgement: {fileID: 7692584106784309868}
+  judgement: {fileID: 0}
   attackRange: 2.05
   attackTiming: {fileID: 11400000, guid: 325b6babb94d1c803b1894959538178f, type: 2}
   timingMode: 0
@@ -526,7 +512,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 413f91993f0edcd2db6714c451487609, type: 3}
   m_Name:
-  m_EditorClassIdentifier: Assembly-CSharp::Game.Combat.AbilityController
+  m_EditorClassIdentifier: Game.Runtime::Game.Combat.AbilityController
   abilities:
   - {fileID: 11400000, guid: 4874d0d81d96f5b1d9247907fbafbc44, type: 2}
   abilityBuffer: {fileID: 4001726281217862374}
@@ -555,7 +541,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: ac2de5f2f1e35ad57b9305c75da3437d, type: 3}
   m_Name:
-  m_EditorClassIdentifier: Assembly-CSharp::Game.Combat.DodgeController
+  m_EditorClassIdentifier: Game.Runtime::Game.Combat.DodgeController
   dodgeBuffer: {fileID: 733192674082283607}
   characterController: {fileID: 0}
   cameraTransform: {fileID: 0}
@@ -585,7 +571,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: c8755a4d6b24f398ca233a91639fb7c5, type: 3}
   m_Name:
-  m_EditorClassIdentifier: Assembly-CSharp::Game.Combat.ParryController
+  m_EditorClassIdentifier: Game.Runtime::Game.Combat.ParryController
   parryBuffer: {fileID: 5335004040636693653}
   activeWindow: 0.28
   cooldown: 0.75
@@ -604,7 +590,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: ce8313f71303a92c4b38acda38ae5aab, type: 3}
   m_Name:
-  m_EditorClassIdentifier: Assembly-CSharp::Game.Core.PlayerSimulationController
+  m_EditorClassIdentifier: Game.Runtime::Game.Core.PlayerSimulationController
   simulationEnabled: 0
   preferredRange: 2.4
   rangedPreferredRange: 6.2
