@@ -3,6 +3,7 @@ using Game.Editor;
 using Game.Visuals;
 using NUnit.Framework;
 using UnityEditor;
+using UnityEditor.Animations;
 using UnityEngine;
 
 public class VisualAssetSetupTests
@@ -38,6 +39,24 @@ public class VisualAssetSetupTests
                     Assert.IsNotNull(materials[k], paths[i] + " has a missing material on " + renderers[j].name);
             }
         }
+    }
+
+    [Test]
+    public void SelectedFirstPassAssetsExist()
+    {
+        for (int i = 0; i < VisualAssetSetupValidator.SelectedModelPaths.Length; i++)
+            Assert.IsNotNull(AssetDatabase.LoadAssetAtPath<GameObject>(VisualAssetSetupValidator.SelectedModelPaths[i]), VisualAssetSetupValidator.SelectedModelPaths[i]);
+
+        for (int i = 0; i < VisualAssetSetupValidator.SelectedKenneyTilePaths.Length; i++)
+            Assert.IsNotNull(AssetDatabase.LoadAssetAtPath<Texture2D>(VisualAssetSetupValidator.SelectedKenneyTilePaths[i]), VisualAssetSetupValidator.SelectedKenneyTilePaths[i]);
+    }
+
+    [Test]
+    public void VisualControllersHaveExpectedStatesAndSafeMotions()
+    {
+        AssertController("Assets/Art/Animation/Controllers/WarriorVisual.controller");
+        AssertController("Assets/Art/Animation/Controllers/BasicEnemyVisual.controller");
+        AssertController("Assets/Art/Animation/Controllers/BossVisual.controller");
     }
 
     [Test]
@@ -85,6 +104,35 @@ public class VisualAssetSetupTests
         Assert.IsNotNull(prefab.transform.Find("VisualRoot"), path + " missing VisualRoot.");
         Assert.IsNotNull(prefab.GetComponent<VisualAttachmentRoot>(), path + " missing VisualAttachmentRoot.");
         Assert.AreEqual(0, GameObjectUtility.GetMonoBehavioursWithMissingScriptCount(prefab), path + " has missing scripts.");
+    }
+
+    private static void AssertController(string path)
+    {
+        AnimatorController controller = AssetDatabase.LoadAssetAtPath<AnimatorController>(path);
+        Assert.IsNotNull(controller, path);
+        AnimatorStateMachine machine = controller.layers[0].stateMachine;
+        AssertState(machine, "Idle", true);
+        AssertState(machine, "Move", true);
+        AssertState(machine, "Attack", false);
+        AssertState(machine, "Evade", false);
+        AssertState(machine, "Hit", true);
+        AssertState(machine, "Death", true);
+    }
+
+    private static void AssertState(AnimatorStateMachine machine, string stateName, bool requiresMotion)
+    {
+        for (int i = 0; i < machine.states.Length; i++)
+        {
+            AnimatorState state = machine.states[i].state;
+            if (state != null && state.name == stateName)
+            {
+                if (requiresMotion)
+                    Assert.IsNotNull(state.motion, stateName + " should have a selected first-pass clip.");
+                return;
+            }
+        }
+
+        Assert.Fail("Missing visual animation state: " + stateName);
     }
 }
 #endif

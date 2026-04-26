@@ -69,6 +69,7 @@ namespace Game.EditorTools
             GameObject bossPrefab = CreateBossPrefab(projectilePrefab, bossSlam, new[] { phaseOne, phaseTwo }, materials.boss, feedbackPrefabs.enemyWindup, audioCues, animations.bossController);
             GameObject hudPrefab = CreateHudPrefab();
             Game.Editor.VisualAssetSetupValidator.CreateVisualScaffold();
+            Game.Editor.VisualAssetSetupValidator.NormalizeImportedAssetLayout();
 
             if (ShouldRebuildScene())
             {
@@ -82,6 +83,7 @@ namespace Game.EditorTools
             Game.Editor.VerticalSliceStartup.EnsureStartupSceneConfigured();
 
             AssetDatabase.SaveAssets();
+            NormalizeGeneratedSceneYaml();
             NormalizeGeneratedMaterialYaml();
             AssetDatabase.Refresh();
             Debug.Log("Created playable vertical slice scene at " + ScenePath);
@@ -181,6 +183,7 @@ namespace Game.EditorTools
                 RequireSceneObjectExactlyOnce("TelemetryManager", failures);
                 RequireSceneObjectExactlyOnce("EnemySpawner", failures);
                 RequireSceneObjectExactlyOnce("ArenaController", failures);
+                RequireSceneObjectExactlyOnce("DungeonDecor", failures);
                 RequireSceneObjectExactlyOnce("Player_Warrior", failures);
                 RequireSceneObjectExactlyOnce("VerticalSliceHUD", failures);
 
@@ -278,17 +281,37 @@ namespace Game.EditorTools
 
         private static void NormalizeGeneratedMaterialYaml()
         {
-            if (!Directory.Exists("Assets/Materials"))
+            string[] roots =
+            {
+                "Assets/Materials",
+                "Assets/Art/Materials"
+            };
+
+            for (int rootIndex = 0; rootIndex < roots.Length; rootIndex++)
+            {
+                if (!Directory.Exists(roots[rootIndex]))
+                    continue;
+
+                string[] files = Directory.GetFiles(roots[rootIndex], "*.mat", SearchOption.AllDirectories);
+                for (int i = 0; i < files.Length; i++)
+                {
+                    string text = File.ReadAllText(files[i]);
+                    string normalized = StripTrailingWhitespace(text);
+                    if (!string.Equals(text, normalized, StringComparison.Ordinal))
+                        File.WriteAllText(files[i], normalized);
+                }
+            }
+        }
+
+        private static void NormalizeGeneratedSceneYaml()
+        {
+            if (!File.Exists(ScenePath))
                 return;
 
-            string[] files = Directory.GetFiles("Assets/Materials", "*.mat", SearchOption.AllDirectories);
-            for (int i = 0; i < files.Length; i++)
-            {
-                string text = File.ReadAllText(files[i]);
-                string normalized = StripTrailingWhitespace(text);
-                if (!string.Equals(text, normalized, StringComparison.Ordinal))
-                    File.WriteAllText(files[i], normalized);
-            }
+            string text = File.ReadAllText(ScenePath);
+            string normalized = StripTrailingWhitespace(text);
+            if (!string.Equals(text, normalized, StringComparison.Ordinal))
+                File.WriteAllText(ScenePath, normalized);
         }
 
         private static string StripTrailingWhitespace(string text)
@@ -1061,6 +1084,7 @@ namespace Game.EditorTools
             CreateBoundary("Arena_Wall_South", new Vector3(0f, 1f, -20f), new Vector3(40f, 2f, 0.5f), materials.wall);
             CreateBoundary("Arena_Wall_East", new Vector3(20f, 1f, 0f), new Vector3(0.5f, 2f, 40f), materials.wall);
             CreateBoundary("Arena_Wall_West", new Vector3(-20f, 1f, 0f), new Vector3(0.5f, 2f, 40f), materials.wall);
+            CreateDungeonDecor();
 
             GameObject playerManagerObject = new GameObject("PlayerManager");
             playerManagerObject.AddComponent<PlayerManager>();
@@ -1232,6 +1256,45 @@ namespace Game.EditorTools
             wall.transform.position = position;
             wall.transform.localScale = scale;
             AssignMaterial(wall, material);
+        }
+
+        private static void CreateDungeonDecor()
+        {
+            GameObject root = new GameObject("DungeonDecor");
+            string[] tilePaths =
+            {
+                "Assets/ThirdParty/Kenney/TinyDungeon/Tiles/tile_0000.png",
+                "Assets/ThirdParty/Kenney/TinyDungeon/Tiles/tile_0001.png",
+                "Assets/ThirdParty/Kenney/TinyDungeon/Tiles/tile_0002.png",
+                "Assets/ThirdParty/Kenney/TinyDungeon/Tiles/tile_0016.png",
+                "Assets/ThirdParty/Kenney/TinyDungeon/Tiles/tile_0017.png"
+            };
+            Vector3[] positions =
+            {
+                new Vector3(-12f, 0.03f, 12f),
+                new Vector3(-9f, 0.03f, 12f),
+                new Vector3(12f, 0.03f, 12f),
+                new Vector3(-12f, 0.03f, -12f),
+                new Vector3(12f, 0.03f, -12f)
+            };
+
+            for (int i = 0; i < tilePaths.Length; i++)
+            {
+                Texture2D texture = AssetDatabase.LoadAssetAtPath<Texture2D>(tilePaths[i]);
+                if (texture == null)
+                    continue;
+
+                Material material = CreateMaterial("Assets/Art/Materials/TinyDungeon_" + Path.GetFileNameWithoutExtension(tilePaths[i]) + ".mat", Color.white, tilePaths[i], true);
+                GameObject tile = GameObject.CreatePrimitive(PrimitiveType.Quad);
+                tile.name = "DungeonDecor_" + Path.GetFileNameWithoutExtension(tilePaths[i]);
+                tile.transform.SetParent(root.transform, false);
+                tile.transform.SetPositionAndRotation(positions[i], Quaternion.Euler(90f, 0f, 0f));
+                tile.transform.localScale = Vector3.one * 2.2f;
+                Collider collider = tile.GetComponent<Collider>();
+                if (collider != null)
+                    Object.DestroyImmediate(collider);
+                AssignMaterial(tile, material);
+            }
         }
 
         private static Transform CreateSpawnPoint(string name, Vector3 position)

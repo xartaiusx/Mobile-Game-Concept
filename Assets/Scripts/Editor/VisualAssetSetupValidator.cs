@@ -20,6 +20,11 @@ namespace Game.Editor
         private const string WarriorControllerPath = "Assets/Art/Animation/Controllers/WarriorVisual.controller";
         private const string BasicEnemyControllerPath = "Assets/Art/Animation/Controllers/BasicEnemyVisual.controller";
         private const string BossControllerPath = "Assets/Art/Animation/Controllers/BossVisual.controller";
+        private const string KnightModelPath = "Assets/ThirdParty/KayKit/Adventurers/Characters/fbx/Knight.fbx";
+        private const string RogueModelPath = "Assets/ThirdParty/KayKit/Adventurers/Characters/fbx/Rogue.fbx";
+        private const string BarbarianModelPath = "Assets/ThirdParty/KayKit/Adventurers/Characters/fbx/Barbarian.fbx";
+        private const string AnimationGeneralPath = "Assets/ThirdParty/KayKit/CharacterAnimations/AdventurersAnimations/fbx/Rig_Medium/Rig_Medium_General.fbx";
+        private const string AnimationMovementPath = "Assets/ThirdParty/KayKit/CharacterAnimations/AdventurersAnimations/fbx/Rig_Medium/Rig_Medium_MovementBasic.fbx";
 
         private static readonly string[] RequiredFolders =
         {
@@ -30,6 +35,7 @@ namespace Game.Editor
             "Assets/ThirdParty/Kenney",
             "Assets/ThirdParty/Kenney/TinyDungeon",
             "Assets/ThirdParty/Licenses",
+            "Assets/ThirdParty/_Documentation",
             "Assets/Art",
             "Assets/Art/Characters",
             "Assets/Art/Enemies",
@@ -58,6 +64,31 @@ namespace Game.Editor
             BossVisualPath
         };
 
+        public static readonly string[] SelectedModelPaths =
+        {
+            KnightModelPath,
+            RogueModelPath,
+            BarbarianModelPath
+        };
+
+        public static readonly string[] SelectedAnimationClipNames =
+        {
+            "Idle_A",
+            "Running_A",
+            "Walking_A",
+            "Hit_A",
+            "Death_A"
+        };
+
+        public static readonly string[] SelectedKenneyTilePaths =
+        {
+            "Assets/ThirdParty/Kenney/TinyDungeon/Tiles/tile_0000.png",
+            "Assets/ThirdParty/Kenney/TinyDungeon/Tiles/tile_0001.png",
+            "Assets/ThirdParty/Kenney/TinyDungeon/Tiles/tile_0002.png",
+            "Assets/ThirdParty/Kenney/TinyDungeon/Tiles/tile_0016.png",
+            "Assets/ThirdParty/Kenney/TinyDungeon/Tiles/tile_0017.png"
+        };
+
         [MenuItem("Game/Visuals/Create Visual Folders")]
         public static void CreateVisualFoldersMenu()
         {
@@ -84,6 +115,42 @@ namespace Game.Editor
             EnsureGameplayPrefabVisualRoots();
             AssetDatabase.SaveAssets();
             NormalizeGeneratedVisualYaml();
+            AssetDatabase.Refresh();
+        }
+
+        [MenuItem("Game/Visuals/Apply First Art Pass")]
+        public static void ApplyFirstArtPassMenu()
+        {
+            ApplyFirstArtPass();
+            Debug.Log("First art pass visual prefabs wired.");
+        }
+
+        public static void ApplyFirstArtPass()
+        {
+            NormalizeImportedAssetLayout();
+            CreateVisualScaffold();
+            WireVisualPrefab(WarriorVisualPath, KnightModelPath, WarriorControllerPath, Vector3.zero, Quaternion.identity, Vector3.one);
+            WireVisualPrefab(BasicEnemyVisualPath, RogueModelPath, BasicEnemyControllerPath, Vector3.zero, Quaternion.identity, Vector3.one * 0.95f);
+            WireVisualPrefab(BossVisualPath, BarbarianModelPath, BossControllerPath, Vector3.zero, Quaternion.identity, Vector3.one * 1.55f);
+            AssignControllerClips(WarriorControllerPath);
+            AssignControllerClips(BasicEnemyControllerPath);
+            AssignControllerClips(BossControllerPath);
+            AssetDatabase.SaveAssets();
+            NormalizeGeneratedVisualYaml();
+            AssetDatabase.Refresh();
+        }
+
+        public static void NormalizeImportedAssetLayout()
+        {
+            EnsureFolder("Assets/ThirdParty/_Documentation");
+            EnsureFolder("Assets/ThirdParty/_Documentation/KayKitAdventurers");
+            MoveAssetIfPresent("Assets/ThirdParty/KayKit/Adventurers/Animations", "Assets/ThirdParty/KayKit/CharacterAnimations/AdventurersAnimations");
+            MoveAssetIfPresent("Assets/ThirdParty/KayKit/Mannequin Character", "Assets/ThirdParty/KayKit/CharacterAnimations/MannequinCharacter");
+            MoveAssetIfPresent("Assets/ThirdParty/KayKit/Adventurers/Samples", "Assets/ThirdParty/_Documentation/KayKitAdventurers/Samples");
+            MoveAssetIfPresent("Assets/ThirdParty/KayKit/Adventurers/contents.png", "Assets/ThirdParty/_Documentation/KayKitAdventurers/contents.png");
+            MoveAssetIfPresent("Assets/ThirdParty/KayKit/Adventurers/More KayKit Assets.url", "Assets/ThirdParty/_Documentation/KayKitAdventurers/More KayKit Assets.url");
+            MoveAssetIfPresent("Assets/ThirdParty/KayKit/Adventurers/Patreon.url", "Assets/ThirdParty/_Documentation/KayKitAdventurers/Patreon.url");
+            MoveAssetIfPresent("Assets/ThirdParty/KayKit/CharacterAnimations/AdventurersAnimations/Click here for more Free Animations.url", "Assets/ThirdParty/_Documentation/KayKitAdventurers/Click here for more Free Animations.url");
             AssetDatabase.Refresh();
         }
 
@@ -119,6 +186,25 @@ namespace Game.Editor
 
             for (int i = 0; i < GameplayPrefabPaths.Length; i++)
                 ValidateGameplayPrefabVisualRoot(GameplayPrefabPaths[i], failures);
+
+            for (int i = 0; i < SelectedModelPaths.Length; i++)
+            {
+                if (AssetDatabase.LoadAssetAtPath<GameObject>(SelectedModelPaths[i]) == null)
+                    failures.Add("Missing selected first-pass model: " + SelectedModelPaths[i]);
+            }
+
+            for (int i = 0; i < SelectedKenneyTilePaths.Length; i++)
+            {
+                if (AssetDatabase.LoadAssetAtPath<Texture2D>(SelectedKenneyTilePaths[i]) == null)
+                    failures.Add("Missing selected Kenney Tiny Dungeon tile: " + SelectedKenneyTilePaths[i]);
+            }
+
+            if (!VisualPrefabContainsSelectedModel(WarriorVisualPath, "SelectedModel_Knight"))
+                failures.Add("WarriorVisual.prefab is not wired to SelectedModel_Knight.");
+            if (!VisualPrefabContainsSelectedModel(BasicEnemyVisualPath, "SelectedModel_Rogue"))
+                failures.Add("BasicEnemyVisual.prefab is not wired to SelectedModel_Rogue.");
+            if (!VisualPrefabContainsSelectedModel(BossVisualPath, "SelectedModel_Barbarian"))
+                failures.Add("BossVisual.prefab is not wired to SelectedModel_Barbarian.");
 
             return failures;
         }
@@ -157,6 +243,23 @@ namespace Game.Editor
                     AssetDatabase.CreateFolder(current, parts[i]);
                 current = next;
             }
+        }
+
+        private static void MoveAssetIfPresent(string sourcePath, string destinationPath)
+        {
+            if (AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(sourcePath) == null && !AssetDatabase.IsValidFolder(sourcePath))
+                return;
+
+            if (AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(destinationPath) != null || AssetDatabase.IsValidFolder(destinationPath))
+                return;
+
+            string parent = Path.GetDirectoryName(destinationPath).Replace('\\', '/');
+            if (!string.IsNullOrEmpty(parent))
+                EnsureFolder(parent);
+
+            string error = AssetDatabase.MoveAsset(sourcePath, destinationPath);
+            if (!string.IsNullOrEmpty(error))
+                Debug.LogWarning("Visual asset move skipped: " + sourcePath + " -> " + destinationPath + " :: " + error);
         }
 
         private static Material EnsurePlaceholderMaterial()
@@ -231,6 +334,110 @@ namespace Game.Editor
 
             PrefabUtility.SaveAsPrefabAsset(root, path);
             UnityEngine.Object.DestroyImmediate(root);
+        }
+
+        private static void WireVisualPrefab(string visualPrefabPath, string modelPath, string controllerPath, Vector3 localPosition, Quaternion localRotation, Vector3 localScale)
+        {
+            GameObject model = AssetDatabase.LoadAssetAtPath<GameObject>(modelPath);
+            if (model == null)
+                return;
+
+            GameObject root = PrefabUtility.LoadPrefabContents(visualPrefabPath);
+            Transform visualRoot = root.transform.Find("VisualRoot");
+            if (visualRoot == null)
+            {
+                GameObject visualRootObject = new GameObject("VisualRoot");
+                visualRootObject.transform.SetParent(root.transform, false);
+                visualRoot = visualRootObject.transform;
+            }
+
+            for (int i = visualRoot.childCount - 1; i >= 0; i--)
+                UnityEngine.Object.DestroyImmediate(visualRoot.GetChild(i).gameObject);
+
+            GameObject instance = (GameObject)PrefabUtility.InstantiatePrefab(model);
+            instance.name = "SelectedModel_" + Path.GetFileNameWithoutExtension(modelPath);
+            instance.transform.SetParent(visualRoot, false);
+            instance.transform.localPosition = localPosition;
+            instance.transform.localRotation = localRotation;
+            instance.transform.localScale = localScale;
+
+            Animator animator = visualRoot.GetComponent<Animator>();
+            if (animator == null)
+                animator = visualRoot.gameObject.AddComponent<Animator>();
+            animator.runtimeAnimatorController = AssetDatabase.LoadAssetAtPath<RuntimeAnimatorController>(controllerPath);
+
+            Material fallbackMaterial = EnsurePlaceholderMaterial();
+            Renderer[] renderers = visualRoot.GetComponentsInChildren<Renderer>(true);
+            for (int i = 0; i < renderers.Length; i++)
+            {
+                Material[] materials = renderers[i].sharedMaterials;
+                for (int j = 0; j < materials.Length; j++)
+                {
+                    if (materials[j] == null)
+                        materials[j] = fallbackMaterial;
+                }
+                renderers[i].sharedMaterials = materials;
+            }
+
+            var binder = root.GetComponent<VisualAttachmentRoot>();
+            if (binder == null)
+                binder = root.AddComponent<VisualAttachmentRoot>();
+            binder.Configure(visualRoot, animator, renderers);
+            PrefabUtility.SaveAsPrefabAsset(root, visualPrefabPath);
+            PrefabUtility.UnloadPrefabContents(root);
+        }
+
+        private static void AssignControllerClips(string controllerPath)
+        {
+            AnimatorController controller = AssetDatabase.LoadAssetAtPath<AnimatorController>(controllerPath);
+            if (controller == null)
+                return;
+
+            AnimatorStateMachine machine = controller.layers[0].stateMachine;
+            AssignStateMotion(machine, "Idle", FindClip(AnimationGeneralPath, "Idle_A"));
+            AssignStateMotion(machine, "Move", FindClip(AnimationMovementPath, "Running_A"));
+            AssignStateMotion(machine, "Hit", FindClip(AnimationGeneralPath, "Hit_A"));
+            AssignStateMotion(machine, "Death", FindClip(AnimationGeneralPath, "Death_A"));
+            EditorUtility.SetDirty(controller);
+        }
+
+        private static void AssignStateMotion(AnimatorStateMachine machine, string stateName, Motion motion)
+        {
+            if (motion == null)
+                return;
+
+            ChildAnimatorState[] states = machine.states;
+            for (int i = 0; i < states.Length; i++)
+            {
+                if (states[i].state != null && states[i].state.name == stateName)
+                {
+                    states[i].state.motion = motion;
+                    return;
+                }
+            }
+        }
+
+        private static AnimationClip FindClip(string assetPath, string clipName)
+        {
+            UnityEngine.Object[] assets = AssetDatabase.LoadAllAssetsAtPath(assetPath);
+            for (int i = 0; i < assets.Length; i++)
+            {
+                var clip = assets[i] as AnimationClip;
+                if (clip != null && clip.name == clipName)
+                    return clip;
+            }
+
+            return null;
+        }
+
+        private static bool VisualPrefabContainsSelectedModel(string path, string modelName)
+        {
+            GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>(path);
+            if (prefab == null)
+                return false;
+
+            Transform visualRoot = prefab.transform.Find("VisualRoot");
+            return visualRoot != null && visualRoot.Find(modelName) != null;
         }
 
         private static void EnsureGameplayPrefabVisualRoot(string path)

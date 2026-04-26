@@ -150,6 +150,18 @@ Import workflow:
 
 Current intended first art pass: one Warrior model, one basic enemy model, one boss placeholder model, idle/run/attack/hit/death animations, and 3-5 dungeon props. Do not commit unused full packs.
 
+Phase 9.9 selected the first visual pass from the manual import:
+
+- Warrior visual: KayKit `Knight.fbx`
+- Basic enemy visual: KayKit `Rogue.fbx`
+- Boss placeholder visual: KayKit `Barbarian.fbx`
+- Animation clips wired where compatible: `Idle_A`, `Running_A`, `Hit_A`, `Death_A`
+- Additional available clip documented but not currently wired: `Walking_A`
+- Attack and dodge/evade visual controller states remain placeholder-only until compatible clips are selected.
+- Kenney decorative tiles in the generated arena: `tile_0000`, `tile_0001`, `tile_0002`, `tile_0016`, `tile_0017`
+
+Imported KayKit screenshots and URL shortcuts are quarantined under `Assets/ThirdParty/_Documentation`. Duplicate source formats remain in ThirdParty for now and are candidates for manual pruning after the art pass is visually approved.
+
 ## Validation
 
 ```bash

@@ -185,6 +185,54 @@ Editor tooling:
 - `Game > Visuals > Create Visual Folders` creates/refreshes folders, placeholder visual prefabs, placeholder visual controllers, and gameplay `VisualRoot` slots.
 - `Game > Visuals > Validate Visual Asset Setup` checks folders, license manifest, wrapper prefabs, gameplay prefab visual roots, missing scripts/materials, and reports imported third-party model/clip/material counts. Empty recommended third-party folders are allowed.
 
+### Phase 9.9 First Art Pass
+
+Imported asset audit:
+
+- KayKit Adventurers is under `Assets/ThirdParty/KayKit/Adventurers`.
+- KayKit animation-related imports are under `Assets/ThirdParty/KayKit/CharacterAnimations`.
+- Kenney Tiny Dungeon is under `Assets/ThirdParty/Kenney/TinyDungeon`.
+- KayKit screenshots, pack preview images, and URL shortcuts were moved to `Assets/ThirdParty/_Documentation/KayKitAdventurers`.
+
+Selected visual models:
+
+- Warrior: `Assets/ThirdParty/KayKit/Adventurers/Characters/fbx/Knight.fbx`
+- Basic enemy: `Assets/ThirdParty/KayKit/Adventurers/Characters/fbx/Rogue.fbx`
+- Boss placeholder: `Assets/ThirdParty/KayKit/Adventurers/Characters/fbx/Barbarian.fbx`
+
+Selected animation clips:
+
+- `Idle_A`
+- `Running_A`
+- `Walking_A` available but not currently assigned to a controller state.
+- `Hit_A`
+- `Death_A`
+
+The imported KayKit animation bundle did not provide an obvious compatible attack or dodge/evade clip, so `Attack` and `Evade` remain placeholder-only states in the visual controllers. Do not force a brittle rig setup just to fill those states.
+
+Selected Kenney decorative tiles:
+
+- `tile_0000.png`
+- `tile_0001.png`
+- `tile_0002.png`
+- `tile_0016.png`
+- `tile_0017.png`
+
+The generator places these as non-colliding decorative quads near arena edges under `DungeonDecor`; they must not block movement, combat, camera, or HUD readability.
+
+Known imported bloat to review later:
+
+- KayKit Adventurers contains FBX, Unity FBX, GLTF, and OBJ variants for many accessories.
+- KayKit Adventurers sample screenshots are quarantined in `_Documentation` and safe to delete manually if source/license notes remain.
+- The current ThirdParty footprint is modest, but only the selected first-pass assets should be wired into visual prefabs.
+
+Remaining art risks:
+
+- KayKit rig/controller compatibility needs visual inspection in Unity.
+- Model scale and facing may need hand tuning after Play Mode review.
+- Attack and dodge/evade clips are still missing from the selected compatible clip set.
+- Kenney Tiny Dungeon is 2D pixel art and may not be the final style match for low-poly 3D characters.
+
 ## Telemetry
 
 `TelemetryManager` is a runtime service-style singleton. Existing gameplay systems report lightweight events into it:
