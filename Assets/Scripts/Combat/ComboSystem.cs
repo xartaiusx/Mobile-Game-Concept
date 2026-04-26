@@ -194,6 +194,8 @@ namespace Game.Combat
             if (!activeHitApplied)
             {
                 DoMeleeHit(activeDamage, activeGrade);
+                TelemetryManager.ReportHit(activeGrade);
+                TelemetryManager.ReportComboResolved(activeStepIndex + 1);
                 ComboStepResolved?.Invoke(activeStepIndex + 1, activeGrade, activeDamage);
                 activeHitApplied = true;
             }
@@ -248,6 +250,7 @@ namespace Game.Combat
         private void ResetCombo()
         {
             if (stepIndex == 0 && comboTimer <= 0f) return;
+            TelemetryManager.ReportComboReset(stepIndex);
             stepIndex = 0;
             comboTimer = 0f;
             ComboReset?.Invoke();

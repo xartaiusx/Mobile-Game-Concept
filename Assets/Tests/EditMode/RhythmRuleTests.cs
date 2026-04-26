@@ -32,6 +32,23 @@ public class RhythmRuleTests
     }
 
     [Test]
+    public void RhythmJudgementBiasesSlightlyTowardEarlyInput()
+    {
+        var config = ScriptableObject.CreateInstance<RhythmConfig>();
+        config.perfectWindow = 0.05f;
+        config.goodWindow = 0.10f;
+        config.earlyInputBiasSeconds = 0.015f;
+        config.lateInputBiasSeconds = 0.005f;
+        var judgement = new GameObject("judgement").AddComponent<RhythmJudgement>();
+        judgement.Configure(config);
+
+        Assert.AreEqual(RhythmGrade.Perfect, judgement.Judge(-0.060));
+        Assert.AreEqual(RhythmGrade.Good, judgement.Judge(0.060));
+        Assert.AreEqual(RhythmGrade.Good, judgement.Judge(-0.110));
+        Assert.AreEqual(RhythmGrade.Miss, judgement.Judge(0.110));
+    }
+
+    [Test]
     public void EffectiveBpmIncreasesWithLevelAndCaps()
     {
         var config = ScriptableObject.CreateInstance<RhythmConfig>();

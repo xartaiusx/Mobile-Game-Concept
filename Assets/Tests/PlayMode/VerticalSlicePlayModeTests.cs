@@ -7,6 +7,7 @@ using Game.Feedback;
 using Game.Audio;
 using Game.Animation;
 using Game.Rhythm;
+using Game.Systems;
 using Game.UI;
 using Game.Classes;
 using NUnit.Framework;
@@ -52,11 +53,13 @@ public class VerticalSlicePlayModeTests
         Assert.IsNotNull(Object.FindAnyObjectByType<BossTelegraphController>(FindObjectsInactive.Include));
         Assert.IsNotNull(Object.FindAnyObjectByType<ArenaController>());
         Assert.IsNotNull(Object.FindAnyObjectByType<ScoreSystem>());
+        Assert.IsNotNull(Object.FindAnyObjectByType<TelemetryManager>());
         Assert.IsNotNull(Object.FindAnyObjectByType<PickupSpawner>());
         Assert.IsNull(Object.FindAnyObjectByType<ClassSwapDebugController>());
         Assert.IsNotNull(Object.FindAnyObjectByType<Canvas>());
         Assert.IsNotNull(Object.FindAnyObjectByType<BeatBarUI>());
         Assert.IsNotNull(Object.FindAnyObjectByType<VerticalSliceHud>());
+        Assert.IsNotNull(Object.FindAnyObjectByType<TelemetryDebugOverlay>(FindObjectsInactive.Include));
         Assert.IsNotNull(Object.FindAnyObjectByType<RhythmFeedbackController>());
         Assert.IsNotNull(Object.FindAnyObjectByType<AudioCuePlayer>());
     }
@@ -146,6 +149,39 @@ public class VerticalSlicePlayModeTests
 
         foreach (GameObject go in Object.FindObjectsByType<GameObject>(FindObjectsInactive.Include))
             Assert.AreEqual(0, GameObjectUtility.GetMonoBehavioursWithMissingScriptCount(go), go.name + " has missing scripts.");
+    }
+
+    [UnityTest]
+    public IEnumerator TelemetrySmokeTestRecordsCombatAndWritesSummary()
+    {
+        yield return LoadVerticalSlice();
+
+        TelemetryManager telemetry = Object.FindAnyObjectByType<TelemetryManager>();
+        Assert.IsNotNull(telemetry);
+        telemetry.ResetRun();
+
+        GameObject player = GameObject.FindWithTag("Player");
+        Assert.IsNotNull(player);
+        var dodge = player.GetComponent<DodgeController>();
+        var combo = player.GetComponent<ComboSystem>();
+        var score = Object.FindAnyObjectByType<ScoreSystem>();
+
+        TelemetryManager.ReportInputJudgement(RhythmGrade.Perfect, -0.025f);
+        dodge.ResolveDodgeForTests(RhythmGrade.Perfect, Vector3.forward);
+        combo.ResolveAttackForTests(RhythmGrade.Perfect);
+        score.AddHitScore(RhythmGrade.Perfect, 10, 1);
+
+        float timeout = Time.realtimeSinceStartup + 1f;
+        while (telemetry.Snapshot.perfectHitCount == 0 && Time.realtimeSinceStartup < timeout)
+            yield return null;
+
+        string path = telemetry.WriteRunSummary();
+
+        Assert.Greater(telemetry.Snapshot.perfectDodgeCount, 0);
+        Assert.Greater(telemetry.Snapshot.perfectHitCount, 0);
+        Assert.Greater(telemetry.Snapshot.totalScore, 0);
+        Assert.IsTrue(File.Exists(path));
+        Assert.Greater(new FileInfo(path).Length, 0);
     }
 
     private static IEnumerator LoadVerticalSlice()

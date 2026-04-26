@@ -13,19 +13,27 @@ namespace Game.Combat
         [SerializeField] private float pauseDuration = 0.06f;
 
         private bool running;
+        private float originalTimeScale = 1f;
 
         public void TriggerPause()
         {
             if (!running) StartCoroutine(CoPause());
         }
 
+        private void OnDisable()
+        {
+            if (running)
+                Time.timeScale = originalTimeScale;
+            running = false;
+        }
+
         private IEnumerator CoPause()
         {
             running = true;
-            float original = Time.timeScale;
+            originalTimeScale = Time.timeScale;
             Time.timeScale = pauseScale;
             yield return new WaitForSecondsRealtime(pauseDuration);
-            Time.timeScale = original;
+            Time.timeScale = originalTimeScale;
             running = false;
         }
     }

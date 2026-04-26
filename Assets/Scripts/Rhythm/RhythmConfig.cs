@@ -19,6 +19,12 @@ namespace Game.Rhythm
         [Tooltip("Good window half width. Input within ± this time is Good when not Perfect.")]
         public float goodWindow = 0.100f;
 
+        [Tooltip("Extra seconds granted to early inputs for mobile latency and human anticipation.")]
+        public float earlyInputBiasSeconds = 0.015f;
+
+        [Tooltip("Extra seconds granted to late inputs. Usually smaller than early bias.")]
+        public float lateInputBiasSeconds = 0.005f;
+
         [Header("Level Speed Scaling")]
         [Tooltip("Additional slider/BPM speed per player level above 1.")]
         public float speedIncreasePerLevel = 0.025f;

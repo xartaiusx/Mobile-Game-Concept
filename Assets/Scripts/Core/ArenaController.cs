@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using Game.Systems;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -77,6 +78,7 @@ namespace Game.Core
             if (player != null)
                 player.OnDeath += HandlePlayerDeath;
 
+            TelemetryManager.Instance?.ResetRun();
             scoreSystem?.ResetScore();
 
             if (bossObject != null)

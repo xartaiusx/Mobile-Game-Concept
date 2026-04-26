@@ -16,7 +16,7 @@ Mage, Archer, Healer, projectile ability assets, and class swap code remain in t
 
 ## Current Slice
 
-- Phase 8 goal: stabilize the playable vertical slice and core-loop feel before adding content.
+- Phase 9 goal: measure Warrior feel, tune rhythm windows/dodge feedback, and keep the vertical slice stable before adding content.
 - Endless rhythm-action melee arena loop.
 - Warrior-only active player path through `GameManager`, `PlayerManager`, HUD, camera, arena, score, dodge, parry, pickups, and boss systems.
 - Close-range combo attacks using `ComboSystem`, `DefaultComboProfile`, and `DefaultAttackTiming`.
@@ -26,6 +26,7 @@ Mage, Archer, Healer, projectile ability assets, and class swap code remain in t
 - Scalable endless waves with short next-wave delay, no terminal victory after wave 1, and failure on player death.
 - Boss/elite warning waves every 5 waves by default.
 - HUD shows wave, score, high score, enemies remaining, boss/elite warning, cooldowns, and rhythm grade feedback.
+- `TelemetryManager` captures run-level hit, dodge, timing, combo, score, survival, and kill pacing metrics.
 
 ## Controls
 
@@ -36,8 +37,19 @@ Mage, Archer, Healer, projectile ability assets, and class swap code remain in t
 - Dodge: `Left Shift`
 - Parry: `E`
 - Restart run: `R`
+- Toggle telemetry overlay: `F3`
 
 `ClassSwapDebugController` is inactive in `VerticalSlice.unity`. Do not use Mage, Archer, Healer, or class swapping for active prototype validation.
+
+## Telemetry
+
+Runtime telemetry is local-only and writes human-readable JSON to:
+
+`Application.persistentDataPath/Telemetry/run_<timestamp>.json`
+
+Captured metrics include Perfect/Good/Miss hit and dodge counts, signed input timing offsets, survival time, enemy kills, average time per kill, max/average combo, total score, and score per minute.
+
+The in-game telemetry overlay is text-only and can be toggled with `F3`. It shows live hit/dodge grade counts, current/max combo, average timing bias, and score per minute.
 
 ## Endless Scaling
 
@@ -93,6 +105,7 @@ The custom summaries are the source of truth. Unity XML output may exist for com
 - Combat, animation, and UI assets are still placeholder-grade.
 - Boss/elite cadence works as a scaffold, but wave 5+ pacing still needs hands-on tuning.
 - Touch controls and device profiling are not done.
+- Telemetry is local developer instrumentation, not a production analytics service.
 - Some deferred Mage, Archer, Healer, projectile, and class-swap assets still exist for compile compatibility only.
 
 ## Next

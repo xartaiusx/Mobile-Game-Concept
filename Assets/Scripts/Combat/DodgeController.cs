@@ -2,6 +2,7 @@ using System.Collections;
 using System;
 using Game.Core;
 using Game.Rhythm;
+using Game.Systems;
 using UnityEngine;
 
 namespace Game.Combat
@@ -124,6 +125,7 @@ namespace Game.Combat
             LastResolvedSpeedMultiplier = speedMultiplier;
             LastResolvedInvulnerability = invulnerability;
             LastDodgeGrade = grade;
+            TelemetryManager.ReportDodge(grade);
             DodgeResolved?.Invoke(grade, cooldownRemaining, invulnerability);
 
             if (dodgeRoutine != null)

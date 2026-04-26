@@ -15,6 +15,7 @@ GameObject:
   - component: {fileID: 8474180451568534308}
   - component: {fileID: 3180610085951287253}
   - component: {fileID: 8632541992465669258}
+  - component: {fileID: 7055485086395600564}
   - component: {fileID: 8207625305237974716}
   - component: {fileID: 2882090626881212779}
   - component: {fileID: 4741916303951171310}
@@ -190,6 +191,21 @@ MonoBehaviour:
   hitColor: {r: 1, g: 1, b: 1, a: 1}
   perfectHitColor: {r: 0.2, g: 1, b: 0.75, a: 1}
   playerDamageColor: {r: 1, g: 0.25, b: 0.25, a: 1}
+  hitPause: {fileID: 0}
+--- !u!114 &7055485086395600564
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3146442173181068952}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b7a652e0668f40a709de2678b7d86f1f, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Game.Runtime::Game.Combat.HitPause
+  pauseScale: 0.1
+  pauseDuration: 0.06
 --- !u!95 &8207625305237974716
 Animator:
   serializedVersion: 7
@@ -501,16 +517,16 @@ MonoBehaviour:
   distance: 3.6
   duration: 0.22
   cooldown: 0.7
-  perfectInvulnerability: 0.35
+  perfectInvulnerability: 0.38
   goodInvulnerability: 0.22
   missInvulnerability: 0
-  perfectSpeedMultiplier: 1.2
+  perfectSpeedMultiplier: 1.28
   goodSpeedMultiplier: 1
-  missSpeedMultiplier: 0.85
-  perfectCooldownMultiplier: 0.65
+  missSpeedMultiplier: 0.9
+  perfectCooldownMultiplier: 0.6
   goodCooldownMultiplier: 0.9
   missCooldownMultiplier: 1
-  perfectInvulnerabilityBonus: 0.05
+  perfectInvulnerabilityBonus: 0.06
   readKeyboardInput: 1
   dodgeKey: 304
 --- !u!114 &1377119374608369945

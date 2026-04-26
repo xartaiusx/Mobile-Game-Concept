@@ -1,5 +1,6 @@
 using System;
 using Game.Rhythm;
+using Game.Systems;
 using UnityEngine;
 
 namespace Game.Core
@@ -109,6 +110,7 @@ namespace Game.Core
                 HighScore = Score;
                 PlayerPrefs.SetInt(highScorePlayerPrefsKey, HighScore);
             }
+            TelemetryManager.ReportScore(Score);
             ScoreChanged?.Invoke(Score, amount, grade);
         }
 

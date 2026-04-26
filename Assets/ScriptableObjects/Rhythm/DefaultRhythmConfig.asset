@@ -16,6 +16,8 @@ MonoBehaviour:
   dspOffsetSeconds: 0
   perfectWindow: 0.05
   goodWindow: 0.1
+  earlyInputBiasSeconds: 0.015
+  lateInputBiasSeconds: 0.005
   speedIncreasePerLevel: 0.025
   maxSpeedMultiplier: 1.5
   perfectDamageMultiplier: 1.5

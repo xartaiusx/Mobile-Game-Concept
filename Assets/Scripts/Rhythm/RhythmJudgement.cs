@@ -22,9 +22,10 @@ namespace Game.Rhythm
         public RhythmGrade Judge(double signedDeltaSeconds)
         {
             if (config == null) return RhythmGrade.Miss;
+            double windowBias = signedDeltaSeconds < 0d ? config.earlyInputBiasSeconds : config.lateInputBiasSeconds;
             double abs = System.Math.Abs(signedDeltaSeconds);
-            if (abs <= config.perfectWindow) return RhythmGrade.Perfect;
-            if (abs <= config.goodWindow) return RhythmGrade.Good;
+            if (abs <= config.perfectWindow + windowBias) return RhythmGrade.Perfect;
+            if (abs <= config.goodWindow + windowBias) return RhythmGrade.Good;
             return RhythmGrade.Miss;
         }
 

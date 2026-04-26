@@ -1,4 +1,5 @@
 using System.Collections;
+using Game.Combat;
 using Game.Core;
 using Game.Rhythm;
 using UnityEngine;
@@ -15,6 +16,7 @@ namespace Game.Feedback
         [SerializeField] private Color hitColor = Color.white;
         [SerializeField] private Color perfectHitColor = new Color(0.2f, 1f, 0.75f);
         [SerializeField] private Color playerDamageColor = new Color(1f, 0.25f, 0.25f);
+        [SerializeField] private HitPause hitPause;
 
         private BaseEnemy enemy;
         private BaseCharacter character;
@@ -28,6 +30,7 @@ namespace Game.Feedback
             characterController = characterController != null ? characterController : GetComponent<CharacterController>();
             enemy = GetComponent<BaseEnemy>();
             character = GetComponent<BaseCharacter>();
+            hitPause = hitPause != null ? hitPause : GetComponent<HitPause>();
 
             if (targetRenderer != null)
             {
@@ -57,6 +60,8 @@ namespace Game.Feedback
             Color color = context.rhythmGrade == RhythmGrade.Perfect ? perfectHitColor : hitColor;
             Flash(color);
             ApplyKnockback(context.source, context.rhythmGrade == RhythmGrade.Perfect ? perfectKnockbackMultiplier : 1f);
+            if (context.rhythmGrade == RhythmGrade.Perfect)
+                hitPause?.TriggerPause();
         }
 
         private void HandleCharacterDamaged(BaseCharacter damagedCharacter)

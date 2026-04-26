@@ -6,6 +6,8 @@ using Game.Combat;
 using Game.Core;
 using Game.Feedback;
 using Game.Rhythm;
+using Game.Systems;
+using Game.UI;
 using UnityEditor;
 using UnityEditor.Animations;
 using UnityEditor.SceneManagement;
@@ -271,6 +273,8 @@ namespace Game.EditorTools
             config.dspOffsetSeconds = 0d;
             config.perfectWindow = 0.05f;
             config.goodWindow = 0.10f;
+            config.earlyInputBiasSeconds = 0.015f;
+            config.lateInputBiasSeconds = 0.005f;
             config.perfectDamageMultiplier = 1.5f;
             config.goodDamageMultiplier = 1.15f;
             config.missDamageMultiplier = 0.75f;
@@ -414,6 +418,7 @@ namespace Game.EditorTools
             player.AddComponent(classType);
             player.AddComponent<InventorySystem>();
             player.AddComponent<Game.Feedback.HitReactionController>();
+            player.AddComponent<HitPause>();
             var animator = player.AddComponent<Animator>();
             animator.runtimeAnimatorController = animatorController;
             player.AddComponent<AudioSource>();
@@ -456,13 +461,14 @@ namespace Game.EditorTools
             SetObject(dodge, "dodgeBuffer", dodgeBuffer);
             SetFloat(dodge, "distance", 3.6f);
             SetFloat(dodge, "cooldown", 0.7f);
-            SetFloat(dodge, "perfectSpeedMultiplier", 1.2f);
+            SetFloat(dodge, "perfectSpeedMultiplier", 1.28f);
             SetFloat(dodge, "goodSpeedMultiplier", 1f);
-            SetFloat(dodge, "missSpeedMultiplier", 0.85f);
-            SetFloat(dodge, "perfectCooldownMultiplier", 0.65f);
+            SetFloat(dodge, "missSpeedMultiplier", 0.9f);
+            SetFloat(dodge, "perfectCooldownMultiplier", 0.6f);
             SetFloat(dodge, "goodCooldownMultiplier", 0.9f);
             SetFloat(dodge, "missCooldownMultiplier", 1f);
-            SetFloat(dodge, "perfectInvulnerabilityBonus", 0.05f);
+            SetFloat(dodge, "perfectInvulnerability", 0.38f);
+            SetFloat(dodge, "perfectInvulnerabilityBonus", 0.06f);
 
             var parry = player.AddComponent<ParryController>();
             SetObject(parry, "parryBuffer", parryBuffer);
@@ -486,6 +492,7 @@ namespace Game.EditorTools
             enemy.AddComponent<CharacterController>();
             var melee = enemy.AddComponent<MeleeEnemy>();
             enemy.AddComponent<Game.Feedback.HitReactionController>();
+            enemy.AddComponent<HitPause>();
             var flash = enemy.AddComponent<EnemyAttackFlash>();
             SetObject(flash, "warningPrefab", windupPrefab);
             SetInt(melee, "maxHealth", 24);
@@ -509,6 +516,7 @@ namespace Game.EditorTools
             enemy.AddComponent<CharacterController>();
             var ranged = enemy.AddComponent<RangedEnemy>();
             enemy.AddComponent<Game.Feedback.HitReactionController>();
+            enemy.AddComponent<HitPause>();
             var flash = enemy.AddComponent<EnemyAttackFlash>();
             SetObject(flash, "warningPrefab", windupPrefab);
             SetInt(ranged, "maxHealth", 20);
@@ -541,6 +549,7 @@ namespace Game.EditorTools
             animator.runtimeAnimatorController = animatorController;
             boss.AddComponent<CharacterController>();
             boss.AddComponent<Game.Feedback.HitReactionController>();
+            boss.AddComponent<HitPause>();
             boss.AddComponent<AudioSource>();
             var cuePlayer = boss.AddComponent<AudioCuePlayer>();
             var bossEnemy = boss.AddComponent<BossEnemy>();
@@ -794,6 +803,9 @@ namespace Game.EditorTools
             var scoreSystem = scoreObject.AddComponent<ScoreSystem>();
             SetObject(scoreSystem, "rhythmConfig", rhythmConfig);
 
+            GameObject telemetryObject = new GameObject("TelemetryManager");
+            telemetryObject.AddComponent<TelemetryManager>();
+
             GameObject pickupSpawnerObject = new GameObject("PickupSpawner");
             var pickupSpawner = pickupSpawnerObject.AddComponent<PickupSpawner>();
             SetObject(pickupSpawner, "goldPickupPrefab", goldPickupPrefab);
@@ -847,6 +859,7 @@ namespace Game.EditorTools
 
             GameObject hud = (GameObject)PrefabUtility.InstantiatePrefab(hudPrefab);
             hud.name = "VerticalSliceHUD";
+            hud.AddComponent<TelemetryDebugOverlay>();
             var hudController = hud.GetComponentInChildren<Game.UI.VerticalSliceHud>();
             if (hudController != null)
             {

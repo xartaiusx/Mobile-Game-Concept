@@ -1,5 +1,6 @@
 using UnityEngine;
 using System;
+using Game.Systems;
 
 namespace Game.Rhythm
 {
@@ -54,6 +55,7 @@ namespace Game.Rhythm
                 RhythmGrade grade = System.Math.Abs(dt) <= bufferWindowSeconds && judgement != null
                     ? judgement.Judge(dt)
                     : RhythmGrade.Miss;
+                TelemetryManager.ReportInputJudgement(grade, (float)dt);
                 OnResolved?.Invoke(grade);
                 buffered = false;
                 return;
@@ -82,12 +84,14 @@ namespace Game.Rhythm
             if (System.Math.Abs(dt) <= bufferWindowSeconds)
             {
                 var grade = judgement != null ? judgement.Judge(dt) : RhythmGrade.Miss;
+                TelemetryManager.ReportInputJudgement(grade, (float)dt);
                 OnResolved?.Invoke(grade);
                 buffered = false;
             }
             else
             {
                 // Press too far from beat, treat as miss and clear
+                TelemetryManager.ReportInputJudgement(RhythmGrade.Miss, (float)dt);
                 OnResolved?.Invoke(RhythmGrade.Miss);
                 buffered = false;
             }

@@ -1,6 +1,7 @@
 using UnityEngine;
 using System;
 using System.Collections.Generic;
+using Game.Systems;
 
 namespace Game.Core
 {
@@ -133,6 +134,8 @@ namespace Game.Core
         protected virtual void Die()
         {
             Debug.Log(CharacterName + " has died.");
+            if (CompareTag("Player"))
+                TelemetryManager.ReportPlayerDeath();
             OnDeath?.Invoke(this);
         }
     }
