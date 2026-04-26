@@ -142,9 +142,34 @@ Telemetry is local-only. On player death or `WriteRunSummary()`, JSON is written
 
 `Application.persistentDataPath/Telemetry/run_<timestamp>.json`
 
-Captured fields include Perfect/Good/Miss hit counts, Perfect/Good/Miss dodge counts, signed timing offsets, average timing offset, time to player death, total survival time, enemy kill count, average time per kill, max combo, average combo length, total score, and score per minute.
+Captured fields include schema version, scene name, player class, app/Unity versions, run start/end timestamps, run duration, Perfect/Good/Miss hit counts, Perfect/Good/Miss dodge counts, signed timing offsets, average timing offset, time to player death, total survival time, enemy kill count, average time per kill, max combo, average combo length, total score, and score per minute.
 
 Avoid adding per-frame allocations to telemetry. Keep reporting event-driven and write files only at run end or explicit developer request.
+
+## Telemetry Analysis Workflow
+
+Use `Game > Telemetry > Analyze Runs` to open the local editor analyzer. It scans `Application.persistentDataPath/Telemetry`, parses `run_*.json`-style files, reports malformed files without crashing, marks sessions under 20 seconds as short/smoke-test sessions, and produces a copy/paste summary for tuning notes.
+
+Metric interpretation:
+
+- Perfect hit rate shows how often Warrior attacks land on the tight rhythm window. Initial target: 20%-40%.
+- Miss hit rate shows attack timing/readability friction. Initial target: below 25%.
+- Perfect dodge rate shows defensive mastery and telegraph clarity. Initial target: 10%-25%.
+- Miss dodge rate shows defensive confusion or insufficient input forgiveness. Initial target: below 35%.
+- Average timing offset should stay near 0. Earlier than -0.05s means players are anticipating too much; later than +0.05s means feedback/input timing may be lagging.
+- Average combo length should sit around 3-6. Consistently low max combo below 3 suggests the loop is breaking before players can build rhythm.
+- Early wave survival should usually land around 30-90 seconds for normal-length runs.
+- Score-per-minute and enemy-kills-per-minute exclude short sessions from aggregate tuning warnings because smoke tests produce exaggerated rates.
+
+Phase 9.5 tuning loop:
+
+1. Run 5-10 Warrior sessions in `Assets/Scenes/VerticalSlice.unity`.
+2. Open `Game > Telemetry > Analyze Runs`.
+3. Review warnings and copy the summary into tuning notes if useful.
+4. Tune only 2-3 parameters, such as `perfectWindow`, `goodWindow`, early/late bias, dodge timing, telegraph readability, or hit feedback.
+5. Repeat the run/analyze/tune cycle.
+
+Initial warning recommendations are intentionally practical: high miss rate points to widening `goodWindow` or improving telegraphs, early/late timing bias points to rhythm alignment, low perfect dodge rate points to dodge timing or telegraph readability, and low combo length points to miss penalty or hit feedback.
 
 ## ScriptableObject Assets
 
@@ -181,6 +206,7 @@ The JSON summaries are the authoritative test report. `-testResults` XML may sti
 Current expected discovery after Phase 9 telemetry:
 
 - EditMode discovers the core system and prefab validation tests.
+- EditMode also covers telemetry analysis parsing, malformed-file handling, short-session filtering, warning generation, healthy samples, and editor/runtime separation.
 - PlayMode discovers the rhythm judgement test, vertical slice smoke tests, and telemetry smoke test.
 - Both modes should remain separated by `Game.Tests.EditMode.asmdef` and `Game.Tests.PlayMode.asmdef`.
 

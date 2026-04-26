@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using Game.Rhythm;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 namespace Game.Systems
 {
@@ -10,6 +11,7 @@ namespace Game.Systems
     {
         private const string DirectoryName = "Telemetry";
         private const string TimestampFormat = "yyyyMMdd_HHmmss";
+        private const int SchemaVersion = 2;
 
         public static TelemetryManager Instance { get; private set; }
 
@@ -78,7 +80,12 @@ namespace Game.Systems
             completedComboLengths.Clear();
             Snapshot = new TelemetrySnapshot
             {
-                runStartedAtUtc = DateTime.UtcNow.ToString("o")
+                schemaVersion = SchemaVersion,
+                runStartedAtUtc = DateTime.UtcNow.ToString("o"),
+                sceneName = SceneManager.GetActiveScene().name,
+                playerClass = ResolvePlayerClassName(),
+                appVersion = Application.version,
+                unityVersion = Application.unityVersion
             };
         }
 
@@ -253,6 +260,7 @@ namespace Game.Systems
         private void UpdateDerivedMetrics()
         {
             float elapsed = Mathf.Max(0f, (playerDeathTime >= 0f ? playerDeathTime : Time.time) - runStartTime);
+            Snapshot.runDurationSeconds = elapsed;
             Snapshot.totalSurvivalTime = elapsed;
             Snapshot.timeToFirstDeath = playerDeathTime >= 0f ? Mathf.Max(0f, playerDeathTime - runStartTime) : 0f;
             Snapshot.scorePerMinute = elapsed > 0.01f ? Snapshot.totalScore / (elapsed / 60f) : 0f;
@@ -261,13 +269,29 @@ namespace Game.Systems
                 : 0f;
             UpdateAverageComboLength();
         }
+
+        private static string ResolvePlayerClassName()
+        {
+            Core.PlayerManager manager = Core.PlayerManager.Instance;
+            if (manager == null || manager.Player == null)
+                return string.Empty;
+
+            Core.BaseCharacter character = manager.Player.GetComponent<Core.BaseCharacter>();
+            return character != null ? character.CharacterName : manager.Player.name;
+        }
     }
 
     [Serializable]
     public class TelemetrySnapshot
     {
+        public int schemaVersion;
         public string runStartedAtUtc;
         public string runEndedAtUtc;
+        public float runDurationSeconds;
+        public string sceneName;
+        public string playerClass;
+        public string appVersion;
+        public string unityVersion;
         public int perfectHitCount;
         public int goodHitCount;
         public int missHitCount;

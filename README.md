@@ -51,6 +51,22 @@ Captured metrics include Perfect/Good/Miss hit and dodge counts, signed input ti
 
 The in-game telemetry overlay is text-only and can be toggled with `F3`. It shows live hit/dodge grade counts, current/max combo, average timing bias, and score per minute.
 
+To review local run data in the Unity Editor, open:
+
+`Game > Telemetry > Analyze Runs`
+
+The analyzer reads local JSON files from the telemetry folder, ignores malformed files safely, marks sessions under 20 seconds as short/smoke-test sessions, and summarizes aggregate Warrior tuning signals:
+
+- Perfect hit rate: target 20%-40%.
+- Miss hit rate: target below 25%.
+- Perfect dodge rate: target 10%-25%.
+- Miss dodge rate: target below 35%.
+- Average timing offset: target near 0; earlier than -0.05s or later than +0.05s needs attention.
+- Average combo length: target 3-6.
+- Early wave survival: target 30-90 seconds for normal runs.
+
+Use the Phase 9.5 tuning loop: run 5-10 Warrior sessions, open the telemetry analyzer, review warnings, tune only 2-3 parameters such as rhythm windows, dodge forgiveness, telegraph readability, or feedback clarity, then repeat. Score-per-minute and kill-rate aggregates exclude short sessions because smoke tests can distort those values.
+
 ## Endless Scaling
 
 `DifficultyScaler` drives wave-based scaling with conservative caps:
@@ -103,6 +119,8 @@ Scripts/run-unity-tests.sh
 ```
 
 The PlayMode suite includes a startup smoke regression test that validates the same scene path used by Unity Play Mode, waits several frames, checks the player, camera, HUD, rhythm, score, telemetry, arena/enemy roots, verifies `Time.timeScale == 1`, and fails on fatal startup logs such as null references, missing references, missing scripts, or scene load failures.
+
+Telemetry analysis has EditMode coverage for JSON parsing, malformed-file handling, derived metric math, short-session filtering, target-range warnings, and editor/runtime assembly separation.
 
 `Scripts/run-unity-tests.sh` writes authoritative summaries to:
 
