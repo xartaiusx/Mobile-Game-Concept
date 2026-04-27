@@ -35,6 +35,25 @@ namespace Game.Editor
             "thumbs.db"
         };
 
+        private static readonly string[] ExternalVaultExtensions =
+        {
+            ".glb",
+            ".gltf",
+            ".mtl",
+            ".obj",
+            ".tmx",
+            ".tsx"
+        };
+
+        private static readonly string[] ExternalVaultFolderFragments =
+        {
+            "/Tiled/",
+            "/Tilemap/"
+        };
+
+        private const long ArchiveWarningBytes = 25L * 1024L * 1024L;
+        private const long ArchiveFailureBytes = 100L * 1024L * 1024L;
+
         [MenuItem("Game/Visuals/Validate Asset Archive")]
         public static bool ValidateAssetArchiveMenu()
         {
@@ -46,6 +65,8 @@ namespace Game.Editor
             ArchiveValidationReport report = CreateReport();
             if (report.failures.Count == 0)
             {
+                if (logResult && report.warnings.Count > 0)
+                    Debug.LogWarning("Asset archive validation warnings:\n" + string.Join("\n", report.warnings));
                 if (logResult)
                     Debug.Log("Asset archive validation passed. " + report.Summary);
                 return true;
@@ -88,12 +109,24 @@ namespace Game.Editor
                 if (IsJunkFile(fileName) || path.EndsWith(".zip", StringComparison.OrdinalIgnoreCase))
                     report.failures.Add("Archive contains junk or packaged source file: " + path);
 
+                if (ShouldLiveInExternalVault(path))
+                    report.warnings.Add("Archive contains external-vault candidate: " + path);
+
                 if (!path.EndsWith(".meta", StringComparison.Ordinal))
                 {
                     string guid = AssetDatabase.AssetPathToGUID(path);
                     if (!string.IsNullOrEmpty(guid))
                         archiveGuids.Add(guid);
                 }
+            }
+
+            if (report.totalBytes > ArchiveFailureBytes)
+            {
+                report.failures.Add("Archive size is excessive: " + ArchiveValidationReport.FormatBytes(report.totalBytes));
+            }
+            else if (report.totalBytes > ArchiveWarningBytes)
+            {
+                report.warnings.Add("Archive size is large: " + ArchiveValidationReport.FormatBytes(report.totalBytes));
             }
 
             ValidateArchivedPrefabs(report);
@@ -202,6 +235,27 @@ namespace Game.Editor
             return false;
         }
 
+        private static bool ShouldLiveInExternalVault(string path)
+        {
+            if (path.EndsWith(".meta", StringComparison.Ordinal))
+                return false;
+
+            string extension = Path.GetExtension(path);
+            for (int i = 0; i < ExternalVaultExtensions.Length; i++)
+            {
+                if (string.Equals(extension, ExternalVaultExtensions[i], StringComparison.OrdinalIgnoreCase))
+                    return true;
+            }
+
+            for (int i = 0; i < ExternalVaultFolderFragments.Length; i++)
+            {
+                if (path.Contains(ExternalVaultFolderFragments[i], StringComparison.OrdinalIgnoreCase))
+                    return true;
+            }
+
+            return false;
+        }
+
         private static string ToAssetPath(string path)
         {
             return path.Replace('\\', '/');
@@ -211,12 +265,13 @@ namespace Game.Editor
     public sealed class ArchiveValidationReport
     {
         public readonly List<string> failures = new List<string>();
+        public readonly List<string> warnings = new List<string>();
         public int fileCount;
         public long totalBytes;
 
-        public string Summary => "files=" + fileCount + ", size=" + FormatBytes(totalBytes) + ".";
+        public string Summary => "files=" + fileCount + ", size=" + FormatBytes(totalBytes) + ", warnings=" + warnings.Count + ".";
 
-        private static string FormatBytes(long bytes)
+        public static string FormatBytes(long bytes)
         {
             if (bytes >= 1024L * 1024L)
                 return (bytes / (1024f * 1024f)).ToString("0.0") + " MB";

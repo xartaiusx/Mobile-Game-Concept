@@ -296,10 +296,10 @@ Active asset list:
 Archive policy:
 
 - Active art belongs under the normal `Assets/ThirdParty/KayKit/...`, `Assets/ThirdParty/Kenney/...`, and `Assets/Art/...` paths and may be referenced by visual prefabs or generated scene decor.
-- `Assets/ThirdParty/_Archive` is inactive storage for small, useful future variants and alternate formats that should remain accessible but must not be referenced by active scenes, prefabs, AnimatorControllers, or ScriptableObjects.
-- External vault candidates include large full-pack drops, screenshots, duplicate format sets, Tiled/Tilemap exports, and assets that might be useful later but are not worth active repo weight.
+- `Assets/ThirdParty/_Archive` is inactive storage for small, useful future variants and canonical FBX candidates that should remain accessible but must not be referenced by active scenes, prefabs, AnimatorControllers, or ScriptableObjects.
+- External vault candidates include large full-pack drops, screenshots, duplicate format sets, GLTF/OBJ/alternate-FBX copies, Tiled/Tilemap exports, and assets that might be useful later but are not worth active repo weight.
 - Safe delete candidates are `.DS_Store`, `thumbs.db`, duplicate extracted zip residue, screenshots with no documentation value, and temporary files.
-- When promoting an archived asset, move only the selected file and its `.meta` back to an active source folder, wire it through a visual wrapper, update `ARCHIVE_MANIFEST.md`, then run visual/archive validation and tests.
+- When promoting an archived or external-vault asset, move only the selected file and its `.meta` back to an active source folder, wire it through a visual wrapper, update `ARCHIVE_MANIFEST.md`, then run visual/archive validation and tests.
 
 Archive validation:
 
@@ -312,7 +312,7 @@ Remaining art/archive risks:
 - Attack and dodge/evade visual controller states remain placeholder-only.
 - Boss visual is still a scaled Barbarian placeholder.
 - Human readability review is still needed for scale, facing, and combat clarity.
-- Archive size should be revisited after the next art decision; move larger unused pack fragments to an external vault if they do not serve an immediate future pass.
+- Duplicate/source-format archive fragments were moved to `../Mobile-Game-Concept-External-Asset-Vault/Phase9.11`; revisit that vault after the next art decision and only promote selected canonical assets.
 
 ## Telemetry
 

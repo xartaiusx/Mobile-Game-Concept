@@ -170,7 +170,7 @@ Phase 9.11 adds an inactive archive for imported assets that are useful to keep 
 - Archive manifest: `Assets/ThirdParty/_Archive/ARCHIVE_MANIFEST.md`
 - Editor validation: `Game > Visuals > Validate Asset Archive`
 
-Active art remains limited to the selected first-pass models, clips, and five Kenney tiles. Extra KayKit character variants, accessory/source-format duplicates, Mannequin assets, GLTF animation duplicates, Kenney Tilemap/Tiled exports, and unused Tiny Dungeon tiles are archived or documented as external-vault candidates. Do not wire archived assets into gameplay roots or visual prefabs without first moving the selected asset back into the active source folder and updating the manifest.
+Active art remains limited to the selected first-pass models, clips, and five Kenney tiles. The repo archive keeps useful FBX character variants, accessory FBXs, Mannequin FBX references, and unused individual Tiny Dungeon tiles. Duplicate KayKit GLTF/OBJ/Unity-FBX variants, duplicate GLB animation/mannequin files, Kenney Tilemap/Tiled exports, and root package residue are kept out of the repo or deleted as documented in the archive manifest. Do not wire archived assets into gameplay roots or visual prefabs without first moving the selected asset back into the active source folder and updating the manifest.
 
 ## Validation
 
