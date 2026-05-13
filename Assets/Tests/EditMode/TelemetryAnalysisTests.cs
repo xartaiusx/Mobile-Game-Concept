@@ -125,6 +125,24 @@ public class TelemetryAnalysisTests
     }
 
     [Test]
+    public void AlphaRunJsonParsesEndReasonAndBatchLabel()
+    {
+        TelemetrySnapshot snapshot = Snapshot(45f, 500f, 6, 10, 4, 2, 4, 2, 0.01f, 3.5f, 4);
+        snapshot.batchLabel = "alpha_warrior_batch_001";
+        snapshot.runEnded = true;
+        snapshot.runEndReason = "session_complete";
+
+        TelemetryParseResult result = TelemetryAnalysis.ParseJson(JsonUtility.ToJson(snapshot), "alpha_run.json");
+        TelemetryRunMetrics metrics = TelemetryAnalysis.CreateRunMetrics(result.snapshot, "alpha_run.json");
+
+        Assert.IsTrue(result.IsValid, result.errorMessage);
+        Assert.IsTrue(result.snapshot.runEnded);
+        Assert.AreEqual("session_complete", result.snapshot.runEndReason);
+        Assert.AreEqual("alpha_warrior_batch_001", metrics.batchLabel);
+        Assert.AreEqual(45f, metrics.runDurationSeconds, 0.001f);
+    }
+
+    [Test]
     public void HighMissRateProducesWarning()
     {
         TelemetryAnalysisSummary summary = TelemetryAnalysis.AnalyzeSnapshots(new[]

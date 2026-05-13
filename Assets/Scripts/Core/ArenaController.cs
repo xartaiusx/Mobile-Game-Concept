@@ -46,6 +46,8 @@ namespace Game.Core
         public int CurrentWave => currentWave;
         public int ActiveEnemyCount => activeEnemies.Count;
         public string LastStateMessage => lastStateMessage;
+        public int SessionWaveLimit => Mathf.Max(0, waveCount);
+        public bool HasSessionWaveLimit => SessionWaveLimit > 0;
         public bool IsBossOrEliteWave => difficultyScaler != null && difficultyScaler.IsBossWave(currentWave);
 
         private void Start()
@@ -65,16 +67,21 @@ namespace Game.Core
             if (player != null)
                 player.OnDeath -= HandlePlayerDeath;
 
-            foreach (BaseEnemy enemy in activeEnemies)
-            {
-                if (enemy != null)
-                    enemy.Defeated -= HandleEnemyDefeated;
-            }
-            activeEnemies.Clear();
+            ClearActiveEnemySubscriptions();
         }
 
         public void BeginArena()
         {
+            if (spawnRoutine != null)
+            {
+                StopCoroutine(spawnRoutine);
+                spawnRoutine = null;
+            }
+
+            if (player != null)
+                player.OnDeath -= HandlePlayerDeath;
+            ClearActiveEnemySubscriptions();
+
             if (player != null)
                 player.OnDeath += HandlePlayerDeath;
 
@@ -95,6 +102,16 @@ namespace Game.Core
                 StartCurrentWaveState();
             else
                 BeginCurrentWave();
+        }
+
+        private void ClearActiveEnemySubscriptions()
+        {
+            foreach (BaseEnemy enemy in activeEnemies)
+            {
+                if (enemy != null)
+                    enemy.Defeated -= HandleEnemyDefeated;
+            }
+            activeEnemies.Clear();
         }
 
         public void RegisterEnemy(BaseEnemy enemy)
@@ -124,6 +141,11 @@ namespace Game.Core
             bossObject = testBoss;
             bossTemplate = testBoss;
             difficultyScaler = testDifficultyScaler;
+        }
+
+        public void ConfigureSessionWaveLimitForTests(int testWaveCount)
+        {
+            waveCount = Mathf.Max(0, testWaveCount);
         }
 
         public void CompleteActiveWaveForTests()
@@ -220,7 +242,7 @@ namespace Game.Core
                 enemy.Defeated -= HandleEnemyDefeated;
             activeEnemies.Remove(enemy);
 
-            if (activeEnemies.Count > 0 || State == ArenaState.Failure)
+            if (activeEnemies.Count > 0 || State == ArenaState.Failure || State == ArenaState.Victory)
                 return;
 
             CompleteWave();
@@ -239,10 +261,28 @@ namespace Game.Core
                 scoreSystem?.AddWaveClearBonus(currentWave);
             }
 
+            if (HasSessionWaveLimit && currentWave >= SessionWaveLimit)
+            {
+                CompleteSession();
+                return;
+            }
+
             SetState(ArenaState.WaveCleared, "Wave " + currentWave + " cleared");
             if (spawnRoutine != null)
                 StopCoroutine(spawnRoutine);
             spawnRoutine = StartCoroutine(NextWaveRoutine());
+        }
+
+        private void CompleteSession()
+        {
+            if (spawnRoutine != null)
+            {
+                StopCoroutine(spawnRoutine);
+                spawnRoutine = null;
+            }
+
+            SetState(ArenaState.Victory, "Session Complete - press R to retry");
+            TelemetryManager.Instance?.EndRun("session_complete", true);
         }
 
         private IEnumerator NextWaveRoutine()
@@ -253,6 +293,9 @@ namespace Game.Core
 
         private void BeginNextWave()
         {
+            if (State == ArenaState.Failure || State == ArenaState.Victory)
+                return;
+
             currentWave++;
             BeginCurrentWave();
         }
@@ -317,6 +360,7 @@ namespace Game.Core
         private void HandlePlayerDeath(BaseCharacter character)
         {
             SetState(ArenaState.Failure, "Defeat - press R to restart");
+            TelemetryManager.Instance?.EndRun("defeat", true);
             if (spawnRoutine != null)
                 StopCoroutine(spawnRoutine);
         }

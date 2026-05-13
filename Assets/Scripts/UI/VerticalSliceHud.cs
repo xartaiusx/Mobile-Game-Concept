@@ -382,25 +382,52 @@ namespace Game.UI
         {
             if (arenaText != null)
                 arenaText.text = FormatArenaText();
-            if ((state == ArenaState.WaveCleared || state == ArenaState.Boss || state == ArenaState.Elite || state == ArenaState.Failure) && feedbackText != null)
+            if ((state == ArenaState.WaveCleared || state == ArenaState.Boss || state == ArenaState.Elite || state == ArenaState.Victory || state == ArenaState.Failure) && feedbackText != null)
                 feedbackText.text = message;
         }
 
         private string FormatScoreText()
         {
-            if (scoreSystem == null)
-                return "Score: 0  High: 0";
+            string health = playerCharacter != null
+                ? "HP: " + playerCharacter.CurrentHealth + "/" + playerCharacter.MaxHealth + "  "
+                : "HP: n/a  ";
 
-            return "Score: " + scoreSystem.Score + "  High: " + scoreSystem.HighScore;
+            if (scoreSystem == null)
+                return health + "Score: 0  High: 0";
+
+            return health + "Score: " + scoreSystem.Score + "  High: " + scoreSystem.HighScore;
         }
 
         private string FormatArenaText()
         {
             if (arenaController == null)
-                return "Wave: 1  Enemies: 0";
+                return "State: Playing  Wave: 1  Enemies: 0";
 
             string warning = arenaController.IsBossOrEliteWave ? "  BOSS/ELITE" : string.Empty;
-            return "Wave: " + arenaController.CurrentWave + warning + "  Enemies: " + arenaController.ActiveEnemyCount + "  " + arenaController.LastStateMessage;
+            return "State: " + FormatArenaState(arenaController.State)
+                + "  Wave: " + arenaController.CurrentWave + warning
+                + "  Enemies: " + arenaController.ActiveEnemyCount
+                + "  " + arenaController.LastStateMessage;
+        }
+
+        private static string FormatArenaState(ArenaState state)
+        {
+            switch (state)
+            {
+                case ArenaState.Victory:
+                    return "Complete";
+                case ArenaState.Failure:
+                    return "Defeat";
+                case ArenaState.WaveCleared:
+                    return "Wave Cleared";
+                case ArenaState.Boss:
+                case ArenaState.Elite:
+                    return "Boss";
+                case ArenaState.Preparing:
+                    return "Preparing";
+                default:
+                    return "Playing";
+            }
         }
 
         private string FormatAbilityText()

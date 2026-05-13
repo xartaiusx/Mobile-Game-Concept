@@ -32,11 +32,13 @@ namespace Game.Systems
         private string lastWrittenPath;
         private string telemetryRootOverride;
         private bool suppressWriteWarningsForTests;
+        private bool runEnded;
 
         public TelemetrySnapshot Snapshot { get; private set; } = new TelemetrySnapshot();
         public string LastWrittenPath => lastWrittenPath;
         public string BatchLabel => batchLabel;
         public string RunNotes => runNotes;
+        public string RunEndReason => Snapshot != null ? Snapshot.runEndReason : string.Empty;
         public int CurrentComboLength => currentComboLength;
         public float AverageTimingOffset => Snapshot.averageTimingOffset;
         public float ScorePerMinute
@@ -82,6 +84,7 @@ namespace Game.Systems
             currentComboLength = 0;
             scoreAtRunStart = Core.ScoreSystem.Instance != null ? Core.ScoreSystem.Instance.Score : 0;
             lastWrittenPath = string.Empty;
+            runEnded = false;
             timingOffsets.Clear();
             completedComboLengths.Clear();
             Snapshot = new TelemetrySnapshot
@@ -190,10 +193,47 @@ namespace Game.Systems
                 Instance.RecordPlayerDeath();
         }
 
+        public static void ReportSessionComplete()
+        {
+            if (Instance != null)
+                Instance.EndRun("session_complete", true);
+        }
+
+        public string EndRun(string endReason, bool writeSummary)
+        {
+            if (!string.IsNullOrWhiteSpace(endReason))
+                Snapshot.runEndReason = SanitizeRunEndReason(endReason);
+
+            if (!runEnded)
+            {
+                runEnded = true;
+                Snapshot.runEnded = true;
+            }
+
+            if (!writeSummary)
+                return string.Empty;
+
+            if (!string.IsNullOrEmpty(lastWrittenPath))
+                return lastWrittenPath;
+
+            return WriteRunSummary();
+        }
+
         public string WriteRunSummary()
         {
             try
             {
+                if (runEnded && !string.IsNullOrEmpty(lastWrittenPath))
+                    return lastWrittenPath;
+
+                if (!runEnded)
+                {
+                    runEnded = true;
+                    Snapshot.runEnded = true;
+                    if (string.IsNullOrEmpty(Snapshot.runEndReason))
+                        Snapshot.runEndReason = "manual_write";
+                }
+
                 UpdateDerivedMetrics();
                 Snapshot.sceneName = SceneManager.GetActiveScene().name;
                 Snapshot.playerClass = ResolvePlayerClassName();
@@ -288,8 +328,7 @@ namespace Game.Systems
                 playerDeathTime = Time.time;
 
             UpdateDerivedMetrics();
-            if (writeOnPlayerDeath)
-                WriteRunSummary();
+            EndRun("defeat", writeOnPlayerDeath);
         }
 
         private void HandleEnemyDefeated(Core.BaseEnemy enemy)
@@ -400,6 +439,12 @@ namespace Game.Systems
 
             return count > 0 ? new string(chars, 0, count).Trim('_') : string.Empty;
         }
+
+        private static string SanitizeRunEndReason(string value)
+        {
+            string sanitized = SanitizeBatchLabel(value);
+            return string.IsNullOrEmpty(sanitized) ? "unknown" : sanitized.ToLowerInvariant();
+        }
     }
 
     [Serializable]
@@ -413,6 +458,8 @@ namespace Game.Systems
         public string playerClass;
         public string batchLabel;
         public string runNotes;
+        public bool runEnded;
+        public string runEndReason;
         public string appVersion;
         public string unityVersion;
         public int perfectHitCount;

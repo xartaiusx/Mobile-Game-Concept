@@ -71,6 +71,12 @@ namespace Game.Editor
                 throw new InvalidOperationException("Asset archive validation failed.");
         }
 
+        public static void ValidateAlphaPlaytestCommandLine()
+        {
+            if (!AlphaPlaytestValidator.ValidateAlphaPlaytest(true))
+                throw new InvalidOperationException("Alpha playtest validation failed.");
+        }
+
         private static void RunOrPrepare(TestMode mode)
         {
             if (IsUnityRunTestsInvocation())

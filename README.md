@@ -14,18 +14,17 @@ The prototype has pivoted away from multi-class balance. Warrior is the only act
 
 Mage, Archer, Healer, projectile ability assets, and class swap code remain in the repository as deferred prototype content. They should compile and remain valid as assets, but they are not part of the active `VerticalSlice.unity` gameplay path.
 
-## Current Slice
+## Current Alpha Slice
 
-- Phase 9 goal: measure Warrior feel, tune rhythm windows/dodge feedback, and keep the vertical slice stable before adding content.
-- Endless rhythm-action melee arena loop.
+- Alpha goal: launch directly into one short Warrior playtest session, prove the rhythm/combat loop, write telemetry, and allow retry without adding content.
+- Short rhythm-action melee arena loop. `VerticalSlice.unity` currently uses `ArenaController.waveCount = 1`, so clearing the starting wave shows `Session Complete - press R to retry`.
 - Warrior-only active player path through `GameManager`, `PlayerManager`, HUD, camera, arena, score, dodge, parry, pickups, and boss systems.
 - Close-range combo attacks using `ComboSystem`, `DefaultComboProfile`, and `DefaultAttackTiming`.
 - Rhythm precision rewards: Perfect hits deal and score the most, Good hits are moderate, Miss hits are weak and score little or nothing.
 - Perfect dodge moves faster, cools down sooner, and grants stronger invulnerability.
 - Perfect parry cancels parryable damage and staggers enemies for a counter opportunity.
-- Scalable endless waves with short next-wave delay, no terminal victory after wave 1, and failure on player death.
-- Boss/elite warning waves every 5 waves by default.
-- HUD shows wave, score, high score, enemies remaining, boss/elite warning, cooldowns, and rhythm grade feedback.
+- Scalable waves and boss/elite warnings remain available for post-alpha tuning by setting the session wave limit to `0`, but the committed alpha path is intentionally short.
+- HUD shows HP, wave/session state, score, high score, enemies remaining, boss/elite warning, cooldowns, and rhythm grade feedback.
 - `TelemetryManager` captures run-level hit, dodge, timing, combo, score, survival, and kill pacing metrics.
 
 ## Controls
@@ -41,6 +40,8 @@ Mage, Archer, Healer, projectile ability assets, and class swap code remain in t
 
 `ClassSwapDebugController` is inactive in `VerticalSlice.unity`. Do not use Mage, Archer, Healer, or class swapping for active prototype validation.
 
+Keyboard/editor is the alpha validation path. Touch controls and mobile retry UI are documented as pending; do not treat the slice as device-ready until a focused mobile input pass is completed.
+
 ## Telemetry
 
 Runtime telemetry is local-only and writes human-readable JSON to:
@@ -51,7 +52,7 @@ When a batch label is set, runs are written to:
 
 `Application.persistentDataPath/Telemetry/<batchLabel>/run_<timestamp>_<batchLabel>.json`
 
-Captured metrics include batch label, optional run notes, Perfect/Good/Miss hit and dodge counts, signed input timing offsets, survival time, enemy kills, average time per kill, max/average combo, total score, and score per minute.
+Captured metrics include batch label, optional run notes, run end reason, Perfect/Good/Miss hit and dodge counts, signed input timing offsets, survival time, enemy kills, average time per kill, max/average combo, total score, and score per minute.
 
 The in-game telemetry overlay is text-only and can be toggled with `F3`. It shows live hit/dodge grade counts, current/max combo, average timing bias, score per minute, and current batch label. Developer hotkeys are `F4` start new run, `F5` end/write run, and `F6` clear current run data.
 
@@ -69,7 +70,7 @@ The analyzer reads local JSON files from the telemetry folder, can analyze the r
 - Average combo length: target 3-6.
 - Early wave survival: target 30-90 seconds for normal runs.
 
-Use the Phase 9.7 tuning loop: set a batch label such as `warrior_batch_001`, run 5-10 Warrior sessions, open the telemetry analyzer, review warnings, tune only 2-3 parameter groups such as rhythm windows, dodge forgiveness, telegraph readability, or feedback clarity, then repeat. Score-per-minute and kill-rate aggregates exclude short sessions because smoke tests can distort those values.
+Use the alpha tuning loop: set a batch label such as `alpha_warrior_batch_001`, run 5-10 Warrior sessions, open the telemetry analyzer, review warnings, tune only 2-3 parameter groups such as rhythm windows, dodge forgiveness, telegraph readability, or feedback clarity, then repeat. Score-per-minute and kill-rate aggregates exclude short sessions because smoke tests can distort those values.
 
 Phase 9.6 first-pass tuning was based on static sanity review and existing smoke/test telemetry plumbing, not human playtest results. Changes were intentionally narrow:
 
@@ -95,6 +96,36 @@ Phase 9.6 first-pass tuning was based on static sanity review and existing smoke
 `ScoreSystem` awards rhythm-hit score by grade, combo bonus, wave clear bonus, boss/elite bonus, and a local high score through `PlayerPrefs`.
 
 This is not a progression economy yet. There are no skill trees, currencies, upgrades, or long-term unlocks in the active prototype.
+
+## Alpha Playtest Checklist
+
+Before test:
+
+- Open the project in Unity `6000.4.4f1`.
+- Run `Game > Vertical Slice > Validate Alpha Playtest`.
+- Open `Game > Telemetry > Analyze Runs`, set batch label `alpha_warrior_batch_001`, and add short run notes if useful.
+- Confirm `Assets/Scenes/VerticalSlice.unity` is the Play Mode start scene.
+
+During test:
+
+- Press Play. The Warrior, HUD, beat bar, score/HP readout, and starting enemies should appear without manual setup.
+- Use movement, `Fire1` attack, `Left Shift` dodge, `E` parry, and `Q` ability.
+- Clear the starting wave for `Session Complete - press R to retry`, or allow the player to die for `Defeat - press R to restart`.
+- Use `F3` only when developer telemetry overlay detail is needed; it is optional.
+
+After test:
+
+- Press `F5` if a manual telemetry write is needed; defeat and session complete write automatically.
+- Analyze `Application.persistentDataPath/Telemetry/alpha_warrior_batch_001`.
+- Paste the analyzer summary into the Warrior telemetry batch template in `DEVELOPMENT.md`.
+- Keep runs under 20 seconds as smoke data, not balance evidence.
+
+Known limitations:
+
+- Attack and dodge/evade visual controller states remain placeholder-only.
+- Boss is still the scaled KayKit Barbarian placeholder.
+- Human readability review, device profiling, and full touch controls are pending.
+- The next meaningful evidence gate is a real 5-10 player Warrior telemetry batch.
 
 ## Bootstrap
 
@@ -183,11 +214,12 @@ Scripts/run-unity-tests.sh
 "$HOME/Unity/Hub/Editor/6000.4.4f1/Editor/Unity" -batchmode -projectPath "$PWD" -executeMethod Game.Editor.ProjectTestRunner.ValidateGeneratorIdempotencyCommandLine -quit -logFile /tmp/mobile-game-generator-idempotency.log
 "$HOME/Unity/Hub/Editor/6000.4.4f1/Editor/Unity" -batchmode -projectPath "$PWD" -executeMethod Game.Editor.ProjectTestRunner.ValidateVisualAssetSetupCommandLine -quit -logFile /tmp/mobile-game-visual-validation.log
 "$HOME/Unity/Hub/Editor/6000.4.4f1/Editor/Unity" -batchmode -projectPath "$PWD" -executeMethod Game.Editor.ProjectTestRunner.ValidateAssetArchiveCommandLine -quit -logFile /tmp/mobile-game-archive-validation.log
+"$HOME/Unity/Hub/Editor/6000.4.4f1/Editor/Unity" -batchmode -projectPath "$PWD" -executeMethod Game.Editor.ProjectTestRunner.ValidateAlphaPlaytestCommandLine -quit -logFile /tmp/mobile-game-alpha-validation.log
 ```
 
 The PlayMode suite includes a startup smoke regression test that validates the same scene path used by Unity Play Mode, waits several frames, checks the player, camera, HUD, rhythm, score, telemetry, arena/enemy roots, verifies `Time.timeScale == 1`, and fails on fatal startup logs such as null references, missing references, missing scripts, or scene load failures.
 
-Telemetry analysis has EditMode coverage for JSON parsing, malformed-file handling, derived metric math, short-session filtering, target-range warnings, and editor/runtime assembly separation. Scenario PlayMode coverage now exercises rhythm hit/miss, dodge grades, pickup collection, boss phase safety, enemy damage/death, telemetry write/parse, renderable visuals after events, and generator preservation through the existing idempotency validation.
+Telemetry analysis has EditMode coverage for JSON parsing, malformed-file handling, derived metric math, alpha run end reason parsing, short-session filtering, target-range warnings, and editor/runtime assembly separation. Scenario PlayMode coverage now exercises rhythm hit/miss, dodge grades, pickup collection, boss phase safety, enemy damage/death, alpha session complete, defeat telemetry write, retry reload, telemetry write/parse, renderable visuals after events, and generator preservation through the existing idempotency validation.
 
 `Scripts/run-unity-tests.sh` writes authoritative summaries to:
 
@@ -200,13 +232,13 @@ The custom summaries are the source of truth. Unity XML output may exist for com
 ## Current Risks
 
 - Combat, animation, and UI assets are still placeholder-grade.
-- Boss/elite cadence works as a scaffold, but wave 5+ pacing still needs hands-on tuning.
-- Touch controls and device profiling are not done.
+- Boss/elite cadence works as a scaffold, but wave 5+ pacing still needs hands-on tuning after the alpha session limit is lifted.
+- Touch controls and device profiling are not done; keyboard/editor is the current alpha validation path.
 - Telemetry is local developer instrumentation, not a production analytics service.
 - Some deferred Mage, Archer, Healer, projectile, and class-swap assets still exist for compile compatibility only.
-- Phase 9.6 tuning needs real 5-10 run Warrior telemetry before further balance changes.
+- Alpha tuning needs a real 5-10 run Warrior telemetry batch before further balance changes.
 - First-pass third-party art is imported and wired, but attack/dodge clips, scale polish, boss-specific visuals, and archive size policy still need hands-on review.
 
 ## Next
 
-Next phase should be a hands-on Warrior telemetry batch: 5-10 normal runs, analyzer summary capture, then a second narrow pass on rhythm bias, dodge forgiveness, telegraph readability, or early wave pacing based on measured misses and survival.
+Next phase should be a hands-on Warrior telemetry batch: 5-10 normal runs using `alpha_warrior_batch_001`, analyzer summary capture, then a second narrow pass on rhythm bias, dodge forgiveness, telegraph readability, or early wave pacing based on measured misses and survival.

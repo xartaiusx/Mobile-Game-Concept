@@ -68,11 +68,22 @@ public class VerticalSlicePlayModeTests
         Assert.IsNotNull(Object.FindAnyObjectByType<RhythmJudgement>());
         Assert.IsNotNull(Object.FindAnyObjectByType<ScoreSystem>());
         Assert.IsNotNull(Object.FindAnyObjectByType<TelemetryManager>());
-        Assert.IsNotNull(Object.FindAnyObjectByType<ArenaController>());
+        ArenaController arenaController = Object.FindAnyObjectByType<ArenaController>();
+        Assert.IsNotNull(arenaController);
+        Assert.GreaterOrEqual(arenaController.SessionWaveLimit, 1);
         Assert.Greater(Object.FindObjectsByType<BaseEnemy>(FindObjectsInactive.Exclude).Length, 0);
         foreach (BaseEnemy enemy in Object.FindObjectsByType<BaseEnemy>(FindObjectsInactive.Exclude))
             Assert.IsNotNull(enemy.transform.Find("VisualRoot"), enemy.name + " missing VisualRoot.");
         Assert.AreEqual(1f, Time.timeScale, 0.001f);
+
+        VerticalSliceHud hud = Object.FindAnyObjectByType<VerticalSliceHud>();
+        Assert.IsNotNull(hud);
+        Text scoreText = SerializedObjectReference<Text>(hud, "scoreText");
+        Text arenaText = SerializedObjectReference<Text>(hud, "arenaText");
+        Assert.IsNotNull(scoreText);
+        Assert.IsNotNull(arenaText);
+        Assert.That(scoreText.text, Does.Contain("HP:"));
+        Assert.That(arenaText.text, Does.Contain("State:"));
 
         foreach (GameObject go in Object.FindObjectsByType<GameObject>(FindObjectsInactive.Include))
             Assert.AreEqual(0, GameObjectUtility.GetMonoBehavioursWithMissingScriptCount(go), go.name + " has missing scripts.");
@@ -171,30 +182,63 @@ public class VerticalSlicePlayModeTests
     }
 
     [UnityTest]
-    public IEnumerator VerticalSliceEndlessArenaCanClearWaveAndIncrement()
+    public IEnumerator VerticalSliceAlphaSessionCanCompleteWriteTelemetryAndRetry()
     {
         yield return LoadVerticalSlice();
 
         ArenaController arena = Object.FindAnyObjectByType<ArenaController>();
         ScoreSystem score = Object.FindAnyObjectByType<ScoreSystem>();
+        TelemetryManager telemetry = Object.FindAnyObjectByType<TelemetryManager>();
         Assert.IsNotNull(arena);
         Assert.IsNotNull(score);
+        Assert.IsNotNull(telemetry);
+        Assert.GreaterOrEqual(arena.SessionWaveLimit, 1);
 
-        int startingWave = arena.CurrentWave;
-        foreach (BaseEnemy enemy in Object.FindObjectsByType<BaseEnemy>(FindObjectsInactive.Exclude))
+        string root = Path.Combine(Application.temporaryCachePath, "AlphaSessionCompleteTelemetry");
+        if (Directory.Exists(root))
+            Directory.Delete(root, true);
+        Directory.CreateDirectory(root);
+
+        try
         {
-            if (enemy != null)
-                enemy.TakeDamage(9999);
+            telemetry.ConfigureTelemetryRootForTests(root);
+            telemetry.SetBatchLabel("alpha_warrior_batch_001");
+            telemetry.ResetRun();
+
+            foreach (BaseEnemy enemy in Object.FindObjectsByType<BaseEnemy>(FindObjectsInactive.Exclude))
+            {
+                if (enemy != null)
+                    enemy.TakeDamage(9999);
+            }
+            yield return null;
+
+            Assert.AreEqual(ArenaState.Victory, arena.State);
+            Assert.That(arena.LastStateMessage, Does.Contain("Session Complete"));
+            Assert.Greater(score.Score, 0);
+            Assert.IsNotEmpty(telemetry.LastWrittenPath);
+            Assert.IsTrue(File.Exists(telemetry.LastWrittenPath));
+            TelemetryParseResult parsed = TelemetryAnalysis.ParseJson(File.ReadAllText(telemetry.LastWrittenPath), telemetry.LastWrittenPath);
+            Assert.IsTrue(parsed.IsValid, parsed.errorMessage);
+            Assert.IsTrue(parsed.snapshot.runEnded);
+            Assert.AreEqual("session_complete", parsed.snapshot.runEndReason);
+            Assert.AreEqual("alpha_warrior_batch_001", parsed.snapshot.batchLabel);
+
+            arena.RestartScene();
+            yield return null;
+            yield return null;
+
+            ArenaController restartedArena = Object.FindAnyObjectByType<ArenaController>();
+            Assert.IsNotNull(restartedArena);
+            Assert.AreEqual(1, restartedArena.CurrentWave);
+            Assert.AreEqual(ArenaState.Wave, restartedArena.State);
+            Assert.Greater(Object.FindObjectsByType<BaseEnemy>(FindObjectsInactive.Exclude).Length, 0);
+            Assert.AreEqual(1f, Time.timeScale, 0.001f);
         }
-
-        Assert.AreEqual(ArenaState.WaveCleared, arena.State);
-        Assert.AreNotEqual(ArenaState.Victory, arena.State);
-        Assert.Greater(score.Score, 0);
-
-        arena.BeginNextWaveForTests();
-
-        Assert.AreEqual(startingWave + 1, arena.CurrentWave);
-        Assert.AreNotEqual(ArenaState.Victory, arena.State);
+        finally
+        {
+            if (Directory.Exists(root))
+                Directory.Delete(root, true);
+        }
     }
 
     [UnityTest]
@@ -219,6 +263,7 @@ public class VerticalSlicePlayModeTests
 
         TelemetryManager telemetry = Object.FindAnyObjectByType<TelemetryManager>();
         Assert.IsNotNull(telemetry);
+        telemetry.SetBatchLabel("alpha_warrior_batch_001");
         telemetry.ResetRun();
 
         GameObject player = GameObject.FindWithTag("Player");
@@ -247,7 +292,54 @@ public class VerticalSlicePlayModeTests
         TelemetryParseResult parsed = TelemetryAnalysis.ParseJson(File.ReadAllText(path), path);
         Assert.IsTrue(parsed.IsValid, parsed.errorMessage);
         Assert.AreEqual("Warrior", parsed.snapshot.playerClass);
+        Assert.IsTrue(parsed.snapshot.runEnded);
+        Assert.AreEqual("manual_write", parsed.snapshot.runEndReason);
+        Assert.AreEqual("alpha_warrior_batch_001", parsed.snapshot.batchLabel);
         AssertRenderableVisual(player, "WarriorVisual", true);
+    }
+
+    [UnityTest]
+    public IEnumerator PlayerDeathFailsAlphaSessionAndWritesTelemetry()
+    {
+        yield return LoadVerticalSlice();
+
+        GameObject player = GameObject.FindWithTag("Player");
+        ArenaController arena = Object.FindAnyObjectByType<ArenaController>();
+        TelemetryManager telemetry = Object.FindAnyObjectByType<TelemetryManager>();
+        Assert.IsNotNull(player);
+        Assert.IsNotNull(arena);
+        Assert.IsNotNull(telemetry);
+
+        string root = Path.Combine(Application.temporaryCachePath, "AlphaDefeatTelemetry");
+        if (Directory.Exists(root))
+            Directory.Delete(root, true);
+        Directory.CreateDirectory(root);
+
+        try
+        {
+            telemetry.ConfigureTelemetryRootForTests(root);
+            telemetry.SetBatchLabel("alpha_warrior_batch_001");
+            telemetry.ResetRun();
+
+            player.GetComponent<BaseCharacter>().TakeDamage(9999);
+            yield return null;
+
+            Assert.AreEqual(ArenaState.Failure, arena.State);
+            Assert.That(arena.LastStateMessage, Does.Contain("Defeat"));
+            Assert.IsNotEmpty(telemetry.LastWrittenPath);
+            Assert.IsTrue(File.Exists(telemetry.LastWrittenPath));
+
+            TelemetryParseResult parsed = TelemetryAnalysis.ParseJson(File.ReadAllText(telemetry.LastWrittenPath), telemetry.LastWrittenPath);
+            Assert.IsTrue(parsed.IsValid, parsed.errorMessage);
+            Assert.IsTrue(parsed.snapshot.runEnded);
+            Assert.AreEqual("defeat", parsed.snapshot.runEndReason);
+            Assert.AreEqual("alpha_warrior_batch_001", parsed.snapshot.batchLabel);
+        }
+        finally
+        {
+            if (Directory.Exists(root))
+                Directory.Delete(root, true);
+        }
     }
 
     [UnityTest]

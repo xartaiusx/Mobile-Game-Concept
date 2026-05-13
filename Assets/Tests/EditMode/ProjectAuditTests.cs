@@ -116,6 +116,12 @@ public class ProjectAuditTests
     }
 
     [Test]
+    public void AlphaPlaytestValidationCoversSceneDocsVisualsAndArchive()
+    {
+        Assert.IsTrue(AlphaPlaytestValidator.ValidateAlphaPlaytest(false));
+    }
+
+    [Test]
     public void VerticalSliceSceneContainsNoMissingScriptsInEditMode()
     {
         string previousScene = UnityEngine.SceneManagement.SceneManager.GetActiveScene().path;

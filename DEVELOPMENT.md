@@ -29,13 +29,14 @@ The generated setup includes:
 
 The current prototype is no longer a multi-class test. Do not add Mage, Archer, Healer, class swapping, or multi-class balance work to the active loop unless the direction changes again.
 
-Active gameplay is an endless rhythm-action melee arena:
+Active alpha gameplay is a short rhythm-action melee arena:
 
 - Wave starts at 1.
-- Warrior survives escalating waves until death.
-- Clearing a wave shows a Wave Cleared/Next Wave flow, then starts the next wave after a short delay.
-- Every configurable number of waves, default 5, the arena starts a boss/elite encounter.
-- Victory is not a terminal state in the active loop.
+- Warrior clears one starting wave or survives until death.
+- Clearing the configured alpha wave limit shows `Session Complete - press R to retry`.
+- Setting the session wave limit to `0` restores the scalable Wave Cleared/Next Wave flow for post-alpha tuning.
+- Every configurable number of waves, default 5, the arena can start a boss/elite encounter once the alpha limit is lifted.
+- `Victory` is the terminal alpha session-complete state.
 - Player death is the failure state.
 - `R` restarts the run.
 
@@ -69,17 +70,18 @@ Deferred/legacy:
 
 Deferred assets should keep compiling and prefab validation should keep passing, but they should not be active in `VerticalSlice.unity`.
 
-## Endless Arena And Scaling
+## Alpha Arena And Scaling
 
-`ArenaController` owns the endless wave state:
+`ArenaController` owns the alpha wave/session state:
 
 - `Preparing`
 - `Wave`
 - `WaveCleared`
 - `Boss` / `Elite`
+- `Victory`
 - `Failure`
 
-`Victory` remains in the enum for compatibility with older tests/code, but the active loop does not use it as a terminal wave-clear state.
+The committed alpha scene uses `ArenaController.waveCount = 1`, so clearing the starting wave ends the run with `Session Complete - press R to retry`. Setting the session wave limit to `0` preserves the scalable Wave Cleared/Next Wave loop for later tuning. `Victory` is the alpha session-complete state; player death is the failure state.
 
 `DifficultyScaler` evaluates each wave and applies capped scaling:
 
@@ -108,6 +110,8 @@ The existing boss slam behavior should remain the stable baseline. Line and radi
 
 `VerticalSliceHud` displays:
 
+- Current HP.
+- Session state: playing, wave cleared, complete, or defeat.
 - Current wave.
 - Enemies remaining.
 - Boss/elite warning label.
@@ -129,6 +133,39 @@ The existing boss slam behavior should remain the stable baseline. Line and radi
 - Toggle telemetry overlay: `F3`.
 
 Class swap hotkeys are not part of active validation.
+
+Keyboard/editor is the current alpha validation path. Mobile touch controls, mobile retry UI, and device profiling are pending and should not be represented as complete.
+
+## Alpha Playtest Checklist
+
+Before test:
+
+- Run `Game > Vertical Slice > Validate Alpha Playtest`.
+- Confirm Play starts `Assets/Scenes/VerticalSlice.unity`.
+- Open `Game > Telemetry > Analyze Runs`, set batch label `alpha_warrior_batch_001`, and optionally enter run notes.
+- Confirm the scene starts with Warrior, HUD, beat bar, starting enemies, and `ArenaController.waveCount = 1`.
+
+During test:
+
+- Use `Fire1` for rhythm attacks, `Left Shift` for dodge, `E` for parry, `Q` for ability, and movement axes for positioning.
+- Watch HP, score, combo, beat bar, attack state, cooldowns, enemies remaining, and arena state.
+- Clear the starting wave for `Session Complete - press R to retry`.
+- Let the Warrior die if validating the failure path; the HUD should show `Defeat - press R to restart`.
+- Use `F3` for the optional telemetry overlay, `F4` start new run, `F5` write run, and `F6` clear current run data only when doing developer capture.
+
+After test:
+
+- Defeat and session completion write telemetry automatically; use `F5` only for a manual write.
+- Analyze `Application.persistentDataPath/Telemetry/alpha_warrior_batch_001`.
+- Paste the analyzer summary into the Warrior telemetry batch template below.
+- Keep short/smoke runs under 20 seconds out of balance decisions.
+
+Known limitations:
+
+- Attack and dodge/evade visual states are placeholder-only.
+- Boss visuals use the scaled KayKit Barbarian placeholder.
+- Human readability review, mobile touch controls, and device performance validation are still pending.
+- The next evidence gate is a real 5-10 run Warrior telemetry batch.
 
 ## Visual Asset Scaffold
 
@@ -335,7 +372,7 @@ When a batch label is set, JSON is written to:
 
 Batch labels are sanitized to letters, numbers, `_`, and `-`. Leave the batch label empty to preserve the old root-folder behavior. Optional run notes are stored inside the JSON snapshot and are not added to the file name.
 
-Captured fields include schema version, scene name, player class, batch label, run notes, app/Unity versions, run start/end timestamps, run duration, Perfect/Good/Miss hit counts, Perfect/Good/Miss dodge counts, signed timing offsets, average timing offset, time to player death, total survival time, enemy kill count, average time per kill, max combo, average combo length, total score, and score per minute.
+Captured fields include schema version, scene name, player class, batch label, run notes, run-ended flag, run end reason, app/Unity versions, run start/end timestamps, run duration, Perfect/Good/Miss hit counts, Perfect/Good/Miss dodge counts, signed timing offsets, average timing offset, time to player death, total survival time, enemy kill count, average time per kill, max combo, average combo length, total score, and score per minute.
 
 Avoid adding per-frame allocations to telemetry. Keep reporting event-driven and write files only at run end or explicit developer request.
 
@@ -375,7 +412,7 @@ Phase 9.5 tuning loop:
 
 Warnings include observed metric, target range, and tuning levers to inspect. They are recommendations only; do not auto-apply changes from warnings. High miss rate points to `RhythmConfig.goodWindow`, telegraph duration, and beat alignment; early/late timing bias points to input bias and beat visual alignment; low Perfect dodge points to dodge timing, telegraph readability, and dodge cooldown penalty; low combo points to miss penalty, hit feedback clarity, and enemy interruption timing.
 
-Phase 9.6 5-10 run Warrior batch:
+Alpha 5-10 run Warrior batch:
 
 1. Run `Game > Vertical Slice > Create Or Refresh Vertical Slice`.
 2. Run `Game > Vertical Slice > Validate Startup Scene`.
@@ -387,7 +424,7 @@ Phase 9.6 5-10 run Warrior batch:
 
 ## Warrior Telemetry Batch Template
 
-Batch label:
+Batch label: alpha_warrior_batch_001
 Date:
 Build/commit:
 Runs:
@@ -442,6 +479,8 @@ Scripts/run-unity-tests.sh
 "$HOME/Unity/Hub/Editor/6000.4.4f1/Editor/Unity" -batchmode -projectPath "$PWD" -executeMethod Game.Editor.ProjectTestRunner.ValidateTelemetryAnalyzerCommandLine -quit -logFile /tmp/mobile-game-telemetry-validation.log
 "$HOME/Unity/Hub/Editor/6000.4.4f1/Editor/Unity" -batchmode -projectPath "$PWD" -executeMethod Game.Editor.ProjectTestRunner.ValidateGeneratorIdempotencyCommandLine -quit -logFile /tmp/mobile-game-generator-idempotency.log
 "$HOME/Unity/Hub/Editor/6000.4.4f1/Editor/Unity" -batchmode -projectPath "$PWD" -executeMethod Game.Editor.ProjectTestRunner.ValidateVisualAssetSetupCommandLine -quit -logFile /tmp/mobile-game-visual-validation.log
+"$HOME/Unity/Hub/Editor/6000.4.4f1/Editor/Unity" -batchmode -projectPath "$PWD" -executeMethod Game.Editor.ProjectTestRunner.ValidateAssetArchiveCommandLine -quit -logFile /tmp/mobile-game-archive-validation.log
+"$HOME/Unity/Hub/Editor/6000.4.4f1/Editor/Unity" -batchmode -projectPath "$PWD" -executeMethod Game.Editor.ProjectTestRunner.ValidateAlphaPlaytestCommandLine -quit -logFile /tmp/mobile-game-alpha-validation.log
 ```
 
 `Scripts/run-unity-tests.sh` invokes `Game.Editor.ProjectTestRunner.RunEditMode` and `Game.Editor.ProjectTestRunner.RunPlayMode`, writes JSON summaries to `TestResults/editmode-summary.json` and `TestResults/playmode-summary.json`, writes `TestResults/summary.txt`, prints totals, and exits nonzero when summaries are missing, Unity exits nonzero, log scans find compile/null/missing-reference markers, or tests fail.
@@ -451,8 +490,8 @@ The JSON summaries are the authoritative test report. `-testResults` XML may sti
 Current expected discovery after Phase 9 telemetry:
 
 - EditMode discovers the core system and prefab validation tests.
-- EditMode also covers telemetry analysis parsing, malformed-file handling, short-session filtering, warning generation, healthy samples, and editor/runtime separation.
-- PlayMode discovers the rhythm judgement test, vertical slice smoke tests, and telemetry smoke test.
+- EditMode also covers telemetry analysis parsing, alpha run end reason parsing, malformed-file handling, short-session filtering, warning generation, healthy samples, alpha scene/docs/archive validation, and editor/runtime separation.
+- PlayMode discovers the rhythm judgement test, vertical slice smoke tests, alpha session complete/retry, defeat telemetry write, and telemetry smoke test.
 - Both modes should remain separated by `Game.Tests.EditMode.asmdef` and `Game.Tests.PlayMode.asmdef`.
 
 The startup smoke test is `VerticalSlicePlayModeTests.EditorPlayButtonStartupSceneLoadsPlayableVerticalSlice`. It calls the startup validator, checks the configured Play Mode start scene path, loads the actual vertical slice scene by path, waits several frames, asserts one player/camera/HUD/rhythm/score/telemetry/arena path exists, confirms `Time.timeScale` is restored to `1`, and fails on fatal startup log markers.
@@ -489,7 +528,7 @@ Next variables to inspect after real playtest telemetry: Perfect hit rate, miss 
 - Telemetry writes local developer JSON only. It is not network analytics, privacy tooling, or production reporting.
 - Short automated telemetry smoke tests can produce exaggerated score-per-minute values because the run duration is intentionally tiny.
 - Generator idempotency validation proves the second run is stable, but intentional first-run generator changes still need normal code review.
-- Phase 9.6 tuning is not human-validated yet; avoid a second balance pass until a real 5-10 run Warrior batch exists.
+- Alpha tuning is not human-validated yet; avoid a second balance pass until a real 5-10 run Warrior batch exists.
 - Visual prefabs are placeholders until selected third-party art is manually imported and assigned.
 - Mage, Archer, Healer, and class swap are preserved as deferred content and should not be treated as current gameplay.
 - Projectile ability code remains for inactive classes and ranged enemies; Warrior gameplay should not depend on it.
@@ -499,7 +538,7 @@ Next variables to inspect after real playtest telemetry: Perfect hit rate, miss 
 
 ## Recommended Next Sequence
 
-1. Run a real 5-10 session Warrior telemetry batch and compare analyzer output against the Phase 9.6 tuning log before changing more balance.
+1. Run a real 5-10 session Warrior telemetry batch with `alpha_warrior_batch_001` and compare analyzer output against the alpha tuning targets before changing more balance.
 2. Add real placeholder Warrior attack, dodge, and parry clips that call the existing animation event relay methods.
 3. Improve boss/elite telegraph readability and punish-window feedback.
 4. Add mobile touch controls for attack, dodge, parry, ability, restart, and optional developer overlay access.

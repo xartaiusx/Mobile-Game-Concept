@@ -43,7 +43,7 @@ public class ArenaControllerTests
     }
 
     [Test]
-    public void EndlessWaveClearAdvancesToNextWaveWithoutVictory()
+    public void AlphaWaveLimitCompletesSession()
     {
         var playerGo = new GameObject("player");
         var player = playerGo.AddComponent<Fighter>();
@@ -54,6 +54,28 @@ public class ArenaControllerTests
         var arenaGo = new GameObject("arena");
         var arena = arenaGo.AddComponent<ArenaController>();
         arena.ConfigureForTests(player, new BaseEnemy[] { enemy }, null, scaler);
+        arena.ConfigureSessionWaveLimitForTests(1);
+
+        arena.BeginArena();
+        enemy.TakeDamage(999);
+
+        Assert.AreEqual(ArenaState.Victory, arena.State);
+        Assert.That(arena.LastStateMessage, Does.Contain("Session Complete"));
+    }
+
+    [Test]
+    public void EndlessWaveClearAdvancesToNextWaveWhenSessionLimitDisabled()
+    {
+        var playerGo = new GameObject("player");
+        var player = playerGo.AddComponent<Fighter>();
+        var enemyGo = new GameObject("enemy");
+        var enemy = enemyGo.AddComponent<TestEnemy>();
+        var scaler = new GameObject("scaler").AddComponent<DifficultyScaler>();
+
+        var arenaGo = new GameObject("arena");
+        var arena = arenaGo.AddComponent<ArenaController>();
+        arena.ConfigureForTests(player, new BaseEnemy[] { enemy }, null, scaler);
+        arena.ConfigureSessionWaveLimitForTests(0);
 
         arena.BeginArena();
         enemy.TakeDamage(999);
@@ -79,6 +101,7 @@ public class ArenaControllerTests
         var arenaGo = new GameObject("arena");
         var arena = arenaGo.AddComponent<ArenaController>();
         arena.ConfigureForTests(player, new BaseEnemy[] { enemy }, null, scaler);
+        arena.ConfigureSessionWaveLimitForTests(0);
 
         arena.BeginArena();
         enemy.TakeDamage(999);
@@ -86,6 +109,7 @@ public class ArenaControllerTests
         Assert.AreEqual(2, arena.CurrentWave);
 
         arena.ConfigureForTests(player, null, null, scaler);
+        arena.ConfigureSessionWaveLimitForTests(0);
         arena.BeginArena();
 
         Assert.AreEqual(1, arena.CurrentWave);
