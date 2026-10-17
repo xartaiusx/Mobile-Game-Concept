@@ -23,9 +23,9 @@ The project uses the built-in render pipeline and legacy Input Manager. For scen
 
 ### Controls
 
-- Move: `Horizontal` / `Vertical` inputs
-- Jump: `Jump`
-- Attack: `Fire1`
+- Move: **WASD** or **arrow keys** (`Horizontal` / `Vertical`)
+- Jump: **Space** (`Jump`)
+- Attack: **Left Ctrl** or **left mouse button** (`Fire1`)
 - Slash ability: **Q**
 - Dodge: **Left Shift**
 - Parry: **E**
