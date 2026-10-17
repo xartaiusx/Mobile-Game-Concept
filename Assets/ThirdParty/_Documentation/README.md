@@ -1,5 +1,8 @@
-# Third-Party Documentation And Non-Runtime Extras
+# Asset Reference Material
 
-This folder holds imported screenshots, URL shortcuts, and other non-runtime reference files that are useful for provenance but should not be wired into gameplay.
+Imported previews, screenshots, URL shortcuts, and other reference files retained for provenance. They are not gameplay assets and should not be connected to scenes or prefabs.
 
-These files are safe to delete manually if repository size becomes a concern, provided license/source records remain in `Assets/ThirdParty/Licenses/ASSET_LICENSES.md`.
+Keep source and license records in the [asset license manifest](../Licenses/ASSET_LICENSES.md). Reference images may be moved out of the repository when unnecessary, provided required license notices and provenance are preserved.
+
+See [Third-Party Assets](../README.md) for the active imports.
+
